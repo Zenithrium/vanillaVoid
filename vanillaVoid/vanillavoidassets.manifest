@@ -1,0 +1,69 @@
+ManifestFileVersion: 0
+CRC: 1079872672
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 593b29396b0f8ea58fbbb2ff329e30f8
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 1fe3abd029edb3522ae5dbbc711d0a74
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 33
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/Textures/Materials/Item/Mess/gooptexture.mat
+- Assets/Models/Prefabs/Item/mdlClockworkPickup.prefab
+- Assets/Textures/Materials/Item/Mess/pottexture.mat
+- Assets/Textures/Icons/Item/AbyssalAdze/adzeIcon.png
+- Assets/Textures/Icons/Item/OrreryItem/orreryIcon.png
+- Assets/Models/Prefabs/Item/MessItem/mdlMessDisplay.prefab
+- Assets/Textures/Materials/Item/AbyssalAdze/MiscMetalTexture.mat
+- Assets/Textures/Icons/Item/ClockworkWatch/clockworkIconVibrant.png
+- Assets/Textures/Materials/Item/ClockworkWatch/pillarMat.mat
+- Assets/Models/Prefabs/Item/MessItem/mdlMessPickup.prefab
+- Assets/Textures/Icons/Item/MessItem/brokenMessIconLarge.png
+- Assets/Textures/Materials/Item/Mess/voidorb.mat
+- Assets/Textures/Materials/Item/AbyssalAdze/HeadMaterial.mat
+- Assets/Textures/Materials/Item/Mess/metallictexture.mat
+- Assets/Models/Prefabs/Item/ClockworkWatch/mdlClockworkPickup.prefab
+- Assets/Textures/Materials/Item/Mess/crabtexture.mat
+- Assets/Textures/Icons/Item/ClockworkWatch/clockworkIcon.png
+- Assets/Textures/Materials/Item/Mess/swordtexture.mat
+- Assets/Textures/Icons/Item/MessItem/brokenMessIcon.png
+- Assets/Textures/Materials/Item/ClockworkWatch/whiteMat.mat
+- Assets/Models/Prefabs/Item/ClockworkWatch/mdlClockworkDisplay.prefab
+- Assets/Textures/Materials/Item/ClockworkWatch/valveMat.mat
+- Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryPickup.prefab
+- Assets/Textures/Icons/Item/OrbItem/OrbIcon.png
+- Assets/Textures/Materials/Item/ClockworkWatch/gearMat.mat
+- Assets/Textures/Materials/Item/ClockworkWatch/mainGrayMat.mat
+- Assets/Textures/Materials/Item/Mess/armtexture.mat
+- Assets/Textures/Materials/Item/ClockworkWatch/backMat.mat
+- Assets/Textures/Materials/Item/AbyssalAdze/HandleLowerTexture.mat
+- Assets/Textures/Materials/Item/AbyssalAdze/orbTranspTexture.mat
+- Assets/Models/Prefabs/Item/AbyssalAdze/mdlAdzeDisplay.prefab
+- Assets/Textures/Materials/Item/AbyssalAdze/HandleTexture.mat
+- Assets/Textures/Materials/Item/Mess/geartexture.mat
+- Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryDisplay.prefab
+- Assets/Textures/Icons/Buffs/shatterStatus.png
+- Assets/Models/Prefabs/Item/mdlClockworkDisplay.prefab
+- Assets/Models/Prefabs/Item/AbyssalAdze/mdlAdzePickup.prefab
+Dependencies: []

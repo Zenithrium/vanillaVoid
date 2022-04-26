@@ -1,0 +1,89 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="Artifact\ExampleArtifact.cs" />
+		<Compile Remove="Equipment\EliteEquipment\ExampleEliteEquipment.cs" />
+		<Compile Remove="Equipment\ExampleEquipment.cs" />
+		<Compile Remove="Equipment\ExampleEquipWithTargeting.cs" />
+		<Compile Remove="Items\ExampleItem.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="vanillavoidassets" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="vanillavoidassets" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="libs\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BepInEx.Analyzers" Version="1.0.*">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="BepInEx.Core" Version="5.4.19" />
+		<PackageReference Include="RiskOfRain2.GameLibs" Version="1.2.3.1-r.0" />
+		<PackageReference Include="UnityEngine.Modules" Version="2019.4.26" />
+		<PackageReference Include="R2API" Version="4.3.5" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="BepInEx">
+			<HintPath>libs\BepInEx.dll</HintPath>
+		</Reference>
+		<Reference Include="HGCSharpUtils">
+			<HintPath>libs\HGCSharpUtils.dll</HintPath>
+		</Reference>
+		<Reference Include="MMHOOK_ror2">
+			<HintPath>libs\MMHOOK_RoR2.dll</HintPath>
+		</Reference>
+		<Reference Include="Mono.Cecil">
+			<HintPath>libs\Mono.Cecil.dll</HintPath>
+		</Reference>
+		<Reference Include="MonoMod.RuntimeDetour">
+			<HintPath>libs\MonoMod.RuntimeDetour.dll</HintPath>
+		</Reference>
+		<Reference Include="MonoMod.Utils">
+			<HintPath>libs\MonoMod.Utils.dll</HintPath>
+		</Reference>
+		<Reference Include="Unity.Postprocessing.Runtime">
+			<HintPath>libs\Unity.Postprocessing.Runtime.dll</HintPath>
+		</Reference>
+		<Reference Include="Unity.TextMeshPro">
+			<HintPath>libs\Unity.TextMeshPro.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine">
+			<HintPath>libs\UnityEngine.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.AssetBundleModule">
+			<HintPath>libs\UnityEngine.AssetBundleModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.CoreModule">
+			<HintPath>libs\UnityEngine.CoreModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.ParticleSystemModule">
+			<HintPath>libs\UnityEngine.ParticleSystemModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.PhysicsModule">
+			<HintPath>libs\UnityEngine.PhysicsModule.dll</HintPath>
+		</Reference>
+		<Reference Include="UnityEngine.UI">
+			<HintPath>libs\UnityEngine.UI.dll</HintPath>
+		</Reference>
+		<Reference Include="VoidItemAPI">
+			<HintPath>libs\VoidItemAPI.dll</HintPath>
+		</Reference>
+		<Reference Include="Wwise">
+			<HintPath>libs\Wwise.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+</Project>
