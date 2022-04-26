@@ -344,8 +344,8 @@ namespace vanillaVoid.Items
         }
 
         private void OrreryCritBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
-            CharacterBody victimBody = self.GetComponent<CharacterBody>();
-            if (damageInfo.attacker)
+            CharacterBody victimBody = self.body;
+            if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
             {
                 CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
                 if (attackerBody.inventory)
@@ -393,7 +393,9 @@ namespace vanillaVoid.Items
                             //sorry this is complete ass coding. i am stupid today.
                         }
                     }
+
                 }
+                
             }
             orig(self, damageInfo);
         }

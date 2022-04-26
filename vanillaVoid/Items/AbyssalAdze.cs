@@ -287,19 +287,22 @@ namespace vanillaVoid.Items
         }
 
         private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
-            CharacterBody victimBody = self.GetComponent<CharacterBody>();
-            if (damageInfo.attacker)
+            CharacterBody victimBody = self.body;
+            if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
             {
                 CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
-                var stackCount = GetCount(attackerBody);
-
-                if (stackCount > 0)
+                if (attackerBody.inventory)
                 {
-                    var healthPercentage = self.health / self.fullCombinedHealth;
-                    var mult = (1 - self.combinedHealthFraction) * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
+                    var stackCount = GetCount(attackerBody);
 
-                    damageInfo.damage = damageInfo.damage + (damageInfo.damage * mult);
-                    //damageInfo.damage = damageInfo.damage * (1 + (victimBody.GetBuffCount(adzeDebuff) * dmgPerDebuff.Value));
+                    if (stackCount > 0)
+                    {
+                        var healthPercentage = self.health / self.fullCombinedHealth;
+                        var mult = (1 - self.combinedHealthFraction) * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
+
+                        damageInfo.damage = damageInfo.damage + (damageInfo.damage * mult);
+                        //damageInfo.damage = damageInfo.damage * (1 + (victimBody.GetBuffCount(adzeDebuff) * dmgPerDebuff.Value));
+                    }
                 }
             }
             orig(self, damageInfo);
