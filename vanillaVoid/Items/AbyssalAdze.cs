@@ -49,8 +49,6 @@ namespace vanillaVoid.Items
 
         public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
 
-        //public BuffDef adzeDebuff { get; private set; }
-
         public override void Init(ConfigFile config)
         {
             CreateConfig(config);

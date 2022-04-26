@@ -326,7 +326,7 @@ namespace vanillaVoid.Items
 
                 //List<ItemIndex> itemList = new List<ItemIndex>(self.body.inventory.itemAcquisitionOrder);
                 //Util.ShuffleList(itemList, watchVoidRng);
-                //
+
                 //self.body.inventory.GiveItem(ItemBase<BrokenClockworkMechanism>.instance.ItemDef, 1);
                 //self.body.inventory.RemoveItem(ItemCatalog.GetItemDef(itemList[0]), 1);
                 //CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, ItemCatalog.GetItemDef(itemList[0]).itemIndex, ItemBase<BrokenClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);

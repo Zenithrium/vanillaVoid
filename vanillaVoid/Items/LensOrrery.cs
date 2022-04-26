@@ -12,14 +12,16 @@ using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using VoidItemAPI;
 using System.Linq;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 
 namespace vanillaVoid.Items
 {
-    public class CritOrrery : ItemBase<CritOrrery>
+    public class LensOrrery : ItemBase<LensOrrery>
     {
-        public static ConfigEntry<float> critGlasesBonus;
+        public static ConfigEntry<float> lensBonus;
 
-        public static ConfigEntry<float> stackingGlassesBonus;
+        public static ConfigEntry<float> stackingLensBonus;
 
         public static ConfigEntry<float> baseCrit;
 
@@ -31,13 +33,13 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "ORRERY_ITEM";
 
-        public override string ItemPickupDesc => "<style=cIsUtility>Increased effectiveness</style> of Lens-Maker's Glasses. Your <style=cIsDamage>Critical strikes</style> can dip an <style=cIsDamage>additional time</style>. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+        public override string ItemPickupDesc => "<style=cIsUtility>Increased effectiveness</style> of <style=cIsUtility>lens-related</style> items. Your <style=cIsDamage>Critical strikes</style> can dip an <style=cIsDamage>additional time</style>. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
 
-        public override string ItemFullDescription => $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses are <style=cIsUtility>{critGlasesBonus.Value * 100}%</style> <style=cStack>(+{stackingGlassesBonus.Value * 100}% per stack)</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can dip <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+        public override string ItemFullDescription => $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses and Lost Seer's Lenses are <style=cIsUtility>{lensBonus.Value * 100}%</style> <style=cStack>(+{stackingLensBonus.Value * 100}% per stack)</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can dip <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
 
-        public override string ItemLore => $"<style=cSub>Order: Lens-Maker's Orrery \nTracking Number: ******** \nEstimated Delivery: 1/13/2072 \nShipping Method: High Priority/Fragile/Confidiential \nShipping Address: [REDACTED] \nShipping Details: \n\n </style>" + 
-            "The Lens-Maker, as mysterious as they are influential. From my research I have surmised that she has been appointed to \"Final Verdict\", the most prestigious role of leadership in the House Beyond. Our team managed to locate a workshop of hers where she was supposedly working on some never-before concieved tech - but something was off." +
-            "Looking through her schematics and trinkets I found something odd - something unlike what I was anticipating. A simple orrery, clearly her design, but without her classic red, replaced with a peculiar purple. At first I worried that when she learned of our arrival, when she left in a rush, that we had ruined some of her masterpieces...but maybe it's best we interrupted her." +
+        public override string ItemLore => $"<style=cSub>Order: Lens-Maker's Orrery \nTracking Number: ******** \nEstimated Delivery: 1/13/2072 \nShipping Method: High Priority/Fragile/Confidiential \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" + 
+            "The Lens-Maker, as mysterious as they are influential. From my research I have surmised that she has been appointed to \"Final Verdict\", the most prestigious role of leadership in the House Beyond. Our team managed to locate a workshop of hers where she was supposedly working on some never-before concieved tech - but something was off. " +
+            "Looking through her schematics and trinkets I found something odd - something unlike what I was anticipating. A simple orrery, clearly her design, but without her classic red, replaced with a peculiar purple. At first I worried that when she learned of our arrival, when she left in a rush, that we had ruined some of her masterpieces...but maybe it's best we interrupted her. " +
             "\n\nGiven that this is one of a kind, and quite a special work of hers at that; I expect much more than just currency in payment.";
 
         public override ItemTier Tier => ItemTier.VoidTier3;
@@ -66,8 +68,8 @@ namespace vanillaVoid.Items
         {
             string name = ItemName == "Lens-Maker's Orrery" ? "Lens-Makers Orrery" : ItemName;
 
-            critGlasesBonus = config.Bind<float>("Item: " + name, "Crit Glasses Buff", .2f, "Adjust the percent buff to crit glasses on the first stack.");
-            stackingGlassesBonus = config.Bind<float>("Item: " + name, "Crit Glasses Buff per Stack", .1f, "Adjust the percent buff to crit glasses per stack.");
+            lensBonus = config.Bind<float>("Item: " + name, "Crit Glasses Buff", .2f, "Adjust the percent buff to crit glasses on the first stack.");
+            stackingLensBonus = config.Bind<float>("Item: " + name, "Crit Glasses Buff per Stack", .1f, "Adjust the percent buff to crit glasses per stack.");
             additionalCritLevels = config.Bind<float>("Item: " + name, "Additional Crit Levels", 1f, "Adjust the number of additional crit levels each stack allows.");
             baseCrit = config.Bind<float>("Item: " + name, "Base Crit Increase", 5f, "Adjust the percent crit increase the first stack provides.");
             voidPair = config.Bind<string>("Item: " + name, "Item to Corrupt", "CritDamage", "Adjust which item this is the void pair of.");
@@ -320,7 +322,6 @@ namespace vanillaVoid.Items
         public override void Hooks()
         {
             On.RoR2.HealthComponent.TakeDamage += OrreryCritBonus;
-            //On.RoR2.CharacterBody.RecalculateStats += AddGlassesBonus;
             RecalculateStatsAPI.GetStatCoefficients += CalculateStatsHook;
         }
 
@@ -330,13 +331,13 @@ namespace vanillaVoid.Items
             {
                 float levelBonus = sender.level - 1f;
                 int glassesCount = sender.inventory.GetItemCount(RoR2Content.Items.CritGlasses);
-                int orreryCount = sender.inventory.GetItemCount(ItemBase<CritOrrery>.instance.ItemDef);
+                int orreryCount = sender.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
                 if (orreryCount > 0)
                 {
                     args.critAdd += baseCrit.Value;
                     if (glassesCount > 0)
                     {
-                        args.critAdd += (glassesCount * 10 * (critGlasesBonus.Value + ((orreryCount - 1) * stackingGlassesBonus.Value)));
+                        args.critAdd += (glassesCount * 10 * (lensBonus.Value + ((orreryCount - 1) * stackingLensBonus.Value)));
                     }
                 }
             }
@@ -347,53 +348,50 @@ namespace vanillaVoid.Items
             if (damageInfo.attacker)
             {
                 CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
-                var orreryCount = GetCount(attackerBody);
-
-                if (orreryCount > 0)
+                if (attackerBody.inventory)
                 {
-                    var critChance = attackerBody.crit;
-                    //self.crit returns 100 if you have 100% chance
-                    
-                    if(critChance > 100) 
+                    var orreryCount = GetCount(attackerBody);
+                    //int glassesCount = attackerBody.inventory.GetItemCount(RoR2Content.Items.CritGlasses);
+                    if (orreryCount > 0)
                     {
-                        float critMod = critChance % 100; //chance for next tier of crit
-                        float baseLevel = ((critChance - critMod) / 100);
-                        Debug.Log("crit bonus level is " + baseLevel);
-                        if (baseLevel > orreryCount + 1)
-                        {
-                            baseLevel = orreryCount + 1; //cap it based on number of orrerys
-                            Debug.Log("crit was too high! bonus level is now " + baseLevel);
-                        }
-                        else
-                        {
-                            if (Util.CheckRoll(critMod, attackerBody.master))
-                            {
-                                baseLevel += 1;
+                        var critChance = attackerBody.crit;
+                        //self.crit returns 100 if you have 100% chance
 
-                                Debug.Log("crited! bonus level is" + baseLevel);
+                        if (critChance > 100)
+                        {
+                            float critMod = critChance % 100; //chance for next tier of crit
+                            float baseLevel = ((critChance - critMod) / 100);
+                            Debug.Log("crit bonus level is " + baseLevel);
+                            if (baseLevel >= orreryCount + 1)
+                            {
+                                baseLevel = orreryCount + 1; //cap it based on number of orrerys
+                                Debug.Log("crit was too high! bonus level is now " + baseLevel);
                             }
                             else
                             {
-                                //Debug.Log("no crit. bonus level is" + baseLevel);
+                                if (Util.CheckRoll(critMod, attackerBody.master))
+                                {
+                                    baseLevel += 1;
+
+                                    Debug.Log("crited! bonus level is" + baseLevel);
+                                }
+                                else
+                                {
+                                    //Debug.Log("no crit. bonus level is" + baseLevel);
+                                }
                             }
+                            //Debug.Log("damage was " + damageInfo.damage);
+                            if (baseLevel > 1)
+                            {
+                                damageInfo.damage *= (attackerBody.critMultiplier * baseLevel);
+                                //damageInfo.damageType |= DamageType.VoidDeath; 
+                                damageInfo.damageColorIndex = DamageColorIndex.Void;
+                                damageInfo.damage /= attackerBody.critMultiplier; //this is because the last crit (the normal one) isn't really handled here, and i didn't want to do an IL hook again
+                            }
+                            //Debug.Log("damage is " + damageInfo.damage);
+
+                            //sorry this is complete ass coding. i am stupid today.
                         }
-                        //Debug.Log("crit bonus level final is" + baseLevel);
-
-                        //if (Util.CheckRoll(critMod, attackerBody.master))
-                        //{
-                        //    critLevel += 1; 
-                        //}
-                        //Debug.Log("crit bonus level after roll is" + critBonusLevel);
-                        //Debug.Log("damage was " + damageInfo.damage);
-                        if(baseLevel > 1)
-                        {
-                            damageInfo.damage *= (attackerBody.critMultiplier * (baseLevel - 1));
-                        }
-                        //damageInfo.damage *= (attackerBody.critMultiplier * baseLevel);
-                        //Debug.Log("damage is " + damageInfo.damage);
-
-                        //sorry this is complete ass coding. i am stupid today
-
                     }
                 }
             }

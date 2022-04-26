@@ -73,10 +73,5 @@ namespace vanillaVoid.Items
             return rules;
 
         }
-
-        //public override void Hooks()
-        //{
-        // 
-        //}
     }
 }

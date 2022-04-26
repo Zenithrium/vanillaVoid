@@ -17,6 +17,8 @@ using RoR2;
 using HarmonyLib;
 using VoidItemAPI;
 using UnityEngine.AddressableAssets;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 
 namespace vanillaVoid
 {
@@ -49,6 +51,35 @@ namespace vanillaVoid
     private void Awake()
         {
             ModLogger = Logger;
+
+            IL.RoR2.HealthComponent.TakeDamage += (il) => //add lost seer's interaction with LensOrrery
+            {
+                ILCursor c = new ILCursor(il);
+                c.GotoNext(
+                    x => x.MatchCallOrCallvirt<CharacterBody>("get_inventory"),
+                    x => x.MatchLdsfld(typeof(DLC1Content.Items), "CritGlassesVoid"),
+                    x => x.MatchCallOrCallvirt<Inventory>("GetItemCount"),
+                    x => x.MatchConvR4(),
+                    x => x.MatchLdcR4(0.5f)
+                    );
+                c.Index += 4;
+                //c.Next.Operand = 100f;
+                c.Remove();
+                c.Emit(OpCodes.Ldloc_1);
+                c.EmitDelegate<Func<CharacterBody, float>>((cb) =>
+                {
+                    if (cb.master.inventory)
+                    {
+                        int orrery = cb.master.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
+                        if (orrery > 0)
+                        {
+                            return 0.5f + (.5f * (LensOrrery.lensBonus.Value + (LensOrrery.stackingLensBonus.Value * (orrery - 1))));
+                        }
+                    }
+                    return 0.5f;
+                });
+               
+            };
 
             // Don't know how to create/use an asset bundle, or don't have a unity project set up?
             // Look here for info on how to set these up: https://github.com/KomradeSpectre/AetheriumMod/blob/rewrite-master/Tutorials/Item%20Mod%20Creation.md#unity-project
