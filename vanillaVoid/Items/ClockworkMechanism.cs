@@ -32,7 +32,7 @@ namespace vanillaVoid.Items
 
         public override string ItemPickupDesc => "Increase the number of <style=cIsUtility>interactables</style> per stage. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
 
-        public override string ItemFullDescription => $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(directorBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+        public override string ItemFullDescription => $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
 
         public override string ItemLore => $"\"The clock is always ticking. The hands of time move independently of your desire for them to still - the sands flow eternally and will never pause. Use what little time you have efficiently - once you've lost that time, it's quite hard to find more.\"" +
             "\n\n- Lost Journal, recovered from Petrichor V";
