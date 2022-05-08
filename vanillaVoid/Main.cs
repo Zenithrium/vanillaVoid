@@ -19,13 +19,16 @@ using VoidItemAPI;
 using UnityEngine.AddressableAssets;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using RoR2.Orbs;
+using UnityEngine.Networking;
+using RoR2.Projectile;
 
 namespace vanillaVoid
 {
     [BepInPlugin(ModGuid, ModName, ModVer)]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
-    [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI), nameof(EliteAPI), nameof(RecalculateStatsAPI))]
+    [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI), nameof(EliteAPI), nameof(RecalculateStatsAPI), nameof(PrefabAPI))]
 
     [BepInDependency(VoidItemAPI.VoidItemAPI.MODGUID)]
 
@@ -33,7 +36,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.0.0";
+        public const string ModVer = "1.1.0";
 
         public static ExpansionDef sotvDLC; 
 
@@ -47,12 +50,14 @@ namespace vanillaVoid
         //Provides a direct access to this plugin's logger for use in any of your other classes.
         public static BepInEx.Logging.ManualLogSource ModLogger;
 
-       
-    private void Awake()
+
+        public static GameObject bladeObject;
+
+        private void Awake()
         {
             ModLogger = Logger;
 
-            IL.RoR2.HealthComponent.TakeDamage += (il) => //add lost seer's interaction with LensOrrery
+            IL.RoR2.HealthComponent.TakeDamage += (il) => //LensOrrery and lost seer's interaction 
             {
                 ILCursor c = new ILCursor(il);
                 c.GotoNext(
@@ -81,16 +86,36 @@ namespace vanillaVoid
                
             };
 
-            // Don't know how to create/use an asset bundle, or don't have a unity project set up?
-            // Look here for info on how to set these up: https://github.com/KomradeSpectre/AetheriumMod/blob/rewrite-master/Tutorials/Item%20Mod%20Creation.md#unity-project
-
-            //learn what sotv is 
-            sotvDLC = ExpansionCatalog.expansionDefs.FirstOrDefault(x => x.nameToken == "DLC1_NAME");
+            sotvDLC = ExpansionCatalog.expansionDefs.FirstOrDefault(x => x.nameToken == "DLC1_NAME");  //learn what sotv is 
 
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("vanillaVoid.vanillavoidassets"))
             {
                 MainAssets = AssetBundle.LoadFromStream(stream);
             }
+            
+            //var swordClass = new ExeSwordObject();
+            //swordClass.Initalize();
+            
+            On.RoR2.CharacterBody.OnSkillActivated += ExtExhaustFireProjectile;
+
+            GlobalEventManager.onCharacterDeathGlobal += ExeBladeExtraDeath;
+            //ExeBladeCreateProjectile();
+
+
+            //PrefabAPI.InstantiateClone(bladeObject, "exeBladePrefab", true);
+            bladeObject = MainAssets.LoadAsset<GameObject>("mdlBladeWorldObject.prefab"); //lmao it makes the pickup spin WILDLY if you use mdlBladePickup
+            bladeObject.AddComponent<TeamFilter>();
+            bladeObject.AddComponent<HealthComponent>();
+            bladeObject.AddComponent<NetworkIdentity>();
+            bladeObject.AddComponent<BoxCollider>();
+            bladeObject.AddComponent<Rigidbody>();
+           
+            //bladeObject.AddComponent<Rigidbody>();
+            //PrefabAPI.RegisterNetworkPrefab(bladeObject);
+            R2API.ContentAddition.AddNetworkedObject(bladeObject);
+
+            // Don't know how to create/use an asset bundle, or don't have a unity project set up?
+            // Look here for info on how to set these up: https://github.com/KomradeSpectre/AetheriumMod/blob/rewrite-master/Tutorials/Item%20Mod%20Creation.md#unity-project
 
             //This section automatically scans the project for all artifacts
             var ArtifactTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(ArtifactBase)));
@@ -224,5 +249,148 @@ namespace vanillaVoid
             }
             return false;
         }
+        private void ExtExhaustFireProjectile(On.RoR2.CharacterBody.orig_OnSkillActivated orig, RoR2.CharacterBody self, RoR2.GenericSkill skill)
+        {
+            var inventoryCount = self.inventory.GetItemCount(ItemBase<ExtraterrestrialExhaust>.instance.ItemDef);
+            if (inventoryCount > 0 && skill.cooldownRemaining > 0) //maybe make this higher
+            {
+                var playerPos = self.GetComponent<CharacterBody>().corePosition;
+                float skillCD = skill.baseRechargeInterval;
+                
+                //Debug.Log("cooldown is " + skillCD);
+                int missleCount = (int)Math.Ceiling(skillCD / ItemBase<ExtraterrestrialExhaust>.instance.secondsPerRocket.Value);
+                //Debug.Log("rockets firing: " + missleCount);
+                
+                StartCoroutine(delayedRockets(self, missleCount, inventoryCount)); //this can probably be done better
+            }
+
+            orig(self, skill);
+        }
+
+        IEnumerator delayedRockets(RoR2.CharacterBody player, int missileCount, int inventoryCount)
+        {
+            for (int i = 0; i < missileCount; i++)
+            {
+                yield return new WaitForSeconds(.1f);
+                var playerPos = player.GetComponent<CharacterBody>().corePosition;
+                float random = UnityEngine.Random.Range(-30, 30);
+                Quaternion Upwards = Quaternion.Euler(270, random, 0);
+                Debug.Log(((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100));
+                FireProjectileInfo fireProjectileInfo = new FireProjectileInfo()
+                {
+                    owner = player.gameObject,
+                    damage = player.damage * ((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100),
+                    position = player.corePosition,
+                    rotation = Upwards,
+                    crit = player.RollCrit(),
+                    projectilePrefab = ExtraterrestrialExhaust.RocketProjectile,
+                    force = 10f,
+                    //useSpeedOverride = true,
+                    //speedOverride = 1f,
+                };
+                ProjectileManager.instance.FireProjectile(fireProjectileInfo);
+            } 
+        }
+
+        private void ExeBladeExtraDeath(DamageReport dmgReport)
+        {
+            if (!dmgReport.attacker || !dmgReport.attackerBody || !dmgReport.victim || !dmgReport.victimBody || !dmgReport.victimIsElite)
+            {
+                return; //end func if death wasn't killed by something real enough
+            }
+            var exeComponent = dmgReport.victimBody.GetComponent<ExeToken>();
+            if (exeComponent)
+            {
+                return; //prevent game crash  
+            }
+
+            CharacterBody victimBody = dmgReport.victimBody;
+            dmgReport.victimBody.gameObject.AddComponent<ExeToken>();
+            CharacterBody attackerBody = dmgReport.attackerBody;
+            if (attackerBody.inventory)
+            {
+                var bladeCount = attackerBody.inventory.GetItemCount(ItemBase<ExeBlade>.instance.ItemDef);
+                if (bladeCount > 0)
+                {
+                    Quaternion rot = Quaternion.Euler(0, 180, 0);
+                    var tempBlade = Instantiate(bladeObject, victimBody.corePosition, rot);
+                    tempBlade.GetComponent<TeamFilter>().teamIndex = attackerBody.teamComponent.teamIndex;
+                    tempBlade.transform.position = victimBody.corePosition;
+                    NetworkServer.Spawn(tempBlade);
+                    EffectData effectData = new EffectData
+                    {
+                        origin = victimBody.corePosition
+                    };
+                    effectData.SetNetworkedObjectReference(tempBlade);
+                    EffectManager.SpawnEffect(HealthComponent.AssetReferences.executeEffectPrefab, effectData, transmit: true);
+                    StartCoroutine(ExeBladeDelayedExecutions(bladeCount, tempBlade, dmgReport));
+                }
+            }
+        }
+
+        IEnumerator ExeBladeDelayedExecutions(int bladeCount, GameObject bladeObject, DamageReport dmgReport)
+        {
+            //Debug.Log("hello, i am the ienumerator");
+            bladeObject.AddComponent<ExeToken>(); //oopsies!!! don't break game
+            
+            bladeObject.AddComponent<Rigidbody>();
+            var bladeRigid = bladeObject.GetComponent<Rigidbody>();
+            var bladeCollider = bladeObject.GetComponent<BoxCollider>(); // default size = (0.8, 4.3, 1.8)
+
+            bladeRigid.drag = .5f;
+            //bladeRigid.mass = 10f;
+            //Vector3 colliderSize = new Vector3(0.1f, 2f, 0.1f);
+            float randomHeight = UnityEngine.Random.Range(2.45f, 2.95f);
+            bladeCollider.size = new Vector3(0.1f, randomHeight, 0.1f);
+
+            bladeRigid.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
+            //bladeRigid.isKinematic = true;
+
+            float randomX = UnityEngine.Random.Range(-20, 10);
+            float randomY = UnityEngine.Random.Range(0, 360);
+            float randomZ = UnityEngine.Random.Range(-20, 20);
+            Quaternion rot = Quaternion.Euler(randomX, randomY, randomZ);
+            bladeObject.transform.SetPositionAndRotation(bladeObject.transform.position, rot);
+
+            var damage = dmgReport.damageInfo.damage;
+            var cmbHP = dmgReport.victim.combinedHealth;
+            var bladeObjHPC = bladeObject.GetComponent<HealthComponent>();
+            CharacterBody attackerBody = dmgReport.attackerBody;
+            for (int i = 0; i < (bladeCount * ItemBase<ExeBlade>.instance.additionalProcs.Value); i++) {
+                if (attackerBody)
+                {
+                    yield return new WaitForSeconds(ItemBase<ExeBlade>.instance.deathDelay.Value);
+                    DamageInfo damageInfo = new DamageInfo
+                    {
+                        attacker = attackerBody.gameObject,
+                        crit = attackerBody.RollCrit(),
+                        damage = 1,
+                        position = bladeObject.transform.position,
+                        procCoefficient = 1,
+                        damageType = DamageType.AOE,
+                        damageColorIndex = DamageColorIndex.Default,
+                    };
+                    DamageReport damageReport = new DamageReport(damageInfo, bladeObjHPC, damage, cmbHP);
+                    GlobalEventManager.instance.OnCharacterDeath(damageReport);
+                }
+            }
+            
+            yield return new WaitForSeconds(ItemBase<ExeBlade>.instance.additionalDuration.Value);
+            EffectData effectData = new EffectData
+            {
+                origin = bladeObject.transform.position
+            };
+            effectData.SetNetworkedObjectReference(bladeObject); //pulverizedEffectPrefab
+            EffectManager.SpawnEffect(HealthComponent.AssetReferences.permanentDebuffEffectPrefab, effectData, transmit: true);
+
+            Destroy(bladeObject);
+        }
+        
+        public class ExeToken : MonoBehaviour
+        {
+            //prevents hilarity from happening
+        }
+
     }
+
 }

@@ -66,7 +66,7 @@ namespace vanillaVoid.Items
         {
             directorBuff = config.Bind<float>("Item: " + ItemName, "Increased Credits", 22.5f, "Adjust how many credits the first stack gives the director. 15 credits is one chest.");
             stackingBuff = config.Bind<float>("Item: " + ItemName, "Percent Increase per Stack", 22.5f, "Adjust the increase gained per stack."); //22.5f is 1.5 chests
-            breakCooldown = config.Bind<float>("Item: " + ItemName, "Cooldown Between Breaking Items", 5.0f, "Adjust how long the cooldown is between the item breaking other items.");
+            breakCooldown = config.Bind<float>("Item: " + ItemName, "Cooldown Between Breaking Items", 3.0f, "Adjust how long the cooldown is between the item breaking other items.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "FragileDamageBonus", "Adjust which item this is the void pair of.");
         }
 
@@ -321,7 +321,7 @@ namespace vanillaVoid.Items
                 {
                     self.body.inventory.RemoveItem(itemIndex);
                     self.body.inventory.GiveItem(ItemBase<BrokenClockworkMechanism>.instance.ItemDef);
-                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, ItemBase<BrokenClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.LunarSun);
+                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, ItemBase<BrokenClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                 }
 
                 //List<ItemIndex> itemList = new List<ItemIndex>(self.body.inventory.itemAcquisitionOrder);

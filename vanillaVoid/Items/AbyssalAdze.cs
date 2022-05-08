@@ -74,8 +74,8 @@ namespace vanillaVoid.Items
             //string orbTransp = "RoR2/DLC1/voidraid/matVoidRaidPlanetPurpleWave.mat"; 
             //string orbCore = "RoR2/DLC1/voidstage/matVoidCoralPlatformPurple.mat";
 
-            string orbTransp = "RoR2/DLC1/voidraid/matVoidRaidPlanetPurpleWave.mat";
-            string orbCore = "RoR2/DLC1/voidstage/matVoidFoam.mat";
+            string orbTransp = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorLightning.mat";
+            string orbCore = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorPod.mat";
 
             var adzeOrbsModelTransp = ItemModel.transform.Find("orbTransp").GetComponent<MeshRenderer>();
             var adzeOrbsModelCore = ItemModel.transform.Find("orbCore").GetComponent<MeshRenderer>();
@@ -99,8 +99,8 @@ namespace vanillaVoid.Items
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "Chest",
-                    localPos = new Vector3(0.06405474f, 0.109915f, -0.2049154f),
-                    localAngles = new Vector3(18.34477f, 170.6391f, 338.5139f),
+                    localPos = new Vector3(0.02629241f, 0.2568354f, -0.2131178f),
+                    localAngles = new Vector3(351.7242f, 10.67858f, 20.43508f),
                     localScale = new Vector3(0.08f, 0.08f, 0.08f)
                 }
             });
@@ -111,8 +111,8 @@ namespace vanillaVoid.Items
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "Chest",
-                    localPos = new Vector3(0.1442196f, 0.06442367f, -0.05128717f),
-                    localAngles = new Vector3(11.99109f, 119.4446f, 354.6872f),
+                    localPos = new Vector3(0.1503672f, 0.1435245f, -0.07638646f),
+                    localAngles = new Vector3(345.9114f, 300.3137f, 23.08318f),
                     localScale = new Vector3(.08f, .08f, .08f)
                 }
             });
@@ -135,8 +135,8 @@ namespace vanillaVoid.Items
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "Chest",
-                    localPos = new Vector3(0.9673803f, 0.1411952f, -1.5373f),
-                    localAngles = new Vector3(357.1136f, 94.66909f, 324.8843f),
+                    localPos = new Vector3(0.7626196f, 0.8972478f, -2.416836f),
+                    localAngles = new Vector3(352.209f, 276.9412f, 21.69027f),
                     localScale = new Vector3(.5f, .5f, .5f)
                 }
             });
@@ -147,8 +147,8 @@ namespace vanillaVoid.Items
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "Chest",
-                    localPos = new Vector3(0.1664789f, 0.1243692f, -0.2395092f),
-                    localAngles = new Vector3(358.9077f, 82.6033f, 335.0637f),
+                    localPos = new Vector3(0.1661014f, 0.2427287f, -0.2980944f),
+                    localAngles = new Vector3(353.9857f, 276.0242f, 30.12733f),
                     localScale = new Vector3(.08f, .08f, .08f)
                 }
             });
@@ -159,8 +159,8 @@ namespace vanillaVoid.Items
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "Head",
-                    localPos = new Vector3(0.56402f, 0.2794803f, -0.6070232f),
-                    localAngles = new Vector3(0F, 270F, 256.4133f),
+                    localPos = new Vector3(0.571964f, 0.2234386f, -0.2234011f),
+                    localAngles = new Vector3(351.7031f, 89.96729f, 109.932f),
                     localScale = new Vector3(.25f, .25f, .25f)
 
                     //localPos = new Vector3(0.3982559f, 0.5157748f, 1.197929f), //std turret
@@ -175,8 +175,8 @@ namespace vanillaVoid.Items
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "Chest",
-                    localPos = new Vector3(0.1151646f, 0.008997655f, -0.318189f),
-                    localAngles = new Vector3(357.0397f, 121.705f, 347.8757f),
+                    localPos = new Vector3(0.1125494f, 0.1737099f, -0.3271036f),
+                    localAngles = new Vector3(5.788457f, 7.310323f, 19.54668f),
                     localScale = new Vector3(.09f, .09f, .09f)
                 }
                 
@@ -187,10 +187,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "HandR",
-                    localPos = new Vector3(0.1522654f, 0.04319609f, -0.1624553f),
-                    localAngles = new Vector3(1.171939f, 103.6646f, 346.7683f),
-                    localScale = new Vector3(.09f, .09f, .09f)
+                    childName = "Chest",
+                    localPos = new Vector3(0.1414333f, 0.1708212f, -0.205414f),
+                    localAngles = new Vector3(352.4888f, 291.1599f, 19.03975f),
+                    localScale = new Vector3(.08f, .08f, .08f)
                 }
             });
             rules.Add("mdlTreebot", new RoR2.ItemDisplayRule[]
@@ -200,8 +200,8 @@ namespace vanillaVoid.Items
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "CalfBackL",
-                    localPos = new Vector3(0.09518724f, 0.34359f, -0.06144115f),
-                    localAngles = new Vector3(358.7071f, 270.5829f, 341.7415f),
+                    localPos = new Vector3(0.08891746f, 0.5175744f, -0.03669554f),
+                    localAngles = new Vector3(352.6626f, 273.883f, 23.80008f),
                     localScale = new Vector3(.09f, .09f, .09f)
                 }
             });
@@ -212,9 +212,9 @@ namespace vanillaVoid.Items
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "Chest",
-                    localPos = new Vector3(0.1389043f, -0.02100253f, -0.3485838f),
-                    localAngles = new Vector3(0f, 91.21107f, 342.5884f),
-                    localScale = new Vector3(.1f, .1f, .1f)
+                    localPos = new Vector3(0.1394217f, 0.1633563f, -0.3964019f),
+                    localAngles = new Vector3(357.2906f, 279.8901f, 17.20597f),
+                    localScale = new Vector3(0.09f, 0.09f, 0.09f)
                 }
             });
             rules.Add("mdlCroco", new RoR2.ItemDisplayRule[]
@@ -224,8 +224,8 @@ namespace vanillaVoid.Items
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "Chest",
-                    localPos = new Vector3(-0.8939381f, -1.834064f, 2.644066f),
-                    localAngles = new Vector3(327.3199f, 164.7827f, 344.2597f),
+                    localPos = new Vector3(-1.443816f, -0.6864427f, 3.308026f),
+                    localAngles = new Vector3(26.11133f, 5.543665f, 25.21973f),
                     localScale = new Vector3(.8f, .8f, .8f)
                 }
             });
@@ -236,9 +236,9 @@ namespace vanillaVoid.Items
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "Chest",
-                    localPos = new Vector3(0.1507084f, -0.04018123f, -0.1989739f),
-                    localAngles = new Vector3(4.121833f, 121.5928f, 341.9035f),
-                    localScale = new Vector3(.125f, .125f, .125f)
+                    localPos = new Vector3(0.1425444f, 0.1892054f, -0.2536568f),
+                    localAngles = new Vector3(349.48f, 296.4531f, 17.46299f),
+                    localScale = new Vector3(.115f, .115f, .115f)
                 }
             });
             rules.Add("mdlRailGunner", new RoR2.ItemDisplayRule[]
@@ -248,8 +248,8 @@ namespace vanillaVoid.Items
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "Backpack",
-                    localPos = new Vector3(0.2555201f, -0.2204902f, -0.1079828f),
-                    localAngles = new Vector3(358.9172f, 274.2746f, 342.5304f),
+                    localPos = new Vector3(0.2669638f, -0.08863433f, -0.07332691f),
+                    localAngles = new Vector3(355.9068f, 102.4288f, 11.93598f),
                     localScale = new Vector3(.08f, .08f, .08f)
                 }
             });
@@ -260,9 +260,9 @@ namespace vanillaVoid.Items
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "CalfR",
-                    localPos = new Vector3(-0.04080268f, 0.3852512f, -0.05319313f),
-                    localAngles = new Vector3(348.7323f, 172.8748f, 156.5034f),
-                    localScale = new Vector3(.09f, .09f, .09f)
+                    localPos = new Vector3(0.02665846f, 0.2549812f, -0.07270494f),
+                    localAngles = new Vector3(11.88894f, 359.9499f, 204.7378f),
+                    localScale = new Vector3(0.075f, 0.075f, 0.075f)
                 }
             });
             rules.Add("mdlScav", new RoR2.ItemDisplayRule[]
@@ -272,13 +272,12 @@ namespace vanillaVoid.Items
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "Weapon",
-                    localPos = new Vector3(1.422315f, 9.049912f, 3.775354f),
-                    localAngles = new Vector3(0.08964456f, 300.3706f, 338.3209f),
+                    localPos = new Vector3(1.91149f, 11.57303f, 4.621446f),
+                    localAngles = new Vector3(353.9657f, 129.2633f, 20.15013f),
                     localScale = new Vector3(2f, 2f, 2f)
                 }
             });
             return rules;
-
         }
 
         public override void Hooks()

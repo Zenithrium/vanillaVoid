@@ -93,6 +93,14 @@ namespace vanillaVoid.Items
             ItemDef.pickupIconSprite = ItemIcon;
             ItemDef.hidden = false;
             ItemDef.canRemove = CanRemove;
+            ////The tier determines what rarity the item is:
+            ////Tier1=white, Tier2=green, Tier3=red, Lunar=Lunar, Boss=yellow,
+            ////and finally NoTier is generally used for helper items, like the tonic affliction
+            //#pragma warning disable Publicizer001 // Accessing a member that was not originally public. Here we ignore this warning because with how this example is setup we are forced to do this
+            //myItemDef._itemTierDef = Addressables.LoadAssetAsync<ItemTierDef>("RoR2/Base/Common/Tier2Def.asset").WaitForCompletion();
+            //#pragma warning restore Publicizer001
+            //// Instead of loading the itemtierdef directly, you can also do this like below as a workaround
+            ////myItemDef.deprecatedTier = ItemTier.Tier2;
             ItemDef.deprecatedTier = Tier;
 
             if (ItemTags.Length > 0) { ItemDef.tags = ItemTags; }

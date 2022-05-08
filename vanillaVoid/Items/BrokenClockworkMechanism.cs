@@ -35,6 +35,8 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
+        public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.AIBlacklist };
+
         public override void Init(ConfigFile config)
         {
             //CreateConfig(config);
@@ -57,6 +59,9 @@ namespace vanillaVoid.Items
         public override ItemDisplayRuleDict CreateItemDisplayRules()
         {
             ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlMessDisplay.prefab");
+            var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
+            itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);
+
             ItemDisplayRuleDict rules = new ItemDisplayRuleDict();
             rules.Add("mdlScav", new RoR2.ItemDisplayRule[] //i'm too lazy to ask how to have it return null, so i'm doing this. the scavenger sHOULD never get this anyway. if it does it's in a funny spot
             {
