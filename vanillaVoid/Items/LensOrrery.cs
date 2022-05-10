@@ -46,7 +46,7 @@ namespace vanillaVoid.Items
 
         public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlOrreryPickup.prefab");
 
-        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("orreryIcon.png");
+        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("orreryIcon512.png");
 
 
         public static GameObject ItemBodyModelPrefab;
@@ -362,11 +362,11 @@ namespace vanillaVoid.Items
                         {
                             float critMod = critChance % 100; //chance for next tier of crit
                             float baseLevel = ((critChance - critMod) / 100);
-                            Debug.Log("crit bonus level is " + baseLevel);
+                            //Debug.Log("crit bonus level is " + baseLevel);
                             if (baseLevel >= orreryCount + 1)
                             {
                                 baseLevel = orreryCount + 1; //cap it based on number of orrerys
-                                Debug.Log("crit was too high! bonus level is now " + baseLevel);
+                                //Debug.Log("crit was too high! bonus level is now " + baseLevel);
                             }
                             else
                             {
@@ -374,7 +374,7 @@ namespace vanillaVoid.Items
                                 {
                                     baseLevel += 1;
 
-                                    Debug.Log("crited! bonus level is" + baseLevel);
+                                    //Debug.Log("crited! bonus level is" + baseLevel);
                                 }
                                 else
                                 {

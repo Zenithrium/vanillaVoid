@@ -36,7 +36,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.1.0";
+        public const string ModVer = "1.1.1";
 
         public static ExpansionDef sotvDLC; 
 
@@ -285,6 +285,7 @@ namespace vanillaVoid
                     crit = player.RollCrit(),
                     projectilePrefab = ExtraterrestrialExhaust.RocketProjectile,
                     force = 10f,
+                    
                     //useSpeedOverride = true,
                     //speedOverride = 1f,
                 };

@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 3497453562
+CRC: 3893015811
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: c3e4818bb18ddda539900408ad9d418b
+    Hash: 7abf241a44d428eb8d031227258e1eb0
   TypeTreeHash:
     serializedVersion: 2
     Hash: 1fe3abd029edb3522ae5dbbc711d0a74
@@ -31,17 +31,19 @@ SerializeReferenceClassIdentifiers: []
 Assets:
 - Assets/Textures/Materials/Item/Mess/gooptexture.mat
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladeDisplay.prefab
-- Assets/Models/Prefabs/Item/VialsItem/mdlVialsDisplay.prefab
 - Assets/Textures/Materials/Item/Mess/pottexture.mat
 - Assets/Textures/Icons/Item/OrreryItem/orreryIcon.png
 - Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryDisplay.prefab
+- Assets/Textures/Icons/Item/OrreryItem/orreryIcon512.png
+- Assets/Models/Prefabs/Item/VialsItem/mdlInvertedEmptyDisplay.prefab
 - Assets/Models/Prefabs/Item/MessItem/mdlMessDisplay.prefab
 - Assets/Textures/Icons/Item/VialsItem/vialsIcon.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/mdlClockworkPickup.prefab
+- Assets/Models/Prefabs/Item/VialsItem/mdlInvertedVialsPickup.prefab
+- Assets/Textures/Icons/Item/BladeItem/bladeIcon512OLD.png
 - Assets/Textures/Materials/Item/AbyssalAdze/MiscMetalTexture.mat
 - Assets/Models/Prefabs/Item/ExtVent/mdlVentPickup.prefab
 - Assets/Textures/Icons/Item/BladeItem/bladeIcon.png
-- Assets/Models/Prefabs/Item/VialsItem/mdlVialsPickup.prefab
 - Assets/Textures/Icons/Item/ventItem/ventIcon.png
 - Assets/Textures/Icons/Item/ClockworkWatch/clockworkIconVibrant.png
 - Assets/Textures/Icons/Item/AbyssalAdze/adzeIcon.png
@@ -52,18 +54,23 @@ Assets:
 - Assets/Models/Prefabs/Item/ExtVent/ventOrb.prefab
 - Assets/Textures/Materials/Item/Mess/voidorb.mat
 - Assets/Textures/Materials/Item/AbyssalAdze/HeadMaterial.mat
+- Assets/Textures/Icons/Item/AbyssalAdze/adzeIcon512.png
 - Assets/Textures/Materials/Item/Mess/metallictexture.mat
-- Assets/Models/Prefabs/Item/VialsItem/mdlEmptyVialsDisplay.prefab
+- Assets/Textures/Icons/Item/ClockworkWatch/clockworkIcon512.png
 - Assets/Textures/Materials/Item/Mess/crabtexture.mat
+- Assets/Textures/Icons/Item/ventItem/ventIcon512.png
+- Assets/Models/Prefabs/Item/VialsItem/mdlInvertedEmptyPickup.prefab
 - Assets/Textures/Icons/Item/ClockworkWatch/clockworkIcon.png
 - Assets/Textures/Materials/Item/Mess/swordtexture.mat
 - Assets/Textures/Icons/Item/MessItem/brokenMessIcon.png
 - Assets/Models/Prefabs/Item/ExtVent/mdlVentDisplay.prefab
+- Assets/Textures/Icons/Item/BladeItem/bladeIcon512.png
 - Assets/Textures/Materials/Item/ClockworkWatch/whiteMat.mat
-- Assets/Models/Prefabs/Item/VialsItem/mdlEmptyVialsPickup.prefab
 - Assets/Textures/Icons/Item/VialsEmptyItem/emptyVialsIcon.png
+- Assets/Textures/Icons/Item/VialsEmptyItem/emptyVialsIcon512.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/mdlClockworkDisplay.prefab
 - Assets/Textures/Materials/Item/ClockworkWatch/valveMat.mat
+- Assets/Models/Prefabs/Item/VialsItem/mdlInvertedVialsDisplay.prefab
 - Assets/Textures/Icons/Item/OrbItem/OrbIcon.png
 - Assets/Textures/Materials/Item/ClockworkWatch/gearMat.mat
 - Assets/Textures/Materials/Item/ClockworkWatch/mainGrayMat.mat
@@ -71,6 +78,8 @@ Assets:
 - Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryPickup.prefab
 - Assets/Textures/Materials/Item/Mess/armtexture.mat
 - Assets/Textures/Materials/Item/ClockworkWatch/backMat.mat
+- Assets/Textures/Icons/Item/MessItem/brokenMessIcon512.png
+- Assets/Textures/Icons/Item/VialsItem/vialsIcon512.png
 - Assets/Textures/Materials/Item/AbyssalAdze/HandleLowerTexture.mat
 - Assets/Textures/Materials/Item/AbyssalAdze/orbTranspTexture.mat
 - Assets/Textures/Materials/Item/AbyssalAdze/HandleTexture.mat

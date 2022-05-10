@@ -25,13 +25,13 @@ namespace vanillaVoid.Items
 
         public override string ItemFullDescription => $"Its time has run out...";
 
-        public override string ItemLore => $"Make it stop!\n\nIt's out of my hands, I'm only a clock\nDon't worry, I'm sure you'll be fine\nBut eventually everyone runs out of time";
+        public override string ItemLore => $"Make it stop!\n\nIt's out of my hands, I'm only a clock \nDon't worry, I'm sure you'll be fine \nBut eventually everyone runs out of time";
 
         public override ItemTier Tier => ItemTier.NoTier;
 
         public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlMessPickup.prefab");
 
-        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("brokenMessIcon.png");
+        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("brokenMessIcon512.png");
 
         public static GameObject ItemBodyModelPrefab;
 

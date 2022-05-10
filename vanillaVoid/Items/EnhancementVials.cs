@@ -35,9 +35,9 @@ namespace vanillaVoid.Items
 
         public override ItemTier Tier => ItemTier.VoidTier1;
 
-        public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlVialsPickup.prefab");
+        public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlInvertedVialsPickup.prefab");
 
-        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("vialsIcon.png");
+        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("vialsIcon512.png");
 
 
         public static GameObject ItemBodyModelPrefab;
@@ -64,7 +64,7 @@ namespace vanillaVoid.Items
         public override ItemDisplayRuleDict CreateItemDisplayRules()
         {
             
-            ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlVialsDisplay.prefab");
+            ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlInvertedVialsDisplay.prefab");
             string glass = "RoR2/DLC1/HealingPotion/matHealingPotionGlass.mat"; 
             //string orbCore = "RoR2/DLC1/voidstage/matVoidCoralPlatformPurple.mat";
 
