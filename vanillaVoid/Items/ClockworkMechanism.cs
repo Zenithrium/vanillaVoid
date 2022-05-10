@@ -285,7 +285,7 @@ namespace vanillaVoid.Items
             {
                 itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
             }
-            if (itemCount > 0)
+            if (itemCount > 0 && obj.interactableCredit != 0)
             {
                 obj.interactableCredit += (int)(directorBuff.Value + (stackingBuff.Value * (itemCount - 1)));
             }

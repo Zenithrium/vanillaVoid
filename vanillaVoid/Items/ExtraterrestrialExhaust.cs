@@ -356,56 +356,6 @@ namespace vanillaVoid.Items
            // On.RoR2.CharacterBody.OnSkillActivated += FireProjectile; //implimented in main
         }
 
-        //private void FireProjectile(On.RoR2.CharacterBody.orig_OnSkillActivated orig, RoR2.CharacterBody self, RoR2.GenericSkill skill)
-        //{
-        //    var inventoryCount = GetCount(self);
-        //    if (inventoryCount > 0 && skill.cooldownRemaining > 0) //maybe make this higher
-        //    {
-        //        float skillCD = skill.cooldownRemaining;
-        //        int missleCount = (int)(skillCD * rocketsPerSecond.Value);
-        //        float random = UnityEngine.Random.Range(-30,30);
-        //        for (int i = 0; i < missleCount; i++)
-        //        {
-        //            Quaternion Upwards = Quaternion.Euler(270, random, 0);
-        //            FireProjectileInfo fireProjectileInfo = new FireProjectileInfo()
-        //            {
-        //                owner = self.gameObject,
-        //                damage = self.damage * (rocketDamage.Value / 100),
-        //                position = self.corePosition,
-        //                rotation = Upwards,
-        //                projectilePrefab = RocketProjectile,
-        //                force = 10f,
-        //
-        //            };
-        //
-        //            ProjectileManager.instance.FireProjectile(fireProjectileInfo);
-        //        }
-        //    }
-        //
-        //    orig(self, skill);
-        //}
-
-        //private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
-        //    CharacterBody victimBody = self.body;
-        //    if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
-        //    {
-        //        CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
-        //        if (attackerBody.inventory)
-        //        {
-        //            var stackCount = GetCount(attackerBody);
-        //
-        //            if (stackCount > 0)
-        //            {
-        //                var healthPercentage = self.health / self.fullCombinedHealth;
-        //                var mult = (1 - self.combinedHealthFraction) * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
-        //
-        //                damageInfo.damage = damageInfo.damage + (damageInfo.damage * mult);
-        //                //damageInfo.damage = damageInfo.damage * (1 + (victimBody.GetBuffCount(adzeDebuff) * dmgPerDebuff.Value));
-        //            }
-        //        }
-        //    }
-        //    orig(self, damageInfo);
-        //}
     }
 
 }
