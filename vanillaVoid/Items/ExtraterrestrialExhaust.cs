@@ -32,7 +32,7 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "EXT_EXHAUST_ITEM";
 
-        public override string ItemPickupDesc => "Upon <style=cIsUtility>activating a skill</style>, <style=cIsDamage>fire a number of rockets</style> depending on the skill's cooldown. <style=cIsVoid>Corrupts all Bundles of Fireworks</style>.";
+        public override string ItemPickupDesc => "Upon activating a skill, fire a number of rockets depending on the skill's cooldown. <style=cIsVoid>Corrupts all Bundles of Fireworks</style>.";
 
         public override string ItemFullDescription => $"Upon <style=cIsUtility>activating a skill</style>, <style=cIsDamage>fire a rocket</style> for <style=cIsUtility>every {secondsPerRocket.Value} seconds</style> of the skill's <style=cIsUtility>cooldown</style>, dealing <style=cIsDamage>{rocketDamage.Value}%</style> <style=cStack>(+{rocketDamageStacking.Value} per stack)</style> base damage. <style=cIsVoid>Corrupts all Bundles of Fireworks</style>.";
 

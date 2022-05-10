@@ -30,7 +30,7 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "CLOCKWORK_ITEM";
 
-        public override string ItemPickupDesc => "Increase the number of <style=cIsUtility>interactables</style> per stage. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+        public override string ItemPickupDesc => "Increase the number of interactables per stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
 
         public override string ItemFullDescription => $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
 

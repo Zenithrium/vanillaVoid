@@ -27,7 +27,7 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "EHANCE_VIALS_ITEM";
 
-        public override string ItemPickupDesc => "<style=cIsUtility>Upgrade</style> an item at low health. Consumed on use. <style=cIsVoid>Corrupts all Power Elixirs</style>.";
+        public override string ItemPickupDesc => "Upgrade an item at low health. Consumed on use. <style=cIsVoid>Corrupts all Power Elixirs</style>.";
 
         public override string ItemFullDescription => $"Taking damage to below <style=cIsHealth>25% health</style> <style=cIsUtility>consumes</style> this item, <style=cIsUtility>upgrading</style> another item. <style=cIsVoid>Corrupts all Power Elixirs</style>.";
 

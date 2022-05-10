@@ -33,7 +33,7 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "EXEBLADE_ITEM";
 
-        public override string ItemPickupDesc => "Your '<style=cIsDamage>On-Kill</style>' effects occur an <style=cIsDamage>additional time</style> upon killing an elite. <style=cIsVoid>Corrupts all Old Guillotines</style>.";
+        public override string ItemPickupDesc => "Your 'On-Kill' effects occur an additional time upon killing an elite. <style=cIsVoid>Corrupts all Old Guillotines</style>.";
 
         public override string ItemFullDescription => $"Your <style=cIsDamage>On-Kill</style> effects occur <style=cIsDamage>{additionalProcs.Value}</style> <style=cStack>(+{additionalProcs.Value} per stack)</style> additional times upon killing an elite. Killing blows on elites rolled <style=cIsUtility>+{luckBonus.Value}</style> times for a <style=cIsUtility>favorable outcome</style>. <style=cIsVoid>Corrupts all Old Guillotines</style>.";
 

@@ -33,7 +33,7 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "ORRERY_ITEM";
 
-        public override string ItemPickupDesc => "<style=cIsUtility>Increased effectiveness</style> of <style=cIsUtility>lens-related</style> items. Your <style=cIsDamage>Critical Strikes</style> can dip an <style=cIsDamage>additional time</style>. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+        public override string ItemPickupDesc => "Increased effectiveness of lens-related items. Your Critical Strikes can dip an additional time. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
 
         public override string ItemFullDescription => $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses and Lost Seer's Lenses are <style=cIsUtility>{lensBonus.Value * 100}%</style> <style=cStack>(+{stackingLensBonus.Value * 100}% per stack)</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can dip <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
 
