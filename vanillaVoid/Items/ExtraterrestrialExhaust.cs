@@ -32,9 +32,9 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "EXT_EXHAUST_ITEM";
 
-        public override string ItemPickupDesc => "Upon <style=cIsUtility>activating a skill</style>, <style=cIsDamage>fire a number of rockets</style> depending on the skill's cooldown. <style=cIsVoid>Corrupts all Fireworks</style>.";
+        public override string ItemPickupDesc => "Upon <style=cIsUtility>activating a skill</style>, <style=cIsDamage>fire a number of rockets</style> depending on the skill's cooldown. <style=cIsVoid>Corrupts all Bundles of Fireworks</style>.";
 
-        public override string ItemFullDescription => $"Upon <style=cIsUtility>activating a skill</style>, <style=cIsDamage>fire a rocket</style> for <style=cIsUtility>every {secondsPerRocket.Value} seconds</style> of the skill's <style=cIsUtility>cooldown</style>, dealing <style=cIsDamage>{rocketDamage.Value}%</style> <style=cStack>(+{rocketDamageStacking.Value} per stack)</style> base damage. <style=cIsVoid>Corrupts all Fireworks</style>.";
+        public override string ItemFullDescription => $"Upon <style=cIsUtility>activating a skill</style>, <style=cIsDamage>fire a rocket</style> for <style=cIsUtility>every {secondsPerRocket.Value} seconds</style> of the skill's <style=cIsUtility>cooldown</style>, dealing <style=cIsDamage>{rocketDamage.Value}%</style> <style=cStack>(+{rocketDamageStacking.Value} per stack)</style> base damage. <style=cIsVoid>Corrupts all Bundles of Fireworks</style>.";
 
         public override string ItemLore => $"<style=cMono>//-- AUTO-TRANSCRIPTION FROM RALLYPOINT EPSILON RECORDER 7 --//</style>" +
             "\n\n\"I... I had a dream...and..and, I know it was a dream. There's no way it c-could've been anything else. I..it felt so real, but....it..It Could Not Have Been. It..it ccould not have been anything else, I-I refused to acceptt it. I have.. and will.. continue to remain safe in this shelter while the others are out, and and they'll, they'll be back soon. Any time now rreally. I will tend to my p-plants, and not worry myself ssick over this nonsense..it was a dream. It was all a ddream. I must've just..p-planted this one while I was tired..I...maybe I should get more sleep... \"";
