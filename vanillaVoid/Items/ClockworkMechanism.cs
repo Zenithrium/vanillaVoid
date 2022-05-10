@@ -23,6 +23,8 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<float> breakCooldown;
 
+        public ConfigEntry<bool> alwaysHappen;
+
         public ConfigEntry<string> voidPair;
 
         private Xoroshiro128Plus watchVoidRng;
@@ -67,6 +69,7 @@ namespace vanillaVoid.Items
             directorBuff = config.Bind<float>("Item: " + ItemName, "Increased Credits", 22.5f, "Adjust how many credits the first stack gives the director. 15 credits is one chest.");
             stackingBuff = config.Bind<float>("Item: " + ItemName, "Percent Increase per Stack", 22.5f, "Adjust the increase gained per stack."); //22.5f is 1.5 chests
             breakCooldown = config.Bind<float>("Item: " + ItemName, "Cooldown Between Breaking Items", 3.0f, "Adjust how long the cooldown is between the item breaking other items.");
+            alwaysHappen = config.Bind<bool>("Item: " + ItemName, "Function in Special Stages", false, "Adjust whether or not the item should increase the number of credits in stages where the director doesn't get any credits (ex Bazaar, Void Fields)");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "FragileDamageBonus", "Adjust which item this is the void pair of.");
         }
 
@@ -279,14 +282,13 @@ namespace vanillaVoid.Items
 
         private void HelpDirector(SceneDirector obj)
         {
-            //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
-            int itemCount = 0;
-            foreach (var player in PlayerCharacterMasterController.instances)
-            {
-                itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
-            }
-            if (itemCount > 0 && obj.interactableCredit != 0)
-            {
+            if (alwaysHappen.Value || obj.interactableCredit != 0) {
+                //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
+                int itemCount = 0;
+                foreach (var player in PlayerCharacterMasterController.instances)
+                {
+                    itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+                }
                 obj.interactableCredit += (int)(directorBuff.Value + (stackingBuff.Value * (itemCount - 1)));
             }
             //Debug.Log("function ending, interactable credits after: " + obj.interactableCredit);
