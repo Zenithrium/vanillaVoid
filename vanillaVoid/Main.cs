@@ -22,6 +22,7 @@ using MonoMod.Cil;
 using RoR2.Orbs;
 using UnityEngine.Networking;
 using RoR2.Projectile;
+using vanillaVoid.Misc;
 
 namespace vanillaVoid
 {
@@ -50,12 +51,14 @@ namespace vanillaVoid
         //Provides a direct access to this plugin's logger for use in any of your other classes.
         public static BepInEx.Logging.ManualLogSource ModLogger;
 
-
         public static GameObject bladeObject;
 
         private void Awake()
         {
             ModLogger = Logger;
+
+            var harm = new Harmony(Info.Metadata.GUID);
+            new PatchClassProcessor(harm, typeof(ModdedDamageColors)).Patch();
 
             IL.RoR2.HealthComponent.TakeDamage += (il) => //LensOrrery and lost seer's interaction 
             {
@@ -78,13 +81,29 @@ namespace vanillaVoid
                         int orrery = cb.master.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
                         if (orrery > 0)
                         {
-                            return 0.5f + (.5f * (LensOrrery.lensBonus.Value + (LensOrrery.stackingLensBonus.Value * (orrery - 1))));
+                            return 0.5f + (.5f * (LensOrrery.newLensBonus.Value + (LensOrrery.newStackingLensBonus.Value * (orrery - 1))));
                         }
                     }
                     return 0.5f;
                 });
                
             };
+
+
+            IL.RoR2.HealthComponent.TakeDamage += (il) => // just stop doing crit checks if you have orrery because its being handled in LensOrrery.cs 
+            {
+                ILCursor c = new ILCursor(il);
+                ILLabel label = null;
+                c.GotoNext(MoveType.After,
+                    x => x.MatchLdarg(1),
+                    x => x.MatchLdfld<DamageInfo>("crit"),
+                    x => x.MatchBrfalse(out label)
+                    );
+                c.Emit(OpCodes.Ldloc_1);
+                c.EmitDelegate<Func<CharacterBody, int>>((cb) => { return cb.master.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef); });
+                c.Emit(OpCodes.Brfalse, label);
+            };
+
 
             sotvDLC = ExpansionCatalog.expansionDefs.FirstOrDefault(x => x.nameToken == "DLC1_NAME");  //learn what sotv is 
 

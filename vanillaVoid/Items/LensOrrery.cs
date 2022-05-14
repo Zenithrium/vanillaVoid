@@ -14,18 +14,23 @@ using VoidItemAPI;
 using System.Linq;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using vanillaVoid.Misc;
 
 namespace vanillaVoid.Items
 {
     public class LensOrrery : ItemBase<LensOrrery>
     {
-        public static ConfigEntry<float> lensBonus;
+        public static ConfigEntry<float> newLensBonus;
 
-        public static ConfigEntry<float> stackingLensBonus;
+        public static ConfigEntry<float> newStackingLensBonus;
 
-        public static ConfigEntry<float> baseCrit;
+        public static ConfigEntry<float> critModifier; 
+
+        public static ConfigEntry<float> critModifierStacking;
 
         public ConfigEntry<float> additionalCritLevels;
+
+        public static ConfigEntry<float> baseCrit;
 
         public ConfigEntry<string> voidPair;
 
@@ -33,9 +38,11 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "ORRERY_ITEM";
 
-        public override string ItemPickupDesc => "Increased effectiveness of lens-related items. Your Critical Strikes can dip an additional time. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
-
-        public override string ItemFullDescription => $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses and Lost Seer's Lenses are <style=cIsUtility>{lensBonus.Value * 100}%</style> <style=cStack>(+{stackingLensBonus.Value * 100}% per stack)</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can dip <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+        //public override string ItemPickupDesc => "Increased effectiveness of lens-related items. Your Critical Strikes can dip an additional time. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+        public override string ItemPickupDesc => "Critical Strikes can dip an additional time, with half the chance of the previous one. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+        
+        //public override string ItemFullDescription => $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses and Lost Seer's Lenses are <style=cIsUtility>{lensBonus.Value * 100}%</style> <style=cStack>(+{stackingLensBonus.Value * 100}% per stack)</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can dip <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+        public override string ItemFullDescription => $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses and Lost Seer's Lenses are <style=cIsUtility>{newLensBonus.Value * 100}%</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can dip <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times, with each dip having {critModifier.Value * 100}% (+{critModifierStacking.Value * 100}% per stack) of the crit chance of the previous crit. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
 
         public override string ItemLore => $"<style=cSub>Order: Lens-Maker's Orrery \nTracking Number: ******** \nEstimated Delivery: 1/13/2072 \nShipping Method: High Priority/Fragile/Confidiential \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" + 
             "The Lens-Maker, as mysterious as they are influential. From my research I have surmised that she has been appointed to \"Final Verdict\", the most prestigious role of leadership in the House Beyond. Our team managed to locate a workshop of hers where she was supposedly working on some never-before concieved tech - but something was off. " +
@@ -48,10 +55,20 @@ namespace vanillaVoid.Items
 
         public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("orreryIcon512.png");
 
+        int var = 0;
 
         public static GameObject ItemBodyModelPrefab;
 
         public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
+
+        public static DamageColorIndex indexRed;
+        public static DamageColorIndex indexOrange;
+        public static DamageColorIndex indexYellow;
+        public static DamageColorIndex indexGreen;
+        public static DamageColorIndex indexCyan;
+        public static DamageColorIndex indexBlue;
+        public static DamageColorIndex indexPurple;
+        public static DamageColorIndex indexPink;
 
         public override void Init(ConfigFile config)
         {
@@ -59,7 +76,16 @@ namespace vanillaVoid.Items
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
-            VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value); 
+            VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
+
+            ModdedDamageColors.ReserveColor(new Color(1f, .2f, .2f), out indexRed);    //old: (.95f, .05f, .05f) 
+            ModdedDamageColors.ReserveColor(new Color(1f, .7f, .2f), out indexOrange); //old: (.95f, .5f, 0f)
+            ModdedDamageColors.ReserveColor(new Color(1f, 1f, .2f), out indexYellow);  //old: (.95f, .9f, .2f)
+            ModdedDamageColors.ReserveColor(new Color(.2f, 1f, .2f), out indexGreen);  //old: (.25f, .95f, .25f)
+            ModdedDamageColors.ReserveColor(new Color(.2f, 1f, 1f), out indexCyan);    //old: (.2f, .95f, .9f)
+            ModdedDamageColors.ReserveColor(new Color(.1f, .6f, 1f), out indexBlue);   //old: (0f, .5f, .95f)
+            ModdedDamageColors.ReserveColor(new Color(.7f, .5f, 1f), out indexPurple); //old: (.6f, .2f, 1f)
+            ModdedDamageColors.ReserveColor(new Color(1f, .6f, 1f), out indexPink);    //old: (.95f, .45f, 1f)
 
             Hooks();   
         }
@@ -68,9 +94,11 @@ namespace vanillaVoid.Items
         {
             string name = ItemName == "Lens-Maker's Orrery" ? "Lens-Makers Orrery" : ItemName;
 
-            lensBonus = config.Bind<float>("Item: " + name, "Crit Glasses Buff", .2f, "Adjust the percent buff to crit glasses on the first stack.");
-            stackingLensBonus = config.Bind<float>("Item: " + name, "Crit Glasses Buff per Stack", .1f, "Adjust the percent buff to crit glasses per stack.");
+            newLensBonus = config.Bind<float>("Item: " + name, "Glasses Buff", .3f, "Adjust the percent buff to crit glasses on the first stack.");
+            newStackingLensBonus = config.Bind<float>("Item: " + name, "Glasses Buff per Stack", 0f, "Adjust the percent buff to crit glasses per stack. This won't show up in the tooltip if enabled, though.");
             additionalCritLevels = config.Bind<float>("Item: " + name, "Additional Crit Levels", 1f, "Adjust the number of additional crit levels each stack allows.");
+            critModifier = config.Bind<float>("Item: " + name, "Crit Reduction", .5f, "Adjust how much the chance for additional crits are reduced. .5 is 50%, meaning subsequent crit chances are halved.");
+            critModifierStacking = config.Bind<float>("Item: " + name, "Crit Reduction Reduction", .05f, "Adjust how much the crit reduction is reduced per stack. I don't know how to phrase this better");
             baseCrit = config.Bind<float>("Item: " + name, "Base Crit Increase", 5f, "Adjust the percent crit increase the first stack provides.");
             voidPair = config.Bind<string>("Item: " + name, "Item to Corrupt", "CritDamage", "Adjust which item this is the void pair of.");
         }
@@ -321,10 +349,10 @@ namespace vanillaVoid.Items
 
         public override void Hooks()
         {
-            On.RoR2.HealthComponent.TakeDamage += OrreryCritBonus;
+            //On.RoR2.HealthComponent.TakeDamage += OrreryCritBonus;
+            On.RoR2.HealthComponent.TakeDamage += OrreryCritRework;
             RecalculateStatsAPI.GetStatCoefficients += CalculateStatsHook;
         }
-
         private static void CalculateStatsHook(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
         {
             if (sender && sender.inventory)
@@ -337,12 +365,128 @@ namespace vanillaVoid.Items
                     args.critAdd += baseCrit.Value;
                     if (glassesCount > 0)
                     {
-                        args.critAdd += (glassesCount * 10 * (lensBonus.Value + ((orreryCount - 1) * stackingLensBonus.Value)));
+                        args.critAdd += (glassesCount * 10 * (newLensBonus.Value + ((orreryCount - 1) * newStackingLensBonus.Value)));
                     }
                 }
             }
             
         }
+        private void OrreryCritRework(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
+        {
+            damageInfo.crit = false; 
+            var hitDamage = damageInfo.damage;
+            CharacterBody victimBody = self.body;
+            if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
+            {
+                CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
+                if (attackerBody.inventory)
+                {
+                    float orreryCount = GetCount(attackerBody);
+                    int glassesCount = attackerBody.inventory.GetItemCount(RoR2Content.Items.CritGlasses);
+                    if (orreryCount > 0)
+                    {
+                        float critChanceModified = attackerBody.crit;
+                        float critMult = attackerBody.critMultiplier;
+                        float critMod = critModifier.Value + (critModifierStacking.Value * orreryCount);
+                        float critCount = 0;
+                        //bool test = false;
+                        if(attackerBody.crit > 100)
+                        {
+                            critMult = attackerBody.critMultiplier + ((attackerBody.crit / 1000)); // crits are slightly stronger
+                        }
+                        for(int i = 0; i <= orreryCount; i++)
+                        {
+                            bool orreryCrit = Util.CheckRoll(critChanceModified, attackerBody.master.luck, attackerBody.master);
+                            //Debug.Log("attempt " + i + ":");
+                            if (orreryCrit)
+                            {
+                                critCount++;
+                                //hitDamage *= critMult;
+                                critChanceModified *= critMod;
+                                damageInfo.crit = true;
+                                
+                                //Debug.Log("critted: " + orreryCrit);
+                                //Debug.Log("random check 1 " + Util.CheckRoll(critChanceModified, attackerBody.master));
+                                //Debug.Log("random check 2 " + Util.CheckRoll(critChanceModified, attackerBody.master));
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                        //damageInfo.damage = hitDamage;
+                        if (damageInfo.crit)
+                        {
+                            //damageInfo.damage = hitDamage;
+                            damageInfo.damage *= (critCount * critMult);
+                            damageInfo.damage /= attackerBody.critMultiplier; //remove the extra crit 
+                            Debug.Log("critted: " + critCount + " times");
+                            switch(critCount % 8) {
+                                case 1:
+                                    damageInfo.damageColorIndex = indexOrange;
+                                    break;
+                                case 2:
+                                    damageInfo.damageColorIndex = indexRed;
+                                    break;
+                                case 3:
+                                    damageInfo.damageColorIndex = indexPink;
+                                    break;
+                                case 4:
+                                    damageInfo.damageColorIndex = indexPurple;
+                                    break;
+                                case 5:
+                                    damageInfo.damageColorIndex = indexBlue;
+                                    break;
+                                case 6:
+                                    damageInfo.damageColorIndex = indexCyan;
+                                    break;
+                                case 7:
+                                    damageInfo.damageColorIndex = indexGreen;
+                                    break;
+                                case 0:
+                                    damageInfo.damageColorIndex = indexYellow;
+                                    break;
+                            }
+                        }
+                        //Debug.Log("this is color: " + var);
+                        //switch (var)
+                        //{
+                        //    case 0:
+                        //        damageInfo.damageColorIndex = indexRed;
+                        //        break;
+                        //    case 7:
+                        //        damageInfo.damageColorIndex = indexOrange;
+                        //        break;
+                        //    case 6:
+                        //        damageInfo.damageColorIndex = indexYellow;
+                        //        break;
+                        //    case 5:
+                        //        damageInfo.damageColorIndex = indexGreen;
+                        //        break;
+                        //    case 4:
+                        //        damageInfo.damageColorIndex = indexCyan;
+                        //        break;
+                        //    case 3:
+                        //        damageInfo.damageColorIndex = indexBlue;
+                        //        break;
+                        //    case 2:
+                        //        damageInfo.damageColorIndex = indexPurple;
+                        //        break;
+                        //    case 1:
+                        //        damageInfo.damageColorIndex = indexPink;
+                        //        break;
+                        //}
+                        //var++;
+                        //if (var > 7)
+                        //{
+                        //    var = 0;
+                        //}
+                    }
+                }
+            }
+            orig(self, damageInfo);
+        }
+                    
 
         private void OrreryCritBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
             CharacterBody victimBody = self.body;

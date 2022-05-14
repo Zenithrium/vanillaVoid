@@ -287,6 +287,7 @@ namespace vanillaVoid.Items
 
         private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
             CharacterBody victimBody = self.body;
+            float initialDmg = damageInfo.damage;
             if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
             {
                 CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -300,10 +301,17 @@ namespace vanillaVoid.Items
                         var mult = (1 - self.combinedHealthFraction) * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
 
                         damageInfo.damage = damageInfo.damage + (damageInfo.damage * mult);
+                        float maxDamage = initialDmg * (mult * stackCount);
                         //damageInfo.damage = damageInfo.damage * (1 + (victimBody.GetBuffCount(adzeDebuff) * dmgPerDebuff.Value));
+                        if(damageInfo.damage > maxDamage)
+                        {
+                            //Debug.Log("damage was too high! oopsies!!!");
+                            damageInfo.damage = maxDamage; // i don't know if this is a needed check, but i *think* i was noticing insanely high damage numbers with adze on the end score screen. maybe this'll fix that? or maybe it was another mod entirely
+                        }
                     }
                 }
             }
+            
             orig(self, damageInfo);
         }
     }
