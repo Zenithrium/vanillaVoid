@@ -305,10 +305,13 @@ namespace vanillaVoid
                     projectilePrefab = ExtraterrestrialExhaust.RocketProjectile,
                     force = 10f,
                     
+                    
                     //useSpeedOverride = true,
                     //speedOverride = 1f,
                 };
-                ProjectileManager.instance.FireProjectile(fireProjectileInfo);
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                ProjectileManager.instance.FireProjectileServer(fireProjectileInfo);
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
             } 
         }
 
@@ -412,5 +415,6 @@ namespace vanillaVoid
         }
 
     }
+
 
 }

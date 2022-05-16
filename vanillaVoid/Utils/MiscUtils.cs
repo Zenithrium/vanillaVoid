@@ -166,7 +166,9 @@ namespace vanillaVoid.Utils
         {
             if (!body) { return null; }
 
+//#pragma warning disable Publicizer001 // Accessing a member that was not originally public
             var closestPointOnBounds = body.mainHurtBox.collider.ClosestPointOnBounds(body.transform.position + new Vector3(0, 10000, 0));
+//#pragma warning restore Publicizer001 // Accessing a member that was not originally public
 
             var raycastPoint = RaycastToDirection(closestPointOnBounds, distanceAbove, Vector3.up, LayerIndex.world.mask);
             if (raycastPoint.HasValue)
