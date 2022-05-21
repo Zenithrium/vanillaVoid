@@ -312,7 +312,7 @@ namespace vanillaVoid.Items
                     childName = "Chest",
                     localPos = new Vector3(0.2842848f, -0.1576135f, 0.01475417f),
                     localAngles = new Vector3(4.996761f, 302.908f, 315.8754f),
-                    localScale = new Vector3(0.32056F, 0.33391F, 0.34077F)
+                    localScale = new Vector3(0.1f, 0.1f, 0.1f)
                 }
             });
             //rules.Add("mdlChef", new RoR2.ItemDisplayRule[]
@@ -396,11 +396,12 @@ namespace vanillaVoid.Items
 
                     if (stackCount > 0)
                     {
-                        var healthPercentage = self.health / self.fullCombinedHealth;
+                        //var healthPercentage = self.health / self.fullCombinedHealth;
                         var mult = (1 - self.combinedHealthFraction) * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
 
                         damageInfo.damage = damageInfo.damage + (damageInfo.damage * mult);
-                        float maxDamage = initialDmg * (mult * stackCount);
+                        float maxDamage = initialDmg + (initialDmg * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1))));
+                        //Debug.Log("max damage: " + maxDamage + " | actual damage: " + damageInfo.damage + " | original damage: " + initialDmg);
                         //damageInfo.damage = damageInfo.damage * (1 + (victimBody.GetBuffCount(adzeDebuff) * dmgPerDebuff.Value));
                         if(damageInfo.damage > maxDamage)
                         {

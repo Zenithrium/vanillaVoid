@@ -23,6 +23,7 @@ using RoR2.Orbs;
 using UnityEngine.Networking;
 using RoR2.Projectile;
 using vanillaVoid.Misc;
+using EntityStates.TeleporterHealNovaController;
 
 namespace vanillaVoid
 {
@@ -37,7 +38,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.1.1";
+        public const string ModVer = "1.1.2";
 
         public static ExpansionDef sotvDLC; 
 
@@ -52,7 +53,13 @@ namespace vanillaVoid
         public static BepInEx.Logging.ManualLogSource ModLogger;
 
         public static GameObject bladeObject;
+        public static GameObject lotusObject;
+        public static GameObject lotusPulse;
 
+        Vector3 heightAdjust = new Vector3(0, 2.312f, 0);
+        Vector3 heightAdjustPulse = new Vector3(0, 2.5f, 0);
+        float previousPulseFraction = 0;
+        float secondsUntilBarrierAttempt = 0;
         private void Awake()
         {
             ModLogger = Logger;
@@ -118,6 +125,10 @@ namespace vanillaVoid
             On.RoR2.CharacterBody.OnSkillActivated += ExtExhaustFireProjectile;
 
             GlobalEventManager.onCharacterDeathGlobal += ExeBladeExtraDeath;
+
+            RoR2.SceneDirector.onPostPopulateSceneServer += AddLotusOnEnter;
+            On.RoR2.CharacterBody.OnInventoryChanged += AddLotusOnPickup;
+            On.RoR2.HoldoutZoneController.UpdateHealingNovas += BarrierLotusNova;
             //ExeBladeCreateProjectile();
 
 
@@ -128,10 +139,16 @@ namespace vanillaVoid
             bladeObject.AddComponent<NetworkIdentity>();
             bladeObject.AddComponent<BoxCollider>();
             bladeObject.AddComponent<Rigidbody>();
-           
+
+
+            lotusObject = MainAssets.LoadAsset<GameObject>("mdlLotusWorldObject.prefab"); 
+            lotusObject.AddComponent<TeamFilter>();
+            lotusObject.AddComponent<NetworkIdentity>();
+
             //bladeObject.AddComponent<Rigidbody>();
             //PrefabAPI.RegisterNetworkPrefab(bladeObject);
             R2API.ContentAddition.AddNetworkedObject(bladeObject);
+            R2API.ContentAddition.AddNetworkedObject(lotusObject);
 
             // Don't know how to create/use an asset bundle, or don't have a unity project set up?
             // Look here for info on how to set these up: https://github.com/KomradeSpectre/AetheriumMod/blob/rewrite-master/Tutorials/Item%20Mod%20Creation.md#unity-project
@@ -193,7 +210,6 @@ namespace vanillaVoid
             }
 
         }
-
 
         /// <summary>
         /// A helper to easily set up and initialize an artifact from your artifact classes if the user has it enabled in their configuration files.
@@ -413,7 +429,165 @@ namespace vanillaVoid
         {
             //prevents hilarity from happening
         }
+        Vector3 teleporterPos;
+        GameObject tempLotusObject;
+        bool lotusSpawned = false;
+        private void AddLotusOnEnter(SceneDirector obj)
+        {
+            lotusSpawned = false;
+            teleporterPos = obj.teleporterInstance.transform.position;
+            //Debug.Log("teleporter pos: " + teleporterPos);
+            int itemCount = 0;
+            TeamIndex teamDex = default;
+            foreach (var player in PlayerCharacterMasterController.instances)
+            {
+                itemCount += player.master.inventory.GetItemCount(ItemBase<BarrierLotus>.instance.ItemDef);
+                teamDex = player.master.teamIndex;
+            }
+            if(itemCount > 0)
+            {
+                teleporterPos = obj.teleporterInstance.transform.position;
+                
+                Quaternion rot = Quaternion.Euler(0, 180, 0);
+                var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
+                tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
+                tempLotus.transform.position = teleporterPos + heightAdjust;
+                NetworkServer.Spawn(tempLotus);
+                tempLotusObject = tempLotus;
+                lotusSpawned = true;
+            }
 
+        }
+        private void AddLotusOnPickup(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self)
+        {
+            if (!lotusSpawned)
+            {
+                int itemCount = 0;
+                TeamIndex teamDex = default;
+                foreach (var player in PlayerCharacterMasterController.instances)
+                {
+                    itemCount += player.master.inventory.GetItemCount(ItemBase<BarrierLotus>.instance.ItemDef);
+                    teamDex = player.master.teamIndex;
+                }
+                if (itemCount > 0)
+                {
+                    Quaternion rot = Quaternion.Euler(0, 180, 0);
+                    var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
+                    tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
+                    tempLotus.transform.position = teleporterPos + heightAdjust;
+                    NetworkServer.Spawn(tempLotus);
+                    tempLotusObject = tempLotus;
+                    lotusSpawned = true;
+                }
+            }
+            orig(self);
+        }
+        //Vector3 heightAdjust = new Vector3(0, 1.5f, 0);
+        //float previousPulseFraction = 0;
+        //float secondsUntilBarrierAttempt = 0;
+        private void BarrierLotusNova(On.RoR2.HoldoutZoneController.orig_UpdateHealingNovas orig, HoldoutZoneController self, bool isCharging)
+        {
+            int itemCount = 0;
+            TeamIndex teamDex = default;
+            foreach (var player in PlayerCharacterMasterController.instances)
+            {
+                itemCount += player.master.inventory.GetItemCount(ItemBase<BarrierLotus>.instance.ItemDef);
+                teamDex = player.master.teamIndex;
+            }
+
+            if (itemCount > 0 && isCharging)
+            {
+                if(NetworkServer.active && Time.fixedDeltaTime > 0f)
+                {
+                    
+                    if(secondsUntilBarrierAttempt > 0f)
+                    {
+                        //Debug.Log("waiting");
+                        secondsUntilBarrierAttempt -= Time.fixedDeltaTime;
+                    }
+                    else
+                    {
+                        //Debug.Log("trying");
+                        float nextPulseFraction = CalcNextPulseFraction(itemCount * (int)ItemBase<BarrierLotus>.instance.pulseCountStacking.Value, previousPulseFraction);
+                        float currentCharge = self.charge;
+                        //Debug.Log("waiting for " + nextPulseFraction + " | we are at " + currentCharge);
+                        if (nextPulseFraction <= currentCharge)
+                        {
+                            Quaternion Upwards = Quaternion.Euler(270, 0, 0);
+                            GameObject pulsePrefab = UnityEngine.Object.Instantiate<GameObject>(TeleporterHealNovaGeneratorMain.pulsePrefab, teleporterPos + heightAdjustPulse, Upwards, base.transform.parent);
+                            pulsePrefab.GetComponent<TeamFilter>().teamIndex = teamDex;
+                            NetworkServer.Spawn(pulsePrefab);
+                            previousPulseFraction = nextPulseFraction;
+                            secondsUntilBarrierAttempt = 1f;
+                            //Debug.Log("holy shit!!!!!!!!!!!!!");
+
+                            StartCoroutine(LotusDelayedBarrier(self, teamDex));
+
+                            //foreach (var player in PlayerCharacterMasterController.instances)
+                            //{
+                            //    if (self.IsBodyInChargingRadius(player.body) && player.body.teamComponent.teamIndex == teamDex)
+                            //    {
+                            //        //var playerHealthComp = player.GetComponent<HealthComponent>();
+                            //        //player.body.healthComponent;
+                            //        if (player.body.healthComponent)
+                            //        {
+                            //            StartCoroutine(LotusDelayedBarrier(self, teamDex));
+                            //            //Debug.Log("yoo health component!!");
+                            //            //player.body.healthComponent.AddBarrier(player.body.healthComponent.health * ItemBase<BarrierLotus>.instance.barrierAmount.Value); //25% 
+                            //        }
+                            //        else
+                            //        {
+                            //            //Debug.Log("no suitable health component.");
+                            //        }
+                            //
+                            //    }
+                            //}
+                        }   
+                    }
+                }
+            }
+            orig(self, isCharging);
+        }
+        private static float CalcNextPulseFraction(int itemCount, float prevPulseFraction)
+        {
+            float healFraction = 1f / (float)(itemCount + 1);
+            //Debug.Log(healFraction + " hela fraction");
+            for(int i = 1; i <= itemCount; i++)
+            {
+                float temp = (float)i * healFraction;
+                //Debug.Log("temp: " + temp);
+                if(temp > prevPulseFraction)
+                {
+                    return temp;
+                }
+            }
+            return 1.1f;
+        }
+        IEnumerator LotusDelayedBarrier(HoldoutZoneController self, TeamIndex teamDex)
+        {
+            yield return new WaitForSeconds(.5f);
+            foreach (var player in PlayerCharacterMasterController.instances)
+            {
+                if (self.IsBodyInChargingRadius(player.body) && player.body.teamComponent.teamIndex == teamDex)
+                {
+                    //var playerHealthComp = player.GetComponent<HealthComponent>();
+                    //player.body.healthComponent;
+                    if (player.body.healthComponent)
+                    {
+                        //Debug.Log("yoo health component!!");
+                        player.body.healthComponent.AddBarrier(player.body.healthComponent.fullCombinedHealth * ItemBase<BarrierLotus>.instance.barrierAmount.Value); //25% 
+                    }
+                    else
+                    {
+                        //Debug.Log("no suitable health component.");
+                    }
+
+                }
+            }
+            //yield return new WaitForSeconds(.25f);
+            //player.body.healthComponent.AddBarrier(player.body.healthComponent.health * ItemBase<BarrierLotus>.instance.barrierAmount.Value); //25% 
+
+        }
     }
 
 

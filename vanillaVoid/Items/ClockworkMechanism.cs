@@ -44,7 +44,7 @@ namespace vanillaVoid.Items
 
         public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlClockworkPickup.prefab");
 
-        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("clockworkIcon512.png");
+        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("watchIcon512.png");
 
         public override ItemTag[] ItemTags => new ItemTag[3] { ItemTag.Utility, ItemTag.LowHealth, ItemTag.AIBlacklist };
 
