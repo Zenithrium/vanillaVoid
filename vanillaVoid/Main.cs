@@ -108,7 +108,7 @@ namespace vanillaVoid
                     );
                 c.Emit(OpCodes.Ldloc_1);
                 c.EmitDelegate<Func<CharacterBody, int>>((cb) => { return cb.master.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef); });
-                c.Emit(OpCodes.Brfalse, label);
+                c.Emit(OpCodes.Brtrue, label);
             };
 
 

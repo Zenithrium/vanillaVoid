@@ -478,8 +478,9 @@ namespace vanillaVoid.Items
         }
         private void OrreryCritRework(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
         {
-            damageInfo.crit = false; 
-            var hitDamage = damageInfo.damage;
+            //bool normalcrit = damageInfo.crit;
+            //damageInfo.crit = false; 
+            //var hitDamage = damageInfo.damage;
             CharacterBody victimBody = self.body;
             if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
             {
@@ -487,12 +488,13 @@ namespace vanillaVoid.Items
                 if (attackerBody.inventory)
                 {
                     float orreryCount = GetCount(attackerBody);
-                    int glassesCount = attackerBody.inventory.GetItemCount(RoR2Content.Items.CritGlasses);
+                    //int glassesCount = attackerBody.inventory.GetItemCount(RoR2Content.Items.CritGlasses);
                     if (orreryCount > 0)
                     {
+                        damageInfo.crit = false;
                         float critChanceModified = attackerBody.crit;
                         float critMult = attackerBody.critMultiplier;
-                        float critMod = critModifier.Value + (critModifierStacking.Value * orreryCount);
+                        float critMod = critModifier.Value + (critModifierStacking.Value * (orreryCount - 1));
                         float critCount = 0;
                         //bool test = false;
                         if(attackerBody.crit > 100)
@@ -520,12 +522,20 @@ namespace vanillaVoid.Items
                             }
                         }
                         //damageInfo.damage = hitDamage;
+                        //Debug.Log("critted: " + critCount + " times");
                         if (damageInfo.crit)
                         {
                             //damageInfo.damage = hitDamage;
-                            damageInfo.damage *= (critCount * critMult);
-                            damageInfo.damage /= attackerBody.critMultiplier; //remove the extra crit 
-                            Debug.Log("critted: " + critCount + " times");
+                            var temp = (damageInfo.damage * critMult) - damageInfo.damage;
+
+                            damageInfo.damage = (critCount + 1) * temp;
+                            if(critCount > 1)
+                            {
+                                //damageInfo.damage /= attackerBody.critMultiplier; //remove the extra crit 
+
+                            }
+                            //damageInfo.damage /= attackerBody.critMultiplier; //remove the extra crit 
+                            //Debug.Log("critted: " + critCount + " times");
                             switch(critCount % 8) {
                                 case 1:
                                     damageInfo.damageColorIndex = indexOrange;
