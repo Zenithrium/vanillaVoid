@@ -75,17 +75,9 @@ namespace vanillaVoid.Items
 
         private void CreateProjectile() 
         {
-            //RocketProjectile = PrefabAPI.InstantiateClone(Resources.Load<GameObject>("prefabs/projectiles/fireworkprojectile"), "RocketProjectile", true);
             RocketProjectile = PrefabAPI.InstantiateClone(Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Firework/FireworkProjectile.prefab").WaitForCompletion(), "RocketProjectile", true);
-            //RocketProjectile = PrefabAPI.InstantiateClone(Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/MissileVoid/MissileVoidProjectile.prefab").WaitForCompletion(), "RocketProjectile", true);
-            //var missleController = RocketProjectile.GetComponent<MissileController>();
             var impactExplosion = RocketProjectile.GetComponent<ProjectileImpactExplosion>();
             impactExplosion.impactEffect = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/MissileVoid/VoidImpactEffect.prefab").WaitForCompletion();
-            //RocketProjectile.getComponent<Projectile
-            //RocketProjectile.GetComponent<ProjectileExplosion>().explosionEffect = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/MissileVoid/VoidImpactEffect.prefab").WaitForCompletion();
-            //RocketProjectile.component
-            //RocketExplosion = PrefabAPI.InstantiateClone(Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Firework/FireworkExplosion2.prefab").WaitForCompletion(), "RocketExplosion", true);
-
             
 
             var model = MainAssets.LoadAsset<GameObject>("ventOrb.prefab");

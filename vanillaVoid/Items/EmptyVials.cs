@@ -44,7 +44,7 @@ namespace vanillaVoid.Items
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
 
-            //Hooks();
+            Hooks();
 
 
             //string orbTransp = "RoR2/Base/Croco/matBlighted.mat";
@@ -54,6 +54,38 @@ namespace vanillaVoid.Items
             //
             //var OrbsDisplayTransp = ItemBodyModelPrefab.transform.Find("purpleguard").GetComponent<MeshRenderer>();
             //OrbsDisplayTransp.material = Addressables.LoadAssetAsync<Material>(orbTransp).WaitForCompletion();
+        }
+        public override void Hooks()
+        {
+            RoR2.SceneDirector.onPrePopulateSceneServer += RefreshVials;
+        }
+
+        private void RefreshVials(SceneDirector obj)
+        {
+            int refreshAmount = EnhancementVials.instance.refreshAmount.Value;
+            if (refreshAmount > 0)
+            {
+                //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
+                //int itemCount = 0;
+                foreach (var player in PlayerCharacterMasterController.instances)
+                {
+                    int itemCount = 0;
+                    itemCount += player.master.inventory.GetItemCount(ItemBase<EmptyVials>.instance.ItemDef);
+                    if(itemCount > 0 && itemCount > refreshAmount)
+                    {
+                        player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, refreshAmount);
+                        player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, refreshAmount);
+                        CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
+
+                    }
+                    else if(itemCount > 0 && itemCount <= refreshAmount)
+                    {
+                        player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, itemCount);
+                        player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, itemCount);
+                    }
+                }  
+            }
+            //Debug.Log("function ending, interactable credits after: " + obj.interactableCredit);
         }
 
         public override ItemDisplayRuleDict CreateItemDisplayRules()
@@ -91,5 +123,8 @@ namespace vanillaVoid.Items
             return rules;
 
         }
+
+
+
     }
 }

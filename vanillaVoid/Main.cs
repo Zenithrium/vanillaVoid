@@ -38,7 +38,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.1.3";
+        public const string ModVer = "1.1.5";
 
         public static ExpansionDef sotvDLC; 
 
@@ -304,30 +304,104 @@ namespace vanillaVoid
 
         IEnumerator delayedRockets(RoR2.CharacterBody player, int missileCount, int inventoryCount)
         {
+            int icbmMod = 1;
+            if(player.inventory.GetItemCount(DLC1Content.Items.MoreMissile) > 0)
+            {
+                icbmMod = 3;
+            }
             for (int i = 0; i < missileCount; i++)
             {
                 yield return new WaitForSeconds(.1f);
                 var playerPos = player.GetComponent<CharacterBody>().corePosition;
                 float random = UnityEngine.Random.Range(-30, 30);
-                Quaternion Upwards = Quaternion.Euler(270, random, 0);
+                Quaternion UpwardsQuat = Quaternion.Euler(270, random, 0);
+                Vector3 Upwards = new Vector3(270, random, 0);
                 Debug.Log(((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100));
-                FireProjectileInfo fireProjectileInfo = new FireProjectileInfo()
+                float rocketDamage = player.damage * ((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100);
+                for(int j = 0; j < icbmMod; j++)
                 {
-                    owner = player.gameObject,
-                    damage = player.damage * ((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100),
-                    position = player.corePosition,
-                    rotation = Upwards,
-                    crit = player.RollCrit(),
-                    projectilePrefab = ExtraterrestrialExhaust.RocketProjectile,
-                    force = 10f,
-                    
-                    
-                    //useSpeedOverride = true,
-                    //speedOverride = 1f,
-                };
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                ProjectileManager.instance.FireProjectileServer(fireProjectileInfo);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                    switch (j)
+                    {
+                        case 0:
+                            break;
+                        case 1:
+                            UpwardsQuat = Quaternion.Euler(225, random, 0);
+                            break;
+                        case 2:
+                            UpwardsQuat = Quaternion.Euler(315, random, 0);
+                            break;
+
+                    }
+                    FireProjectileInfo fireProjectileInfo = new FireProjectileInfo()
+                    {
+                        owner = player.gameObject,
+                        damage = rocketDamage,
+                        position = player.corePosition,
+                        rotation = UpwardsQuat,
+                        crit = player.RollCrit(),
+                        projectilePrefab = ExtraterrestrialExhaust.RocketProjectile,
+                        force = 10f,
+
+
+                        //useSpeedOverride = true,
+                        //speedOverride = 1f,
+                    };
+                    #pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                    ProjectileManager.instance.FireProjectileServer(fireProjectileInfo);
+                    #pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                }
+                //FireProjectileInfo fireProjectileInfo = new FireProjectileInfo()
+                //{
+                //    owner = player.gameObject,
+                //    damage = rocketDamage,
+                //    position = player.corePosition,
+                //    rotation = UpwardsQuat,
+                //    crit = player.RollCrit(),
+                //    projectilePrefab = ExtraterrestrialExhaust.RocketProjectile,
+                //    force = 10f,
+                //    
+                //    
+                //    //useSpeedOverride = true,
+                //    //speedOverride = 1f,
+                //};
+                //var targets = new List<HurtBox>();
+                //var sphereSearch = new SphereSearch
+                //{
+                //    mask = LayerIndex.entityPrecise.mask,
+                //    origin = player.transform.position,
+                //    radius = 200
+                //};
+                //sphereSearch.RefreshCandidates();
+                //sphereSearch.FilterCandidatesByDistinctHurtBoxEntities();
+                //sphereSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetEnemyTeams(player.teamComponent.teamIndex));
+                //sphereSearch.OrderCandidatesByDistance();
+                //sphereSearch.GetHurtBoxes(targets);
+                //Debug.Log("target 1: " + targets[0].gameObject + " | " + targets.Capacity);
+                //for (int j = 0; j > targets.Capacity; j++)
+                //{
+                //    Debug.Log("im in the j loop");
+                //    if (targets[j])
+                //    {
+                //        Debug.Log("bouta fire misle");
+                //        MissileUtils.FireMissile(
+                //            player.corePosition,
+                //            player,
+                //            default,
+                //            targets[j].gameObject,
+                //            rocketDamage,
+                //            player.RollCrit(),
+                //            ExtraterrestrialExhaust.RocketProjectile,
+                //            DamageColorIndex.Item,
+                //            Upwards,
+                //            10f,
+                //            true
+                //        );
+                //        break;
+                //    }
+                //}
+                //#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                //                ProjectileManager.instance.FireProjectileServer(fireProjectileInfo);
+                //#pragma warning restore Publicizer001 // Accessing a member that was not originally public
             } 
         }
 

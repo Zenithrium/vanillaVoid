@@ -17,7 +17,7 @@ namespace vanillaVoid.Items
 {
     public class EnhancementVials : ItemBase<EnhancementVials>
     {
-        //public ConfigEntry<bool> consumeStack;
+        public ConfigEntry<int> refreshAmount;
 
         public ConfigEntry<string> voidPair;
 
@@ -27,11 +27,11 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "EHANCE_VIALS_ITEM";
 
-        public override string ItemPickupDesc => "Upgrade an item at low health. Consumed on use. <style=cIsVoid>Corrupts all Power Elixirs</style>.";
+        public override string ItemPickupDesc => $"Upgrade an item at low health. Consumed on use. At the start of each stage, {refreshAmount.Value} stack regenerates. <style=cIsVoid>Corrupts all Power Elixirs</style>.";
 
-        public override string ItemFullDescription => $"Taking damage to below <style=cIsHealth>25% health</style> <style=cIsUtility>consumes</style> this item, <style=cIsUtility>upgrading</style> another item. <style=cIsVoid>Corrupts all Power Elixirs</style>.";
+        public override string ItemFullDescription => $"Taking damage to below <style=cIsHealth>25% health</style> <style=cIsUtility>consumes</style> this item, <style=cIsUtility>upgrading</style> another item. At the start of each stage, <style=cIsUtility>{refreshAmount.Value}</style> stack regenerates. <style=cIsVoid>Corrupts all Power Elixirs</style>.";
 
-        public override string ItemLore => $"\"What an experiment this will be...our first forray into the void! Gather round, for this will forever change each and every one of our lives!\" \n\nA few days later, a janitor discovered a strange pile of objects scattered around various empty test tubes. They thought little of it.";
+        public override string ItemLore => $"\"What an experiment this will be...our first forray into the void! Gather round, for this will forever change each and every one of our lives!\" \n\nA few days later, a janitor discovered a strange pile of objects scattered around various colorful test tubes. They thought little of it.";
 
         public override ItemTier Tier => ItemTier.VoidTier1;
 
@@ -58,34 +58,26 @@ namespace vanillaVoid.Items
         public override void CreateConfig(ConfigFile config)
         {
             //consumeStack = config.Bind<bool>("Item: " + ItemName, "Consume Stack", false, "Adjust if each potion should upgrade a whole stack, like benthic, or only one.");
+            refreshAmount = config.Bind<int>("Item: " + ItemName, "Refresh Amount", 1, "Adjust how many empty potions refresh at the start of a new stage.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "HealingPotion", "Adjust which item this is the void pair of.");
         }
 
         public override ItemDisplayRuleDict CreateItemDisplayRules()
         {
-            
             ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlInvertedVialsDisplay.prefab");
             string glass = "RoR2/DLC1/HealingPotion/matHealingPotionGlass.mat"; 
-            //string orbCore = "RoR2/DLC1/voidstage/matVoidCoralPlatformPurple.mat";
 
-            //string orbTransp = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorLightning.mat";
-            //string orbCore = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorPod.mat";
-            //
             var vialGlass = ItemModel.transform.Find("_Vials").GetComponent<MeshRenderer>();
-            //var adzeOrbsModelCore = ItemModel.transform.Find("orbCore").GetComponent<MeshRenderer>();
             vialGlass.material = Addressables.LoadAssetAsync<Material>(glass).WaitForCompletion();
-            //adzeOrbsModelCore.material = Addressables.LoadAssetAsync<Material>(orbCore).WaitForCompletion();
-            //
+
             var vialGlassDisplay = ItemBodyModelPrefab.transform.Find("_Vials").GetComponent<MeshRenderer>();
-            //var adzeOrbsDisplayCore = ItemBodyModelPrefab.transform.Find("orbCore").GetComponent<MeshRenderer>();
             vialGlassDisplay.material = Addressables.LoadAssetAsync<Material>(glass).WaitForCompletion();
-            //adzeOrbsDisplayCore.material = Addressables.LoadAssetAsync<Material>(orbCore).WaitForCompletion();
+
 
             var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
             itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);
 
             
-
             ItemDisplayRuleDict rules = new ItemDisplayRuleDict();
             rules.Add("mdlCommandoDualies", new RoR2.ItemDisplayRule[]{
                 new RoR2.ItemDisplayRule
@@ -449,13 +441,6 @@ namespace vanillaVoid.Items
                     {
                         isDone = true;
                     }
-
-                    //List<ItemIndex> itemList = new List<ItemIndex>(self.body.inventory.itemAcquisitionOrder);
-                    //Util.ShuffleList(itemList, watchVoidRng);
-
-                    //self.body.inventory.GiveItem(ItemBase<BrokenClockworkMechanism>.instance.ItemDef, 1);
-                    //self.body.inventory.RemoveItem(ItemCatalog.GetItemDef(itemList[0]), 1);
-                    //CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, ItemCatalog.GetItemDef(itemList[0]).itemIndex, ItemBase<BrokenClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                 }
                 self.body.inventory.RemoveItem(ItemBase<EnhancementVials>.instance.ItemDef, potionCount);
                 self.body.inventory.GiveItem(ItemBase<EmptyVials>.instance.ItemDef, potionCount);

@@ -456,13 +456,13 @@ namespace vanillaVoid.Items
         {
             //On.RoR2.HealthComponent.TakeDamage += OrreryCritBonus;
             On.RoR2.HealthComponent.TakeDamage += OrreryCritRework;
-            RecalculateStatsAPI.GetStatCoefficients += CalculateStatsHook;
+            RecalculateStatsAPI.GetStatCoefficients += CalculateStatsOrreryHook;
         }
-        private static void CalculateStatsHook(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
+        private static void CalculateStatsOrreryHook(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
         {
             if (sender && sender.inventory)
             {
-                float levelBonus = sender.level - 1f;
+                //float levelBonus = sender.level - 1f;
                 int glassesCount = sender.inventory.GetItemCount(RoR2Content.Items.CritGlasses);
                 int orreryCount = sender.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
                 if (orreryCount > 0)
@@ -478,9 +478,6 @@ namespace vanillaVoid.Items
         }
         private void OrreryCritRework(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
         {
-            //bool normalcrit = damageInfo.crit;
-            //damageInfo.crit = false; 
-            //var hitDamage = damageInfo.damage;
             CharacterBody victimBody = self.body;
             if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
             {
@@ -523,7 +520,7 @@ namespace vanillaVoid.Items
                         }
                         //damageInfo.damage = hitDamage;
                         //Debug.Log("critted: " + critCount + " times");
-                        if (damageInfo.crit)
+                        if (damageInfo.crit)    
                         {
                             //damageInfo.damage = hitDamage;
                             var temp = (damageInfo.damage * critMult) - damageInfo.damage;
@@ -563,39 +560,6 @@ namespace vanillaVoid.Items
                                     break;
                             }
                         }
-                        //Debug.Log("this is color: " + var);
-                        //switch (var)
-                        //{
-                        //    case 0:
-                        //        damageInfo.damageColorIndex = indexRed;
-                        //        break;
-                        //    case 7:
-                        //        damageInfo.damageColorIndex = indexOrange;
-                        //        break;
-                        //    case 6:
-                        //        damageInfo.damageColorIndex = indexYellow;
-                        //        break;
-                        //    case 5:
-                        //        damageInfo.damageColorIndex = indexGreen;
-                        //        break;
-                        //    case 4:
-                        //        damageInfo.damageColorIndex = indexCyan;
-                        //        break;
-                        //    case 3:
-                        //        damageInfo.damageColorIndex = indexBlue;
-                        //        break;
-                        //    case 2:
-                        //        damageInfo.damageColorIndex = indexPurple;
-                        //        break;
-                        //    case 1:
-                        //        damageInfo.damageColorIndex = indexPink;
-                        //        break;
-                        //}
-                        //var++;
-                        //if (var > 7)
-                        //{
-                        //    var = 0;
-                        //}
                     }
                 }
             }
@@ -603,61 +567,61 @@ namespace vanillaVoid.Items
         }
                     
 
-        private void OrreryCritBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
-            CharacterBody victimBody = self.body;
-            if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
-            {
-                CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
-                if (attackerBody.inventory)
-                {
-                    var orreryCount = GetCount(attackerBody);
-                    //int glassesCount = attackerBody.inventory.GetItemCount(RoR2Content.Items.CritGlasses);
-                    if (orreryCount > 0)
-                    {
-                        var critChance = attackerBody.crit;
-                        //self.crit returns 100 if you have 100% chance
-
-                        if (critChance > 100)
-                        {
-                            float critMod = critChance % 100; //chance for next tier of crit
-                            float baseLevel = ((critChance - critMod) / 100);
-                            //Debug.Log("crit bonus level is " + baseLevel);
-                            if (baseLevel >= orreryCount + 1)
-                            {
-                                baseLevel = orreryCount + 1; //cap it based on number of orrerys
-                                //Debug.Log("crit was too high! bonus level is now " + baseLevel);
-                            }
-                            else
-                            {
-                                if (Util.CheckRoll(critMod, attackerBody.master))
-                                {
-                                    baseLevel += 1;
-
-                                    //Debug.Log("crited! bonus level is" + baseLevel);
-                                }
-                                else
-                                {
-                                    //Debug.Log("no crit. bonus level is" + baseLevel);
-                                }
-                            }
-                            //Debug.Log("damage was " + damageInfo.damage);
-                            if (baseLevel > 1)
-                            {
-                                damageInfo.damage *= (attackerBody.critMultiplier * baseLevel);
-                                //damageInfo.damageType |= DamageType.VoidDeath; 
-                                damageInfo.damageColorIndex = DamageColorIndex.Void;
-                                damageInfo.damage /= attackerBody.critMultiplier; //this is because the last crit (the normal one) isn't really handled here, and i didn't want to do an IL hook again
-                            }
-                            //Debug.Log("damage is " + damageInfo.damage);
-
-                            //sorry this is complete ass coding. i am stupid today.
-                        }
-                    }
-
-                }
-                
-            }
-            orig(self, damageInfo);
-        }
+        //private void OrreryCritBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
+        //    CharacterBody victimBody = self.body;
+        //    if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
+        //    {
+        //        CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
+        //        if (attackerBody.inventory)
+        //        {
+        //            var orreryCount = GetCount(attackerBody);
+        //            //int glassesCount = attackerBody.inventory.GetItemCount(RoR2Content.Items.CritGlasses);
+        //            if (orreryCount > 0)
+        //            {
+        //                var critChance = attackerBody.crit;
+        //                //self.crit returns 100 if you have 100% chance
+        //
+        //                if (critChance > 100)
+        //                {
+        //                    float critMod = critChance % 100; //chance for next tier of crit
+        //                    float baseLevel = ((critChance - critMod) / 100);
+        //                    //Debug.Log("crit bonus level is " + baseLevel);
+        //                    if (baseLevel >= orreryCount + 1)
+        //                    {
+        //                        baseLevel = orreryCount + 1; //cap it based on number of orrerys
+        //                        //Debug.Log("crit was too high! bonus level is now " + baseLevel);
+        //                    }
+        //                    else
+        //                    {
+        //                        if (Util.CheckRoll(critMod, attackerBody.master))
+        //                        {
+        //                            baseLevel += 1;
+        //
+        //                            //Debug.Log("crited! bonus level is" + baseLevel);
+        //                        }
+        //                        else
+        //                        {
+        //                            //Debug.Log("no crit. bonus level is" + baseLevel);
+        //                        }
+        //                    }
+        //                    //Debug.Log("damage was " + damageInfo.damage);
+        //                    if (baseLevel > 1)
+        //                    {
+        //                        damageInfo.damage *= (attackerBody.critMultiplier * baseLevel);
+        //                        //damageInfo.damageType |= DamageType.VoidDeath; 
+        //                        damageInfo.damageColorIndex = DamageColorIndex.Void;
+        //                        damageInfo.damage /= attackerBody.critMultiplier; //this is because the last crit (the normal one) isn't really handled here, and i didn't want to do an IL hook again
+        //                    }
+        //                    //Debug.Log("damage is " + damageInfo.damage);
+        //
+        //                    //sorry this is complete ass coding. i am stupid today.
+        //                }
+        //            }
+        //
+        //        }
+        //        
+        //    }
+        //    orig(self, damageInfo);
+        //}
     }
 }

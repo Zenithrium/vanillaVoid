@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 2360488939
+CRC: 1730721036
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 971a5b2444e4ddd610e4a1246efb3f67
+    Hash: 428372838a8bd0e093ffe249c883b3d4
   TypeTreeHash:
     serializedVersion: 2
     Hash: 1fe3abd029edb3522ae5dbbc711d0a74
@@ -29,25 +29,27 @@ ClassTypes:
   Script: {instanceID: 0}
 SerializeReferenceClassIdentifiers: []
 Assets:
+- Assets/Models/Prefabs/Item/CryoItem/mdlCryoDisplay.prefab
 - Assets/Textures/Materials/Item/Mess/gooptexture.mat
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladeDisplay.prefab
 - Assets/Textures/Materials/Item/Mess/pottexture.mat
+- Assets/Textures/Icons/Buffs/preFreezeSlow.png
 - Assets/Textures/Icons/Item/LotusItem/crystalLotusIcon512.png
 - Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryPickup.prefab
 - Assets/Models/Prefabs/Item/ClockworkWatch/mdlClockworkPickup.prefab
 - Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryDisplay.prefab
+- Assets/Models/Prefabs/Item/CryoItem/mdlCryoPickup.prefab
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedEmptyDisplay.prefab
 - Assets/Models/Prefabs/Item/MessItem/mdlMessDisplay.prefab
 - Assets/Textures/Icons/Item/VialsItem/vialsIcon.png
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedVialsPickup.prefab
-- Assets/Models/Prefabs/Item/AbyssalAdze/old/8mdlAdzePickup.prefab
+- Assets/Textures/Icons/Item/CryoItem/cryoIcon512.png
 - Assets/Textures/Icons/Item/BladeItem/bladeIcon512OLD.png
 - Assets/Textures/Materials/Item/AbyssalAdze/MiscMetalTexture.mat
 - Assets/Textures/Icons/Item/ClockworkWatch/watchIcon512.png
 - Assets/Models/Prefabs/Item/ExtVent/mdlVentPickup.prefab
 - Assets/Textures/Icons/Item/BladeItem/bladeIcon.png
 - Assets/Models/Prefabs/Item/LotusItem/mdlLotusWorldObject.prefab
-- Assets/Models/Prefabs/Item/AbyssalAdze/old/7mdlAdzePickup.prefab
 - Assets/Textures/Icons/Item/ventItem/ventIcon.png
 - Assets/Textures/Icons/Item/AbyssalAdze/adzeIcon.png
 - Assets/Textures/Materials/Item/ClockworkWatch/pillarMat.mat
@@ -56,7 +58,6 @@ Assets:
 - Assets/Models/Prefabs/Item/ExtVent/ventOrb.prefab
 - Assets/Textures/Materials/Item/Mess/voidorb.mat
 - Assets/Textures/Materials/Item/AbyssalAdze/HeadMaterial.mat
-- Assets/Models/Prefabs/Item/VialsItem/6mdlInvertedVialsPickup.prefab
 - Assets/Textures/Icons/Item/AbyssalAdze/adzeIcon512.png
 - Assets/Models/Prefabs/Item/LotusItem/mdlFinalLotusPickup.prefab
 - Assets/Textures/Materials/Item/Mess/metallictexture.mat

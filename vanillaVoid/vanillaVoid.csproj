@@ -9,6 +9,7 @@
 		<Compile Remove="Equipment\EliteEquipment\ExampleEliteEquipment.cs" />
 		<Compile Remove="Equipment\ExampleEquipment.cs" />
 		<Compile Remove="Equipment\ExampleEquipWithTargeting.cs" />
+		<Compile Remove="Items\CryoCanister.cs" />
 		<Compile Remove="Items\ExampleItem.cs" />
 	</ItemGroup>
 
@@ -30,7 +31,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="BepInEx.Core" Version="5.4.19" />
-		<PackageReference Include="RiskOfRain2.GameLibs" Version="1.2.3.1-r.0" />
+		<PackageReference Include="RiskOfRain2.GameLibs" Version="1.2.4-r.0" />
 		<PackageReference Include="UnityEngine.Modules" Version="2019.4.26" />
 		<PackageReference Include="R2API" Version="4.3.5" />
 	</ItemGroup>
