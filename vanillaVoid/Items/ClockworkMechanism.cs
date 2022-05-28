@@ -396,7 +396,7 @@ namespace vanillaVoid.Items
         private void BreakItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker)
         {
             orig.Invoke(self, damageValue, damagePosition, damageIsSilent, attacker);
-            if (NetworkServer.active && (bool)attacker && (bool)self && (bool)self.body && ItemBase<ClockworkMechanism>.instance.GetCount(self.body) > 0 && self.isHealthLow && !(self.GetComponent<CharacterBody>().GetBuffCount(recentBreak) > 0) )
+            if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<ClockworkMechanism>.instance.GetCount(self.body) > 0 && self.isHealthLow && !(self.GetComponent<CharacterBody>().GetBuffCount(recentBreak) > 0) )
             {
                 self.GetComponent<CharacterBody>().AddTimedBuff(recentBreak, breakCooldown.Value);
                 if (watchVoidRng == null)
