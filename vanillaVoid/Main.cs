@@ -341,8 +341,7 @@ namespace vanillaVoid
                         crit = player.RollCrit(),
                         projectilePrefab = ExtraterrestrialExhaust.RocketProjectile,
                         force = 10f,
-
-
+                        
                         //useSpeedOverride = true,
                         //speedOverride = 1f,
                     };
