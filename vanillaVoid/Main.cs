@@ -1,5 +1,4 @@
-﻿
-using BepInEx;
+﻿using BepInEx;
 using R2API;
 using R2API.Utils;
 using RoR2.ExpansionManagement;
@@ -30,7 +29,7 @@ namespace vanillaVoid
     [BepInPlugin(ModGuid, ModName, ModVer)]
     [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
-    [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI), nameof(EliteAPI), nameof(RecalculateStatsAPI), nameof(PrefabAPI))]
+    [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI), nameof(EliteAPI), nameof(RecalculateStatsAPI), nameof(PrefabAPI), nameof(DotAPI), nameof(LegacyResourcesAPI))]
 
     [BepInDependency(VoidItemAPI.VoidItemAPI.MODGUID)]
 
@@ -53,6 +52,7 @@ namespace vanillaVoid
         public static BepInEx.Logging.ManualLogSource ModLogger;
 
         public static GameObject bladeObject;
+
         public static GameObject lotusObject;
         public static GameObject lotusPulse;
 
@@ -126,14 +126,17 @@ namespace vanillaVoid
 
             GlobalEventManager.onCharacterDeathGlobal += ExeBladeExtraDeath;
 
-            RoR2.SceneDirector.onPostPopulateSceneServer += AddLotusOnEnter;
+            //RoR2.SceneDirector.onPostPopulateSceneServer += AddLotusOnEnter;
             On.RoR2.CharacterBody.OnInventoryChanged += AddLotusOnPickup;
             On.RoR2.HoldoutZoneController.UpdateHealingNovas += BarrierLotusNova;
+
+            On.RoR2.SceneDirector.PlaceTeleporter += PrimoridalTeleporterCheck;
+
             //ExeBladeCreateProjectile();
 
 
             //PrefabAPI.InstantiateClone(bladeObject, "exeBladePrefab", true);
-            bladeObject = MainAssets.LoadAsset<GameObject>("mdlBladeWorldObject.prefab"); //lmao it makes the pickup spin WILDLY if you use mdlBladePickup
+            bladeObject = MainAssets.LoadAsset<GameObject>("mdlBladeWorldObject.prefab"); 
             bladeObject.AddComponent<TeamFilter>();
             bladeObject.AddComponent<HealthComponent>();
             bladeObject.AddComponent<NetworkIdentity>();
@@ -146,9 +149,10 @@ namespace vanillaVoid
             lotusObject.AddComponent<NetworkIdentity>();
 
             //bladeObject.AddComponent<Rigidbody>();
-            //PrefabAPI.RegisterNetworkPrefab(bladeObject);
-            R2API.ContentAddition.AddNetworkedObject(bladeObject);
-            R2API.ContentAddition.AddNetworkedObject(lotusObject);
+            PrefabAPI.RegisterNetworkPrefab(bladeObject);
+            PrefabAPI.RegisterNetworkPrefab(lotusObject);
+            //R2API.ContentAddition.AddNetworkedObject(bladeObject);
+            //R2API.ContentAddition.AddNetworkedObject(lotusObject);
 
             // Don't know how to create/use an asset bundle, or don't have a unity project set up?
             // Look here for info on how to set these up: https://github.com/KomradeSpectre/AetheriumMod/blob/rewrite-master/Tutorials/Item%20Mod%20Creation.md#unity-project
@@ -502,13 +506,107 @@ namespace vanillaVoid
         {
             //prevents hilarity from happening
         }
+
         Vector3 teleporterPos;
         GameObject tempLotusObject;
         bool lotusSpawned = false;
+        bool isPrimoridal = false;
+        string teleporterName = "";
+
+        private void PrimoridalTeleporterCheck(On.RoR2.SceneDirector.orig_PlaceTeleporter orig, SceneDirector self)
+        {
+            //teleporterName = self.teleporterSpawnCard.ToString();
+            //Debug.Log("checking for primoridal: " + self.teleporterSpawnCard.ToString());
+            ////isPrimoridal = false;
+            //teleporterPos = self.teleporterInstance.transform.position;
+            //if (self.teleporterSpawnCard == LegacyResourcesAPI.Load<InteractableSpawnCard>("spawncards/interactablespawncard/iscLunarTeleporter"))
+            //{
+            //    Debug.Log("yo it is");
+            //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+            //    teleporterPos += celestialAdjust;
+            //    //isPrimoridal = true;
+            //}
+            //Debug.Log("checked for primoridal");
+            StartCoroutine(LotusDelayedPlacement(self));
+            orig(self);
+        }
+
+        IEnumerator LotusDelayedPlacement(SceneDirector self)
+        {
+            yield return new WaitForSeconds(4f);
+            teleporterName = self.teleporterSpawnCard.ToString();
+            Debug.Log("checking for primoridal: " + self.teleporterSpawnCard.ToString());
+
+            lotusSpawned = false;
+            teleporterPos = self.teleporterInstance.transform.position;
+            //if (obj.teleporterSpawnCard == LegacyResourcesAPI.Load<InteractableSpawnCard>("spawncards/interactablespawncard/iscLunarTeleporter"))
+            //{
+            //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+            //    teleporterPos += celestialAdjust;
+            //}
+            //if (isPrimoridal)
+            //{
+            //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+            //    teleporterPos += celestialAdjust;
+            //    Debug.Log("recognized it is");
+            //}
+            //Debug.Log("teleporter pos: " + teleporterPos);
+            int itemCount = 0;
+            TeamIndex teamDex = default;
+            foreach (var player in PlayerCharacterMasterController.instances)
+            {
+                itemCount += player.master.inventory.GetItemCount(ItemBase<BarrierLotus>.instance.ItemDef);
+                teamDex = player.master.teamIndex;
+            }
+            if (itemCount > 0)
+            {
+                teleporterPos = self.teleporterInstance.transform.position;
+                //Debug.Log(SceneCatalog.GetSceneDefForCurrentScene().baseSceneName);
+                if (teleporterName.Contains("iscLunarTeleporter"))
+                {
+                    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+                    teleporterPos += celestialAdjust;
+                }
+
+                //if (SceneCatalog.GetSceneDefForCurrentScene().baseSceneName == "skymeadow")
+                //{
+                //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+                //    teleporterPos += celestialAdjust;
+                //}
+
+
+                Quaternion rot = Quaternion.Euler(0, 180, 0);
+                var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
+                tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
+                tempLotus.transform.position = teleporterPos + heightAdjust;
+                NetworkServer.Spawn(tempLotus);
+                tempLotusObject = tempLotus;
+                lotusSpawned = true;
+
+                EffectData effectData = new EffectData
+                {
+                    origin = tempLotus.transform.position
+                };
+                effectData.SetNetworkedObjectReference(tempLotus.gameObject);
+                EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
+            }
+        }
+
         private void AddLotusOnEnter(SceneDirector obj)
         {
             lotusSpawned = false;
             teleporterPos = obj.teleporterInstance.transform.position;
+            //if (obj.teleporterSpawnCard == LegacyResourcesAPI.Load<InteractableSpawnCard>("spawncards/interactablespawncard/iscLunarTeleporter"))
+            //{
+            //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+            //    teleporterPos += celestialAdjust;
+            //}
+            //if (isPrimoridal)
+            //{
+            //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+            //    teleporterPos += celestialAdjust;
+            //    Debug.Log("recognized it is");
+            //}
             //Debug.Log("teleporter pos: " + teleporterPos);
             int itemCount = 0;
             TeamIndex teamDex = default;
@@ -520,7 +618,20 @@ namespace vanillaVoid
             if(itemCount > 0)
             {
                 teleporterPos = obj.teleporterInstance.transform.position;
-                
+                //Debug.Log(SceneCatalog.GetSceneDefForCurrentScene().baseSceneName);
+                if(teleporterName.Contains("iscLunarTeleporter"))
+                {
+                    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+                    teleporterPos += celestialAdjust;
+                }
+
+                //if (SceneCatalog.GetSceneDefForCurrentScene().baseSceneName == "skymeadow")
+                //{
+                //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+                //    teleporterPos += celestialAdjust;
+                //}
+
+
                 Quaternion rot = Quaternion.Euler(0, 180, 0);
                 var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
                 tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
@@ -528,6 +639,13 @@ namespace vanillaVoid
                 NetworkServer.Spawn(tempLotus);
                 tempLotusObject = tempLotus;
                 lotusSpawned = true;
+
+                EffectData effectData = new EffectData
+                {
+                    origin = tempLotus.transform.position
+                };
+                effectData.SetNetworkedObjectReference(tempLotus.gameObject);
+                EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
             }
 
         }
@@ -544,6 +662,16 @@ namespace vanillaVoid
                 }
                 if (itemCount > 0)
                 {
+                    if (teleporterName.Contains("iscLunarTeleporter"))
+                    {
+                        Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+                        teleporterPos += celestialAdjust;
+                    }
+                    //if (SceneCatalog.GetSceneDefForCurrentScene().baseSceneName == "skymeadow")
+                    //{
+                    //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+                    //    teleporterPos += celestialAdjust;
+                    //}
                     Quaternion rot = Quaternion.Euler(0, 180, 0);
                     var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
                     tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;

@@ -11,6 +11,7 @@
 		<Compile Remove="Equipment\ExampleEquipWithTargeting.cs" />
 		<Compile Remove="Items\CryoCanister.cs" />
 		<Compile Remove="Items\ExampleItem.cs" />
+		<Compile Remove="Items\WickedStaff.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

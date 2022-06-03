@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 1730721036
+CRC: 1691027304
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 428372838a8bd0e093ffe249c883b3d4
+    Hash: 5db8048736fadb027e5c754894a3ad2d
   TypeTreeHash:
     serializedVersion: 2
     Hash: 1fe3abd029edb3522ae5dbbc711d0a74
@@ -43,6 +43,7 @@ Assets:
 - Assets/Models/Prefabs/Item/MessItem/mdlMessDisplay.prefab
 - Assets/Textures/Icons/Item/VialsItem/vialsIcon.png
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedVialsPickup.prefab
+- Assets/Models/Prefabs/Item/StaffItem/mdlStaffPickup.prefab
 - Assets/Textures/Icons/Item/CryoItem/cryoIcon512.png
 - Assets/Textures/Icons/Item/BladeItem/bladeIcon512OLD.png
 - Assets/Textures/Materials/Item/AbyssalAdze/MiscMetalTexture.mat
@@ -51,6 +52,7 @@ Assets:
 - Assets/Textures/Icons/Item/BladeItem/bladeIcon.png
 - Assets/Models/Prefabs/Item/LotusItem/mdlLotusWorldObject.prefab
 - Assets/Textures/Icons/Item/ventItem/ventIcon.png
+- Assets/Models/Prefabs/Item/StaffItem/mdlStaffDisplay.prefab
 - Assets/Textures/Icons/Item/AbyssalAdze/adzeIcon.png
 - Assets/Textures/Materials/Item/ClockworkWatch/pillarMat.mat
 - Assets/Models/Prefabs/Item/MessItem/mdlMessPickup.prefab

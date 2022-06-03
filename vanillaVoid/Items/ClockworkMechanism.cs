@@ -17,6 +17,8 @@ namespace vanillaVoid.Items
 {
     public class ClockworkMechanism : ItemBase<ClockworkMechanism>
     {
+        public ConfigEntry<int> itemVariant;
+
         public ConfigEntry<float> directorBuff;
 
         public ConfigEntry<float> stackingBuff;
@@ -25,6 +27,12 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<bool> alwaysHappen;
 
+        public ConfigEntry<float> directorMultiplier;
+
+        public ConfigEntry<float> directorMultiplierStacking;
+
+        public ConfigEntry<int> variantBreakAmount;
+
         public ConfigEntry<string> voidPair;
 
         private Xoroshiro128Plus watchVoidRng;
@@ -32,12 +40,11 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "CLOCKWORK_ITEM";
 
-        public override string ItemPickupDesc => "Increase the number of interactables per stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+        public override string ItemPickupDesc => tempItemPickupDesc;
 
-        public override string ItemFullDescription => $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+        public override string ItemFullDescription => tempItemFullDescription;
 
-        public override string ItemLore => $"\"The clock is always ticking. The hands of time move independently of your desire for them to still - the sands flow eternally and will never pause. Use what little time you have efficiently - once you've lost that time, it's quite hard to find more.\"" +
-            "\n\n- Lost Journal, recovered from Petrichor V";
+        public override string ItemLore => tempLore;
 
         public override ItemTier Tier => ItemTier.VoidTier1;
         
@@ -52,24 +59,66 @@ namespace vanillaVoid.Items
 
         public BuffDef recentBreak { get; private set; }
 
+        string tempItemPickupDesc;
+        string tempItemFullDescription;
+        string tempLore;
         public override void Init(ConfigFile config)
         {
             CreateConfig(config);
+            switch (itemVariant.Value)
+            {
+                case 1:
+                    tempItemPickupDesc = "Increase the number of interactables per stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    tempLore = $"\"The clock is always ticking. The hands of time move independently of your desire for them to still - the sands flow eternally and will never pause. Use what little time you have efficiently - once you've lost that time, it's quite hard to find more.\"" +
+            "\n\n- Lost Journal, recovered from Petrichor V";
+                    CreateBuff();
+                    break;
+
+                case 2:
+                    tempItemPickupDesc = "Greatly increase the number of interactables in the next stage. Breaks after use. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    tempItemFullDescription = "";
+                    tempLore = $"\"May your greed know no bounds. Take what you have, and destroy it, for something better. It will have been worth it. \nI guarantee it.\n\n- Lost Journal, recovered from Petrichor V";
+                    if (variantBreakAmount.Value < 0)
+                    {
+                        tempItemFullDescription = $"Multiply the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>all</style> stacks after use. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    }
+                    else if (variantBreakAmount.Value == 1)
+                    {
+                        tempItemFullDescription = $"Multiply the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stack after use. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    }
+                    else
+                    {
+                        tempItemFullDescription = $"Multiply the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stacks after use. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    }
+                    break;
+
+                default:
+                    tempItemPickupDesc = "Invalid item Variant in config. Please enter a 1 or a 2.";
+                    tempItemFullDescription = $"Invalid item Variant in config. Please enter a 1 or a 2";
+                    break;
+            }
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
             VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
-            CreateBuff();
+            //CreateBuff();
             Hooks();
-            
         }
 
         public override void CreateConfig(ConfigFile config)
         {
-            directorBuff = config.Bind<float>("Item: " + ItemName, "Increased Credits", 22.5f, "Adjust how many credits the first stack gives the director. 15 credits is one chest.");
-            stackingBuff = config.Bind<float>("Item: " + ItemName, "Percent Increase per Stack", 22.5f, "Adjust the increase gained per stack."); //22.5f is 1.5 chests
-            breakCooldown = config.Bind<float>("Item: " + ItemName, "Cooldown Between Breaking Items", 3.0f, "Adjust how long the cooldown is between the item breaking other items.");
-            alwaysHappen = config.Bind<bool>("Item: " + ItemName, "Function in Special Stages", false, "Adjust whether or not the item should increase the number of credits in stages where the director doesn't get any credits (ex Bazaar, Void Fields).");
+            itemVariant = config.Bind<int>("Item: " + ItemName, "Item Variant", 2, "Adjust which version of " + ItemName + " you'd prefer to use. Variant 1 slightly increases interactables per stage, and breaks a random item at low health, while Variant 2 breaks itself at the start of the next stage, but greatly increases the number of interactables.");
+            directorBuff = config.Bind<float>("Item: " + ItemName, "Increased Credits", 22.5f, "Adjust how many credits the first stack gives the director. 15 credits is one chest. Only for Variant 1.");
+            stackingBuff = config.Bind<float>("Item: " + ItemName, "Percent Increase per Stack", 22.5f, "Adjust the increase gained per stack. Only for Variant 1."); //22.5f is 1.5 chests
+            breakCooldown = config.Bind<float>("Item: " + ItemName, "Cooldown Between Breaking Items", 3.0f, "Adjust how long the cooldown is between the item breaking other items. Only for Variant 1.");
+            alwaysHappen = config.Bind<bool>("Item: " + ItemName, "Function in Special Stages", false, "Adjust whether or not the item should increase the number of credits in stages where the director doesn't get any credits (ex Gilded Coast, Commencement). Only for Variant 1.");
+
+            directorMultiplier = config.Bind<float>("Item: " + ItemName, "Director Multiplier", 1.75f, "Adjust the multiplier to the number of credits the director gets. Only for Variant 2.");
+            directorMultiplierStacking = config.Bind<float>("Item: " + ItemName, "Director Multiplier Stacking", 1f, "Adjust the multiplier bonus provided by every stack except the first (This means that in multiplayer, if two players have the item, the base multiplier will still only be applied once, and this one applied for every other stack). Only for Variant 2.");
+            variantBreakAmount = config.Bind<int>("Item: " + ItemName, "Amount of Breaks", -1, "Adjust how many items in the stack Variant 2 breaks when stage-transitioning. The number of items broken times the multiplier is how much the director credits will be increased by (thus breaking only one means the muliplier will only apply once, per player). A negative number means it will break the entire stack. Only for Variant 2.");
+            
+
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "FragileDamageBonus", "Adjust which item this is the void pair of.");
         }
 
@@ -375,14 +424,18 @@ namespace vanillaVoid.Items
 
         public override void Hooks()
         {
-            On.RoR2.HealthComponent.UpdateLastHitTime += BreakItem;
+            if (itemVariant.Value == 1)
+            {
+                On.RoR2.HealthComponent.UpdateLastHitTime += BreakItem;
+            }
             RoR2.SceneDirector.onPrePopulateSceneServer += HelpDirector;
+            
         }
 
         private void HelpDirector(SceneDirector obj)
         {
-            if (alwaysHappen.Value || obj.interactableCredit != 0) {
-                //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
+            Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
+            if ((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariant.Value == 1) {
                 int itemCount = 0;
                 foreach (var player in PlayerCharacterMasterController.instances)
                 {
@@ -390,13 +443,58 @@ namespace vanillaVoid.Items
                 }
                 obj.interactableCredit += (int)(directorBuff.Value + (stackingBuff.Value * (itemCount - 1)));
             }
-            //Debug.Log("function ending, interactable credits after: " + obj.interactableCredit);
+            else if(obj.interactableCredit != 0 && itemVariant.Value == 2)
+            {
+                int itemCount = 0;
+                int tempItemCount = 0;
+                foreach (var player in PlayerCharacterMasterController.instances)
+                {
+                    //itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+
+                    tempItemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+                    if (tempItemCount > 0)
+                    {
+                        if (variantBreakAmount.Value < 0)
+                        {
+                            player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+                            player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, tempItemCount);
+                            float creditMult = directorMultiplier.Value + (directorMultiplierStacking.Value * (float)tempItemCount);
+                            obj.interactableCredit = (int)(obj.interactableCredit * creditMult);
+                        }
+                        else
+                        {
+                            if (variantBreakAmount.Value > tempItemCount)
+                            {
+                                player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+                                player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, tempItemCount);
+                                float creditMult = directorMultiplier.Value + (directorMultiplierStacking.Value * (float)tempItemCount);
+                                obj.interactableCredit = (int)(obj.interactableCredit * creditMult);
+                            }
+                            else
+                            {
+                                player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, variantBreakAmount.Value);
+                                player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, variantBreakAmount.Value);
+                                float creditMult = directorMultiplier.Value + (directorMultiplierStacking.Value * (float)variantBreakAmount.Value);
+                                obj.interactableCredit = (int)(obj.interactableCredit * creditMult);
+                            }
+                        }
+                        //player.body.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+                        //player.body.inventory.GiveItem(ItemBase<BrokenClockworkMechanism>.instance.ItemDef, tempItemCount);
+                        CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                    }
+                    itemCount += tempItemCount;
+                    tempItemCount = 0;
+                    
+                }
+                //obj.interactableCredit *= (int)(directorMultiplier.Value * (float)itemCount);
+            }
+            Debug.Log("function ending, interactable credits after: " + obj.interactableCredit);
         }
 
         private void BreakItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker)
         {
             orig.Invoke(self, damageValue, damagePosition, damageIsSilent, attacker);
-            if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<ClockworkMechanism>.instance.GetCount(self.body) > 0 && self.isHealthLow && !(self.GetComponent<CharacterBody>().GetBuffCount(recentBreak) > 0) )
+            if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<ClockworkMechanism>.instance.GetCount(self.body) > 0 && self.isHealthLow && !(self.GetComponent<CharacterBody>().GetBuffCount(recentBreak) > 0) && itemVariant.Value == 1 )
             {
                 self.GetComponent<CharacterBody>().AddTimedBuff(recentBreak, breakCooldown.Value);
                 if (watchVoidRng == null)
@@ -421,8 +519,8 @@ namespace vanillaVoid.Items
                 if (itemIndex != ItemIndex.None)
                 {
                     self.body.inventory.RemoveItem(itemIndex);
-                    self.body.inventory.GiveItem(ItemBase<BrokenClockworkMechanism>.instance.ItemDef);
-                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, ItemBase<BrokenClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                    self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef);
+                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                 }
 
                 //List<ItemIndex> itemList = new List<ItemIndex>(self.body.inventory.itemAcquisitionOrder);
@@ -438,7 +536,7 @@ namespace vanillaVoid.Items
                 effectData.SetNetworkedObjectReference(self.gameObject);
                 EffectManager.SpawnEffect(HealthComponent.AssetReferences.fragileDamageBonusBreakEffectPrefab, effectData, transmit: true);
             }
-            orig(self, damageValue, damagePosition, damageIsSilent, attacker);
+            //orig(self, damageValue, damagePosition, damageIsSilent, attacker);
         }
     }
 }

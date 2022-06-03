@@ -41,9 +41,12 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
 
         public override string ItemPickupDesc => "Killing an enemy slows and eventually freezes other nearby enemies. <style=cIsVoid>Corrupts all Gasolines</style>.";
 
-        public override string ItemFullDescription => $"Killing an enemy <style=cIsUtility>slows</style> all enemies within <style=cIsDamage>10m</style> <style=cStack>(+2.5m per stack)</style>, which lasts for <style=cIsUtility>5</style> <style=cStack>(+2.5 per stack)</style> seconds. Upon applying <style=cIsUtility>2 stacks</style> of <style=cIsUtility>slow</style> to an enemy, they are <style=cIsDamage>frozen</style>. <style=cIsVoid>Corrupts all Gasolines</style>.";
+        public override string ItemFullDescription => $"Killing an enemy <style=cIsUtility>slows</style> all enemies within <style=cIsDamage>10m</style> <style=cStack>(+2.5m per stack)</style>, which lasts for <style=cIsUtility>5</style> <style=cStack>(+2.5 per stack)</style> seconds. Upon applying <style=cIsUtility>{requiredStacksForFreeze.Value} stacks</style> of <style=cIsUtility>slow</style> to an enemy, they are <style=cIsDamage>frozen</style>. Less effective on bosses. <style=cIsVoid>Corrupts all Gasolines</style>.";
 
-        public override string ItemLore => $"Cryo Lore";
+        public override string ItemLore => $"<style=cSub>Order: Lens-Maker's Orrery \nTracking Number: ******** \nEstimated Delivery: 1/13/2072 \nShipping Method: High Priority/Fragile/Confidiential \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" +
+            "The Lens-Maker, as mysterious as they are influential. From my research I have surmised that she has been appointed to \"Final Verdict\", the most prestigious role of leadership in the House Beyond. Our team managed to locate a workshop of hers where she was supposedly working on some never-before concieved tech - but something was off. " +
+            "Looking through her schematics and trinkets I found something odd - something unlike what I was anticipating. A simple orrery, clearly her design, but without her classic red, replaced with a peculiar purple. At first I worried that when she learned of our arrival, when she left in a rush, that we had ruined some of her masterpieces...but maybe it's best we interrupted her. " +
+            "\n\nGiven that this is one of a kind, and quite a special work of hers at that; I expect much more than just currency in payment.";
 
         public override ItemTier Tier => ItemTier.VoidTier1;
 
