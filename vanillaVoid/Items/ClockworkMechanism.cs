@@ -78,7 +78,7 @@ namespace vanillaVoid.Items
                 case 2:
                     tempItemPickupDesc = "Greatly increase the number of interactables in the next stage. Breaks after use. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
                     tempItemFullDescription = "";
-                    tempLore = $"\"May your greed know no bounds. Take what you have, and destroy it, for something better. It will have been worth it. \nI guarantee it.\n\n- Lost Journal, recovered from Petrichor V";
+                    tempLore = $"\"May your greed know no bounds. Take what you have, and destroy it, for something better. It will have been worth it. \nI guarantee it.\"\n\n- Lost Journal, recovered from Petrichor V";
                     if (variantBreakAmount.Value < 0)
                     {
                         tempItemFullDescription = $"Multiply the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>all</style> stacks after use. <style=cIsVoid>Corrupts all Delicate Watches</style>.";

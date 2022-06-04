@@ -63,7 +63,7 @@ namespace vanillaVoid.Items
         private void RefreshVials(SceneDirector obj)
         {
             int refreshAmount = EnhancementVials.instance.refreshAmount.Value;
-            if (refreshAmount > 0)
+            if (refreshAmount != 0)
             {
                 //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
                 //int itemCount = 0;
@@ -71,7 +71,14 @@ namespace vanillaVoid.Items
                 {
                     int itemCount = 0;
                     itemCount += player.master.inventory.GetItemCount(ItemBase<EmptyVials>.instance.ItemDef);
-                    if(itemCount > 0 && itemCount > refreshAmount)
+                    if(itemCount > 0 && refreshAmount < 0)
+                    {
+                        player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, itemCount);
+                        player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, itemCount);
+                        CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
+
+                    }
+                    else if (itemCount > 0 && itemCount > refreshAmount)
                     {
                         player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, refreshAmount);
                         player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, refreshAmount);

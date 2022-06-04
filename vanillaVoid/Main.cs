@@ -37,7 +37,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.1.5";
+        public const string ModVer = "1.1.6";
 
         public static ExpansionDef sotvDLC; 
 
@@ -131,6 +131,7 @@ namespace vanillaVoid
             On.RoR2.HoldoutZoneController.UpdateHealingNovas += BarrierLotusNova;
 
             On.RoR2.SceneDirector.PlaceTeleporter += PrimoridalTeleporterCheck;
+            
 
             //ExeBladeCreateProjectile();
 
@@ -535,7 +536,7 @@ namespace vanillaVoid
         {
             yield return new WaitForSeconds(4f);
             teleporterName = self.teleporterSpawnCard.ToString();
-            Debug.Log("checking for primoridal: " + self.teleporterSpawnCard.ToString());
+            //Debug.Log("checking for primoridal: " + self.teleporterSpawnCard.ToString());
 
             lotusSpawned = false;
             teleporterPos = self.teleporterInstance.transform.position;
@@ -590,12 +591,16 @@ namespace vanillaVoid
                 effectData.SetNetworkedObjectReference(tempLotus.gameObject);
                 EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
             }
+            //Debug.Log("checking prevfrac: " + previousPulseFraction);
+            previousPulseFraction = 0;
+            //Debug.Log("fixed prevfrac: " + previousPulseFraction);
         }
 
         private void AddLotusOnEnter(SceneDirector obj)
         {
             lotusSpawned = false;
             teleporterPos = obj.teleporterInstance.transform.position;
+            previousPulseFraction = 0;
             //if (obj.teleporterSpawnCard == LegacyResourcesAPI.Load<InteractableSpawnCard>("spawncards/interactablespawncard/iscLunarTeleporter"))
             //{
             //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
@@ -679,6 +684,12 @@ namespace vanillaVoid
                     NetworkServer.Spawn(tempLotus);
                     tempLotusObject = tempLotus;
                     lotusSpawned = true;
+                    EffectData effectData = new EffectData
+                    {
+                        origin = tempLotus.transform.position
+                    };
+                    effectData.SetNetworkedObjectReference(tempLotus.gameObject);
+                    EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
                 }
             }
             orig(self);
@@ -708,7 +719,13 @@ namespace vanillaVoid
                     }
                     else
                     {
-                        //Debug.Log("trying");
+                        //if(self.charge < (1f / (float)(itemCount + 1)) && previousPulseFraction > 1)
+                        //{
+                        //    Debug.Log("fixing dumb jank " + previousPulseFraction);
+                        //    previousPulseFraction = 0; //jank fix?
+                        //    //Debug.Log("fixing dumb jank " + previousPulseFraction);
+                        //}
+                        //Debug.Log("previous was: " + previousPulseFraction);
                         float nextPulseFraction = CalcNextPulseFraction(itemCount * (int)ItemBase<BarrierLotus>.instance.pulseCountStacking.Value, previousPulseFraction);
                         float currentCharge = self.charge;
                         //Debug.Log("waiting for " + nextPulseFraction + " | we are at " + currentCharge);
@@ -751,12 +768,17 @@ namespace vanillaVoid
         }
         private static float CalcNextPulseFraction(int itemCount, float prevPulseFraction)
         {
+            //if(charge < .02 && prevPulseFraction > 1)
+            //{
+            //    Debug.Log("fixing dumb jank in calc" + prevPulseFraction);
+            //    prevPulseFraction = 0;
+            //}
             float healFraction = 1f / (float)(itemCount + 1);
             //Debug.Log(healFraction + " hela fraction");
             for(int i = 1; i <= itemCount; i++)
             {
                 float temp = (float)i * healFraction;
-                //Debug.Log("temp: " + temp);
+                //Debug.Log("temp: " + temp + " | previous: " + prevPulseFraction);
                 if(temp > prevPulseFraction)
                 {
                     return temp;

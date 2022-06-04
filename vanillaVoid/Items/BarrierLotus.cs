@@ -29,7 +29,7 @@ namespace vanillaVoid.Items
 
         public override string ItemPickupDesc => "Periodically release a barrier nova during the Teleporter event and 'Holdout Zones' such as the Void Fields. <style=cIsVoid>Corrupts all Lepton Daisies</style>.";
 
-        public override string ItemFullDescription => $"Release a <style=cIsHealing>barrier nova</style> during the Teleporter Event, <style=cIsHealing>providing a barrier</style> to all nearby allies for <style=cIsHealing>{barrierAmount.Value * 100}%</style> of their max health. Occurs <style=cIsHealing>{pulseCountStacking.Value}</style> <style=cStack>(+{pulseCountStacking.Value} per stack)</style> times. <style=cIsVoid>Corrupts all Lepton Daisies</style>.";
+        public override string ItemFullDescription => $"Release a <style=cIsHealing>barrier nova</style> during the Teleporter event, <style=cIsHealing>providing a barrier</style> to all nearby allies for <style=cIsHealing>{barrierAmount.Value * 100}%</style> of their max health. Occurs <style=cIsHealing>{pulseCountStacking.Value}</style> <style=cStack>(+{pulseCountStacking.Value} per stack)</style> times. <style=cIsVoid>Corrupts all Lepton Daisies</style>.";
 
         public override string ItemLore => $"\"I've located an...interesting specimen. You know those inane myths and theories people have about healing crystals, magical herbs, all that nonsense? You'll never believe me, but uh...I found something that roughly matches those descriptions. There's no doubt it's a coincidence... but it makes me wonder. What if some of these objects...these.. discoveries... aren't so new?\"\n\n- Lost Journal, Recovered from Petrichor V";
 
@@ -66,7 +66,7 @@ namespace vanillaVoid.Items
         public override void CreateConfig(ConfigFile config)
         {
             barrierAmount = config.Bind<float>("Item: " + ItemName, "Percent Barrier", .3f, "Adjust percent of health that the barrier pulse provides.");
-            pulseCountStacking = config.Bind<float>("Item: " + ItemName, "Activations per Stack", 1f, "Adjust the percent of extra damage dealt per stack.");
+            pulseCountStacking = config.Bind<float>("Item: " + ItemName, "Activations per Stack", 1f, "Adjust the number of pulses each stack provides.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "TPHealingNova", "Adjust which item this is the void pair of.");
         }
 
