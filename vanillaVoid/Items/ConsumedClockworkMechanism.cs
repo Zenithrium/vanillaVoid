@@ -42,7 +42,7 @@ namespace vanillaVoid.Items
         public override void Init(ConfigFile config)
         {
             //CreateConfig(config);
-            if(ClockworkMechanism.instance.itemVariant.Value == 1)
+            if(ClockworkMechanism.instance.itemVariantFix.Value == 1)
             {
                 tempItemPickupDesc = "Its time has run out...";
                 tempItemFullDescription = "Its time has run out...";

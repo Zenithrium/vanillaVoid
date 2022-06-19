@@ -17,13 +17,19 @@ namespace vanillaVoid.Items
 {
     public class ClockworkMechanism : ItemBase<ClockworkMechanism>
     {
-        public ConfigEntry<int> itemVariant;
+        public ConfigEntry<int> itemVariantFix;
 
         public ConfigEntry<float> directorBuff;
 
         public ConfigEntry<float> stackingBuff;
 
         public ConfigEntry<float> breakCooldown;
+
+        public ConfigEntry<bool> scrapInstead;
+
+        public ConfigEntry<bool> destroySelf;
+
+        public ConfigEntry<bool> proritizeLowTier;
 
         public ConfigEntry<bool> alwaysHappen;
 
@@ -65,11 +71,28 @@ namespace vanillaVoid.Items
         public override void Init(ConfigFile config)
         {
             CreateConfig(config);
-            switch (itemVariant.Value)
+            switch (itemVariantFix.Value)
             {
                 case 1:
-                    tempItemPickupDesc = "Increase the number of interactables per stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
-                    tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    if (destroySelf.Value)
+                    {
+                        tempItemPickupDesc = "Increase the number of interactables per stage. Breaks half of the current stack at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                        tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks half of the current stack, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    }
+                    else
+                    {
+                        tempItemPickupDesc = "Increase the number of interactables per stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                        tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    
+                    }
+                    //if (scrapInstead.Value)
+                    //{
+                    //    tempItemPickupDesc = "Increase the number of interactables per stage. Scraps a random item at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    //    tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> scraps <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    //}
+
+                    //tempItemPickupDesc = "Increase the number of interactables per stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    //tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
                     tempLore = $"\"The clock is always ticking. The hands of time move independently of your desire for them to still - the sands flow eternally and will never pause. Use what little time you have efficiently - once you've lost that time, it's quite hard to find more.\"" +
             "\n\n- Lost Journal, recovered from Petrichor V";
                     CreateBuff();
@@ -91,6 +114,8 @@ namespace vanillaVoid.Items
                     {
                         tempItemFullDescription = $"Multiply the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stacks after use. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
                     }
+                    tempItemPickupDesc.Replace("Breaks", "Scraps");
+                    tempItemFullDescription.Replace("Breaks", "Scraps");
                     break;
 
                 default:
@@ -108,10 +133,12 @@ namespace vanillaVoid.Items
 
         public override void CreateConfig(ConfigFile config)
         {
-            itemVariant = config.Bind<int>("Item: " + ItemName, "Item Variant", 2, "Adjust which version of " + ItemName + " you'd prefer to use. Variant 1 slightly increases interactables per stage, and breaks a random item at low health, while Variant 2 breaks itself at the start of the next stage, but greatly increases the number of interactables.");
+            itemVariantFix = config.Bind<int>("Item: " + ItemName, "Variant", 1, "Adjust which version of " + ItemName + " you'd prefer to use. Variant 1 slightly increases interactables per stage, and breaks a random item at low health, while Variant 2 breaks itself at the start of the next stage, but greatly increases the number of interactables.");
             directorBuff = config.Bind<float>("Item: " + ItemName, "Increased Credits", 22.5f, "Adjust how many credits the first stack gives the director. 15 credits is one chest. Only for Variant 1.");
             stackingBuff = config.Bind<float>("Item: " + ItemName, "Percent Increase per Stack", 22.5f, "Adjust the increase gained per stack. Only for Variant 1."); //22.5f is 1.5 chests
-            breakCooldown = config.Bind<float>("Item: " + ItemName, "Cooldown Between Breaking Items", 3.0f, "Adjust how long the cooldown is between the item breaking other items. Only for Variant 1.");
+            breakCooldown = config.Bind<float>("Item: " + ItemName, "Cooldown Between Breaking Items", 3.0f, "Adjust how long the cooldown is between the item breaking other items. Only for Variant 1.");            scrapInstead = config.Bind<bool>("Item: " + ItemName, "Scrap instead of Breaking", false, "Adjust whether the items are scrapped or destroyed. Only for Variant 1.");
+            destroySelf = config.Bind<bool>("Item: " + ItemName, "Destroy Self instead of other Items", false, "Adjust if the item should destroy itself, rather than other items. Destroys half of the current stack. Overrides the config option below (tier priority). Only for Variant 1.");
+            proritizeLowTier = config.Bind<bool>("Item: " + ItemName, "Prioritize Lower Tier Items", true, "Adjust the item's preference for lower tier items. False means no prefrence, true means a general preference (unlikely, but possible to destroy higher tiers). Only for Variant 1.");
             alwaysHappen = config.Bind<bool>("Item: " + ItemName, "Function in Special Stages", false, "Adjust whether or not the item should increase the number of credits in stages where the director doesn't get any credits (ex Gilded Coast, Commencement). Only for Variant 1.");
 
             directorMultiplier = config.Bind<float>("Item: " + ItemName, "Director Multiplier", 1.75f, "Adjust the multiplier to the number of credits the director gets. Only for Variant 2.");
@@ -424,18 +451,18 @@ namespace vanillaVoid.Items
 
         public override void Hooks()
         {
-            if (itemVariant.Value == 1)
+            if (itemVariantFix.Value == 1)
             {
                 On.RoR2.HealthComponent.UpdateLastHitTime += BreakItem;
             }
             RoR2.SceneDirector.onPrePopulateSceneServer += HelpDirector;
-            
+            //On.RoR2.Stage.RespawnCharacter += StageRewards;
         }
 
         private void HelpDirector(SceneDirector obj)
         {
             Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
-            if ((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariant.Value == 1) {
+            if ((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariantFix.Value == 1) {
                 int itemCount = 0;
                 foreach (var player in PlayerCharacterMasterController.instances)
                 {
@@ -443,7 +470,7 @@ namespace vanillaVoid.Items
                 }
                 obj.interactableCredit += (int)(directorBuff.Value + (stackingBuff.Value * (itemCount - 1)));
             }
-            else if(obj.interactableCredit != 0 && itemVariant.Value == 2)
+            else if(obj.interactableCredit != 0 && itemVariantFix.Value == 2)
             {
                 int itemCount = 0;
                 int tempItemCount = 0;
@@ -494,7 +521,7 @@ namespace vanillaVoid.Items
         private void BreakItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker)
         {
             orig.Invoke(self, damageValue, damagePosition, damageIsSilent, attacker);
-            if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<ClockworkMechanism>.instance.GetCount(self.body) > 0 && self.isHealthLow && !(self.GetComponent<CharacterBody>().GetBuffCount(recentBreak) > 0) && itemVariant.Value == 1 )
+            if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<ClockworkMechanism>.instance.GetCount(self.body) > 0 && self.isHealthLow && !(self.GetComponent<CharacterBody>().GetBuffCount(recentBreak) > 0) && itemVariantFix.Value == 1 )
             {
                 self.GetComponent<CharacterBody>().AddTimedBuff(recentBreak, breakCooldown.Value);
                 if (watchVoidRng == null)
@@ -502,27 +529,139 @@ namespace vanillaVoid.Items
                     watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
                 }
 
-                List<ItemIndex> list = new List<ItemIndex>(self.body.inventory.itemAcquisitionOrder);
-                ItemIndex itemIndex = ItemIndex.None;
-                Util.ShuffleList(list, watchVoidRng);
-                foreach (ItemIndex item in list)
+                int itemTierInt = 0;
+                if (destroySelf.Value)
                 {
-                    
-                    ItemDef itemDef = ItemCatalog.GetItemDef(item);
-                    if ((bool)itemDef && itemDef.tier != ItemTier.NoTier)
-                    {
-                        itemIndex = item;
-                        break;
-                    }
-                    
-                }
-                if (itemIndex != ItemIndex.None)
-                {
-                    self.body.inventory.RemoveItem(itemIndex);
-                    self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef);
-                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
-                }
+                    float count = (float)ItemBase<ClockworkMechanism>.instance.GetCount(self.body);
+                    int toLose = (int)Math.Ceiling(count / 2f);
 
+                    self.body.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, toLose);
+                    self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, toLose);
+                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+
+                }
+                else
+                {
+                    List<ItemIndex> list = new List<ItemIndex>(self.body.inventory.itemAcquisitionOrder);
+                    ItemIndex itemIndex = ItemIndex.None;
+                    Util.ShuffleList(list, watchVoidRng);
+                    foreach (ItemIndex item in list)
+                    {
+
+                        ItemDef itemDef = ItemCatalog.GetItemDef(item);
+                        if ((bool)itemDef && itemDef.tier != ItemTier.NoTier)
+                        {
+                            bool allowHigherTier = Util.CheckRoll(.5f);
+                            //bool isScrap = false;
+                            itemIndex = item;
+                            //Debug.Log("index of current item: "+ itemDef.name);
+                            if(itemDef.name.Equals("ScrapWhite") || itemDef.name.Equals("ScrapGreen") || itemDef.name.Equals("ScrapRed") || itemDef.name.Equals("ScrapYellow"))
+                            {
+                                //Debug.Log("attempted to scrap scrap! continuing");
+                                continue;
+                            }
+                            if (proritizeLowTier.Value)
+                            {
+                                //itemIndex = item;
+                                //Debug.Log("iten chosen: " + item + " and: " + allowHigherTier);
+                                if (itemDef.tier == ItemTier.Lunar)
+                                {
+                                    if (Util.CheckRoll(.33f)) //allow it to still destroy lunars, but have it be unlikely
+                                    {
+                                        //itemIndex = item;
+                                        //Debug.Log("lunar iten chosen: " + itemIndex);
+                                        itemTierInt = 5;
+                                        break;
+                                    }
+                                }
+                                else if (itemDef.tier == ItemTier.Boss || itemDef.tier == ItemTier.VoidBoss)
+                                {
+                                    if (allowHigherTier && Util.CheckRoll(.80f)) // extra check for boss and red so it's just a little less likely 
+                                    {
+                                        //itemIndex = item;
+                                        //Debug.Log("boss iten chosen: " + itemIndex);
+                                        itemTierInt = 4;
+                                        break;
+                                    }
+                                }
+                                else if (itemDef.tier == ItemTier.Tier3 || itemDef.tier == ItemTier.VoidTier3)
+                                {
+                                    if (allowHigherTier && Util.CheckRoll(.80f))
+                                    {
+                                        //itemIndex = item;
+                                        //Debug.Log("RED iten chosen: " + itemIndex);
+                                        itemTierInt = 3;
+                                        break;
+                                    }
+                                }
+                                else if (itemDef.tier == ItemTier.Tier2 || itemDef.tier == ItemTier.VoidTier2)
+                                {
+                                    if (allowHigherTier)
+                                    {
+                                        //itemIndex = item;
+                                        //Debug.Log("GREN iten chosen: " + itemIndex);
+                                        itemTierInt = 2;
+                                        break;
+                                    }
+                                }
+                                else if (itemDef.tier == ItemTier.Tier1 || itemDef.tier == ItemTier.VoidTier1)
+                                {
+                                    //itemIndex = item;
+                                    //Debug.Log("WHITE iten chosen: " + itemIndex);
+                                    itemTierInt = 1;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                break;
+                            }
+                            //itemIndex = item;
+                            //break;
+                        }
+
+                    }
+                    if (itemIndex != ItemIndex.None)
+                    {
+                        self.body.inventory.RemoveItem(itemIndex);
+
+                        if (scrapInstead.Value)
+                        {
+                            switch (itemTierInt)
+                            {
+                                case 1:
+                                    self.body.inventory.GiveItem(RoR2Content.Items.ScrapWhite);
+                                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapWhite.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                    break;
+                                case 2:
+                                    self.body.inventory.GiveItem(RoR2Content.Items.ScrapGreen);
+                                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapGreen.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                    break;
+                                case 3:
+                                    self.body.inventory.GiveItem(RoR2Content.Items.ScrapRed);
+                                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapRed.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                    break;
+                                case 4:
+                                    self.body.inventory.GiveItem(RoR2Content.Items.ScrapYellow);
+                                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapYellow.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                    break;
+                                case 5:
+                                    self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef);
+                                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                    break;
+                                default:
+                                    Debug.LogError("Clockwork Mechanism didn't properly select an item to destroy, unable to give correct scrap.");
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef);
+                            CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+
+                        }
+                    }
+                }
                 //List<ItemIndex> itemList = new List<ItemIndex>(self.body.inventory.itemAcquisitionOrder);
                 //Util.ShuffleList(itemList, watchVoidRng);
 

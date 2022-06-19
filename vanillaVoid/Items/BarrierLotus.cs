@@ -65,7 +65,7 @@ namespace vanillaVoid.Items
 
         public override void CreateConfig(ConfigFile config)
         {
-            barrierAmount = config.Bind<float>("Item: " + ItemName, "Percent Barrier", .3f, "Adjust percent of health that the barrier pulse provides.");
+            barrierAmount = config.Bind<float>("Item: " + ItemName, "Percent Barrier Provided", .5f, "Adjust percent of health that the barrier pulse provides.");
             pulseCountStacking = config.Bind<float>("Item: " + ItemName, "Activations per Stack", 1f, "Adjust the number of pulses each stack provides.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "TPHealingNova", "Adjust which item this is the void pair of.");
         }

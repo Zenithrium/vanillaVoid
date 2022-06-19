@@ -1,7 +1,10 @@
 ManifestFileVersion: 0
-CRC: 3726978277
+CRC: 1419203904
 AssetBundleManifest:
   AssetBundleInfos:
     Info_0:
       Name: vanillavoidassets
+      Dependencies: {}
+    Info_1:
+      Name: zenithdesigns
       Dependencies: {}

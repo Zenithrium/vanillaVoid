@@ -37,7 +37,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.1.6";
+        public const string ModVer = "1.1.7";
 
         public static ExpansionDef sotvDLC; 
 
@@ -97,19 +97,19 @@ namespace vanillaVoid
             };
 
 
-            IL.RoR2.HealthComponent.TakeDamage += (il) => // just stop doing crit checks if you have orrery because its being handled in LensOrrery.cs 
-            {
-                ILCursor c = new ILCursor(il);
-                ILLabel label = null;
-                c.GotoNext(MoveType.After,
-                    x => x.MatchLdarg(1),
-                    x => x.MatchLdfld<DamageInfo>("crit"),
-                    x => x.MatchBrfalse(out label)
-                    );
-                c.Emit(OpCodes.Ldloc_1);
-                c.EmitDelegate<Func<CharacterBody, int>>((cb) => { return cb.master.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef); });
-                c.Emit(OpCodes.Brtrue, label);
-            };
+            //IL.RoR2.HealthComponent.TakeDamage += (il) => // just stop doing crit checks if you have orrery because its being handled in LensOrrery.cs 
+            //{
+            //    ILCursor c = new ILCursor(il);
+            //    ILLabel label = null;
+            //    c.GotoNext(MoveType.After,
+            //        x => x.MatchLdarg(1),
+            //        x => x.MatchLdfld<DamageInfo>("crit"),
+            //        x => x.MatchBrfalse(out label)
+            //        );
+            //    c.Emit(OpCodes.Ldloc_1);
+            //    c.EmitDelegate<Func<CharacterBody, int>>((cb) => { return cb.master.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef); });
+            //    c.Emit(OpCodes.Brtrue, label);
+            //};
 
 
             sotvDLC = ExpansionCatalog.expansionDefs.FirstOrDefault(x => x.nameToken == "DLC1_NAME");  //learn what sotv is 
@@ -243,9 +243,23 @@ namespace vanillaVoid
         {
             string name = item.ItemName.Replace("'", string.Empty);
             //string name = item.ItemName == "Lens-Maker's Orrery" ? "Lens-Makers Orrery" : item.ItemName;
+            bool enabled = false;
+            bool aiBlacklist = false;
+            //if (name.Equals("Empty Vials") || name.Equals("Broken Mess"))
+            //{
+            //    //enabled = true; //override config option
+            //    //aiBlacklist = true;
+            //    Debug.Log("Disabling config for " + name);
+            //}
+            //else
+            //{
+            enabled = Config.Bind<bool>("Item: " + name, "Enable Item?", true, "Should this item appear in runs?").Value;
+            aiBlacklist = Config.Bind<bool>("Item: " + name, "Blacklist Item from AI Use?", false, "Should the AI not be able to obtain this item?").Value;
 
-            var enabled = Config.Bind<bool>("Item: " + name, "Enable Item?", true, "Should this item appear in runs?").Value;
-            var aiBlacklist = Config.Bind<bool>("Item: " + name, "Blacklist Item from AI Use?", false, "Should the AI not be able to obtain this item?").Value;
+            //}
+            //var enabled = Config.Bind<bool>("Item: " + name, "Enable Item?", true, "Should this item appear in runs?").Value;
+            //var aiBlacklist = Config.Bind<bool>("Item: " + name, "Blacklist Item from AI Use?", false, "Should the AI not be able to obtain this item?").Value;
+
             if (enabled)
             {
                 itemList.Add(item);

@@ -491,6 +491,11 @@ namespace vanillaVoid.Items
         private void OrreryCritRework(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
         {
             CharacterBody victimBody = self.body;
+            bool rgCrit = false;
+            if (damageInfo.crit)
+            {
+                rgCrit = true;
+            }
             if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
             {
                 CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -500,78 +505,234 @@ namespace vanillaVoid.Items
                     //int glassesCount = attackerBody.inventory.GetItemCount(RoR2Content.Items.CritGlasses);
                     if (orreryCount > 0)
                     {
-                        damageInfo.crit = false;
+                        //if (!rgCrit)
+                        //{
+                        //    damageInfo.crit = false;
+                        //}
+                        float critCount = 0;
                         float critChanceModified = attackerBody.crit;
                         float critMult = attackerBody.critMultiplier;
                         float critMod = critModifier.Value + (critModifierStacking.Value * (orreryCount - 1));
-                        float critCount = 0;
-                        //bool test = false;
-                        if(attackerBody.crit > 100)
+
+                        if (attackerBody.inventory.GetItemCount(DLC1Content.Items.ConvertCritChanceToCritDamage) > 0 && rgCrit)
                         {
-                            critMult = attackerBody.critMultiplier + ((attackerBody.crit / 1000)); // crits are slightly stronger
-                        }
-                        for(int i = 0; i <= orreryCount; i++)
-                        {
-                            bool orreryCrit = Util.CheckRoll(critChanceModified, attackerBody.master.luck, attackerBody.master);
-                            //Debug.Log("attempt " + i + ":");
-                            if (orreryCrit)
+                            critChanceModified = 50;
+                            Debug.Log("has crit damage item. giving fake crit for func | crit mult:" + attackerBody.critMultiplier + " | " + damageInfo.damage);
+                            //todo: railgunner compat
+                            for (int i = 1; i <= orreryCount; i++)
                             {
-                                critCount++;
-                                //hitDamage *= critMult;
-                                critChanceModified *= critMod;
-                                damageInfo.crit = true;
-                                
-                                //Debug.Log("critted: " + orreryCrit);
-                                //Debug.Log("random check 1 " + Util.CheckRoll(critChanceModified, attackerBody.master));
-                                //Debug.Log("random check 2 " + Util.CheckRoll(critChanceModified, attackerBody.master));
+                                bool orreryCrit = Util.CheckRoll(critChanceModified, attackerBody.master.luck, attackerBody.master);
+                                Debug.Log("attempt " + i + ":");
+                                if (orreryCrit)
+                                {
+                                    
+                                    critCount++;
+                                    //hitDamage *= critMult;
+                                    critChanceModified *= critMod;
+                                    damageInfo.crit = true;
+
+                                    Debug.Log("critted: " + orreryCrit + "| " + damageInfo.damage);
+                                    //Debug.Log("random check 1 " + Util.CheckRoll(critChanceModified, attackerBody.master));
+                                    //Debug.Log("random check 2 " + Util.CheckRoll(critChanceModified, attackerBody.master));
+                                }
+                                else
+                                {
+                                    break;
+                                }
                             }
-                            else
+                            if(critCount > 0)
                             {
-                                break;
+                                var additionalDmgFromCrit = ((damageInfo.damage * critMult) - damageInfo.damage);
+                                additionalDmgFromCrit /= critMult; //game handles the 'real' crit separately, meaning all the damage bonus added here will then get multipled expoentially and that's a little much imo
+                                damageInfo.damage += (additionalDmgFromCrit * critCount);
+                                Debug.Log("add dmg: " + additionalDmgFromCrit + " | final: " + damageInfo.damage);
+                                if (damageInfo.crit)
+                                {
+                                    //damageInfo.damage /= attackerBody.critMultiplier; //remove the extra crit 
+                                    //Debug.Log("critted: " + critCount + " times");
+                                    switch (critCount % 8)
+                                    {
+                                        case 7:
+                                            damageInfo.damageColorIndex = indexOrange;
+                                            break;
+                                        case 0:
+                                            damageInfo.damageColorIndex = indexRed;
+                                            break;
+                                        case 1:
+                                            damageInfo.damageColorIndex = indexPink;
+                                            break;
+                                        case 2:
+                                            damageInfo.damageColorIndex = indexPurple;
+                                            break;
+                                        case 3:
+                                            damageInfo.damageColorIndex = indexBlue;
+                                            break;
+                                        case 4:
+                                            damageInfo.damageColorIndex = indexCyan;
+                                            break;
+                                        case 5:
+                                            damageInfo.damageColorIndex = indexGreen;
+                                            break;
+                                        case 6:
+                                            damageInfo.damageColorIndex = indexYellow;
+                                            break;
+                                    }
+                                }
                             }
+
                         }
-                        //damageInfo.damage = hitDamage;
-                        //Debug.Log("critted: " + critCount + " times");
-                        if (damageInfo.crit)    
+                        else
                         {
+                            damageInfo.crit = false;
+                       
+                            //bool test = false;
+                            if (attackerBody.crit > 100)
+                            {
+                                critMult = attackerBody.critMultiplier + ((attackerBody.crit / 1000)); // crits are slightly stronger
+                            }
+                            for (int i = 0; i <= orreryCount; i++)
+                            {
+                                bool orreryCrit = Util.CheckRoll(critChanceModified, attackerBody.master.luck, attackerBody.master);
+                                Debug.Log("attempt " + i + ":");
+                                if (orreryCrit)
+                                {
+                                    critCount++;
+                                    //hitDamage *= critMult;
+                                    critChanceModified *= critMod;
+                                    damageInfo.crit = true;
+
+                                    Debug.Log("critted: " + orreryCrit);
+                                    //Debug.Log("random check 1 " + Util.CheckRoll(critChanceModified, attackerBody.master));
+                                    //Debug.Log("random check 2 " + Util.CheckRoll(critChanceModified, attackerBody.master));
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
                             //damageInfo.damage = hitDamage;
-                            var temp = (damageInfo.damage * critMult) - damageInfo.damage;
-
-                            damageInfo.damage = (critCount + 1) * temp;
-                            if(critCount > 1)
+                            Debug.Log("critted: " + critCount + " times, " + (damageInfo.crit && !(rgCrit && orreryCount == 0)));
+                            if (damageInfo.crit)
                             {
-                                //damageInfo.damage /= attackerBody.critMultiplier; //remove the extra crit 
+                                //damageInfo.damage = hitDamage;
+                                //var temp = (damageInfo.damage * critMult) - damageInfo.damage;
+                                //
+                                //damageInfo.damage = (critCount + 1) * temp;
+                                //var originalDamage = damageInfo.damage;
+                                var additionalDmgFromCrit = ((damageInfo.damage * critMult) - (damageInfo.damage));
+                                additionalDmgFromCrit /= (critMult);
+                                //additionalDmgFromCrit -= (damageInfo.damage/ critMult);//game handles the 'real' crit separately, meaning all the damage bonus added here will then get multipled expoentially and that's a little much imo
+                                damageInfo.damage += (additionalDmgFromCrit * (critCount - 1));
+                                Debug.Log("add dmg: " + additionalDmgFromCrit + " | final: " + damageInfo.damage);
 
-                            }
-                            //damageInfo.damage /= attackerBody.critMultiplier; //remove the extra crit 
-                            //Debug.Log("critted: " + critCount + " times");
-                            switch(critCount % 8) {
-                                case 1:
-                                    damageInfo.damageColorIndex = indexOrange;
-                                    break;
-                                case 2:
-                                    damageInfo.damageColorIndex = indexRed;
-                                    break;
-                                case 3:
-                                    damageInfo.damageColorIndex = indexPink;
-                                    break;
-                                case 4:
-                                    damageInfo.damageColorIndex = indexPurple;
-                                    break;
-                                case 5:
-                                    damageInfo.damageColorIndex = indexBlue;
-                                    break;
-                                case 6:
-                                    damageInfo.damageColorIndex = indexCyan;
-                                    break;
-                                case 7:
-                                    damageInfo.damageColorIndex = indexGreen;
-                                    break;
-                                case 0:
-                                    damageInfo.damageColorIndex = indexYellow;
-                                    break;
+                                //var additionalDmgFromCrit2 = ((damageInfo.damage * critMult) - (damageInfo.damage));
+                                //additionalDmgFromCrit2 
+
+                                //damageInfo.damage /= attackerBody.critMultiplier; //remove the extra crit 
+                                //Debug.Log("critted: " + critCount + " times");
+                                switch (critCount % 8)
+                                {
+                                    case 1:
+                                        damageInfo.damageColorIndex = indexOrange;
+                                        break;
+                                    case 2:
+                                        damageInfo.damageColorIndex = indexRed;
+                                        break;
+                                    case 3:
+                                        damageInfo.damageColorIndex = indexPink;
+                                        break;
+                                    case 4:
+                                        damageInfo.damageColorIndex = indexPurple;
+                                        break;
+                                    case 5:
+                                        damageInfo.damageColorIndex = indexBlue;
+                                        break;
+                                    case 6:
+                                        damageInfo.damageColorIndex = indexCyan;
+                                        break;
+                                    case 7:
+                                        damageInfo.damageColorIndex = indexGreen;
+                                        break;
+                                    case 0:
+                                        damageInfo.damageColorIndex = indexYellow;
+                                        break;
+                                }
+                                
                             }
                         }
+                        //float critMult = attackerBody.critMultiplier;
+                        //float critMod = critModifier.Value + (critModifierStacking.Value * (orreryCount - 1));
+                        //float critCount = 0;
+                        ////bool test = false;
+                        //if(attackerBody.crit > 100)
+                        //{
+                        //    critMult = attackerBody.critMultiplier + ((attackerBody.crit / 1000)); // crits are slightly stronger
+                        //}
+                        //for(int i = 0; i <= orreryCount; i++)
+                        //{
+                        //    bool orreryCrit = Util.CheckRoll(critChanceModified, attackerBody.master.luck, attackerBody.master);
+                        //    Debug.Log("attempt " + i + ":");
+                        //    if (orreryCrit)
+                        //    {
+                        //        critCount++;
+                        //        //hitDamage *= critMult;
+                        //        critChanceModified *= critMod;
+                        //        damageInfo.crit = true;
+                        //        
+                        //        Debug.Log("critted: " + orreryCrit);
+                        //        //Debug.Log("random check 1 " + Util.CheckRoll(critChanceModified, attackerBody.master));
+                        //        //Debug.Log("random check 2 " + Util.CheckRoll(critChanceModified, attackerBody.master));
+                        //    }
+                        //    else
+                        //    {
+                        //        break;
+                        //    }
+                        //}
+                        ////damageInfo.damage = hitDamage;
+                        //Debug.Log("critted: " + critCount + " times, " + (damageInfo.crit && !(rgCrit && orreryCount == 0)));
+                        //if (damageInfo.crit)
+                        //{
+                        //    //damageInfo.damage = hitDamage;
+                        //    var temp = (damageInfo.damage * critMult) - damageInfo.damage;
+                        //
+                        //    damageInfo.damage = (critCount + 1) * temp;
+                        //    if (critCount > 1)
+                        //    {
+                        //        //damageInfo.damage /= attackerBody.critMultiplier; //remove the extra crit 
+                        //
+                        //    }
+                        //}
+                        //if (damageInfo.crit)
+                        //{
+                        //    //damageInfo.damage /= attackerBody.critMultiplier; //remove the extra crit 
+                        //    //Debug.Log("critted: " + critCount + " times");
+                        //    switch(critCount % 8) {
+                        //        case 1:
+                        //            damageInfo.damageColorIndex = indexOrange;
+                        //            break;
+                        //        case 2:
+                        //            damageInfo.damageColorIndex = indexRed;
+                        //            break;
+                        //        case 3:
+                        //            damageInfo.damageColorIndex = indexPink;
+                        //            break;
+                        //        case 4:
+                        //            damageInfo.damageColorIndex = indexPurple;
+                        //            break;
+                        //        case 5:
+                        //            damageInfo.damageColorIndex = indexBlue;
+                        //            break;
+                        //        case 6:
+                        //            damageInfo.damageColorIndex = indexCyan;
+                        //            break;
+                        //        case 7:
+                        //            damageInfo.damageColorIndex = indexGreen;
+                        //            break;
+                        //        case 0:
+                        //            damageInfo.damageColorIndex = indexYellow;
+                        //            break;
+                        //    }
+                        //}
                     }
                 }
             }
