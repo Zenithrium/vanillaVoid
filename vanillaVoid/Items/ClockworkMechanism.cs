@@ -17,7 +17,13 @@ namespace vanillaVoid.Items
 {
     public class ClockworkMechanism : ItemBase<ClockworkMechanism>
     {
-        public ConfigEntry<int> itemVariantFix;
+        public ConfigEntry<int> itemVariant;
+
+        public ConfigEntry<int> itemsPerStage;
+
+        public ConfigEntry<int> itemsPerStageStacking;
+
+        //public ConfigEntry<int> breaksPerStageCap;
 
         public ConfigEntry<float> directorBuff;
 
@@ -41,7 +47,7 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<string> voidPair;
 
-        private Xoroshiro128Plus watchVoidRng;
+        public Xoroshiro128Plus watchVoidRng;
         public override string ItemName => "Clockwork Mechanism";
 
         public override string ItemLangTokenName => "CLOCKWORK_ITEM";
@@ -68,11 +74,30 @@ namespace vanillaVoid.Items
         string tempItemPickupDesc;
         string tempItemFullDescription;
         string tempLore;
+        
         public override void Init(ConfigFile config)
         {
             CreateConfig(config);
-            switch (itemVariantFix.Value)
+            switch (itemVariant.Value)
             {
+                case 0:
+                    if (destroySelf.Value)
+                    {
+                        tempItemPickupDesc = "Gain items at the start of the next stage. Breaks half of the current stack at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                        tempItemFullDescription = $"Gain <style=cIsUtility>{itemsPerStage.Value}</style> <style=cStack>(+{itemsPerStageStacking.Value} per stack)</style> items at the start of the next stage. Taking damage to below <style=cIsHealth>25% health</style> breaks half of the current stack, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    }
+                    else
+                    {
+                        tempItemPickupDesc = "Gain items at the start of the next stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                        tempItemFullDescription = $"Gain <style=cIsUtility>{itemsPerStage.Value}</style> <style=cStack>(+{itemsPerStageStacking.Value} per stack)</style> items at the start of the next stage. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+
+                    }
+                    tempLore = $"\"The clock is always ticking. The hands of time move independently of your desire for them to still - the sands flow eternally and will never pause. Use what little time you have efficiently - once you've lost that time, it's quite hard to find more.\"" +
+            "\n\n- Lost Journal, recovered from Petrichor V";
+                    CreateBuff();
+
+                    break;
+
                 case 1:
                     if (destroySelf.Value)
                     {
@@ -133,17 +158,23 @@ namespace vanillaVoid.Items
 
         public override void CreateConfig(ConfigFile config)
         {
-            itemVariantFix = config.Bind<int>("Item: " + ItemName, "Variant", 1, "Adjust which version of " + ItemName + " you'd prefer to use. Variant 1 slightly increases interactables per stage, and breaks a random item at low health, while Variant 2 breaks itself at the start of the next stage, but greatly increases the number of interactables.");
-            directorBuff = config.Bind<float>("Item: " + ItemName, "Increased Credits", 22.5f, "Adjust how many credits the first stack gives the director. 15 credits is one chest. Only for Variant 1.");
-            stackingBuff = config.Bind<float>("Item: " + ItemName, "Percent Increase per Stack", 22.5f, "Adjust the increase gained per stack. Only for Variant 1."); //22.5f is 1.5 chests
-            breakCooldown = config.Bind<float>("Item: " + ItemName, "Cooldown Between Breaking Items", 3.0f, "Adjust how long the cooldown is between the item breaking other items. Only for Variant 1.");            scrapInstead = config.Bind<bool>("Item: " + ItemName, "Scrap instead of Breaking", false, "Adjust whether the items are scrapped or destroyed. Only for Variant 1.");
-            destroySelf = config.Bind<bool>("Item: " + ItemName, "Destroy Self instead of other Items", false, "Adjust if the item should destroy itself, rather than other items. Destroys half of the current stack. Overrides the config option below (tier priority). Only for Variant 1.");
-            proritizeLowTier = config.Bind<bool>("Item: " + ItemName, "Prioritize Lower Tier Items", true, "Adjust the item's preference for lower tier items. False means no prefrence, true means a general preference (unlikely, but possible to destroy higher tiers). Only for Variant 1.");
+            itemVariant = config.Bind<int>("Item: " + ItemName, "Variant of Item", 0, "Adjust which version of " + ItemName + " you'd prefer to use. Variant 0 gives you items at the start of each stage, and breaks a random item at low health. Variant 1 slightly increases interactables per stage, and breaks a random item at low health, while Variant 2 breaks itself at the start of the next stage, but greatly increases the number of interactables.");
+
+            itemsPerStage = config.Bind<int>("Item: " + ItemName, "Items per Stage", 3, "Adjust the number of items you get upon entering a new stage with this item.");
+            itemsPerStageStacking = config.Bind<int>("Item: " + ItemName, "Extra Items per Stack", 1, "Adjust the additional number of items you get for each subsequent stack.");
+            //breaksPerStageCap = config.Bind<int>("Item: " + ItemName, "Breaks per Stage", -1, "Cap the number of items this item can break per stage at this number. -1 means there is no cap.");
+
+            directorBuff = config.Bind<float>("Item: " + ItemName, "Credit Bonus", 22.5f, "Adjust how many credits the first stack gives the director. 15 credits is one chest. Only for Variant 1.");
+            stackingBuff = config.Bind<float>("Item: " + ItemName, "Credit Bonus per Stack", 22.5f, "Adjust the increase gained per stack. Only for Variant 1."); //22.5f is 1.5 chests
+            breakCooldown = config.Bind<float>("Item: " + ItemName, "Breaking Cooldown", 3.0f, "Adjust how long the cooldown is between the item breaking other items. Only for Variant 1.");            
+            scrapInstead = config.Bind<bool>("Item: " + ItemName, "Scrap Instead", false, "Adjust whether the items are scrapped or destroyed. Only for Variant 1.");
+            destroySelf = config.Bind<bool>("Item: " + ItemName, "Destroy Self Instead", false, "Adjust if the item should destroy itself, rather than other items. Destroys half of the current stack. Overrides the config option below (tier priority). Only for Variant 1.");
+            proritizeLowTier = config.Bind<bool>("Item: " + ItemName, "Prioritize Lower Tier", true, "Adjust the item's preference for lower tier items. False means no prefrence, true means a general preference (unlikely, but possible to destroy higher tiers). Only for Variant 1.");
             alwaysHappen = config.Bind<bool>("Item: " + ItemName, "Function in Special Stages", false, "Adjust whether or not the item should increase the number of credits in stages where the director doesn't get any credits (ex Gilded Coast, Commencement). Only for Variant 1.");
 
             directorMultiplier = config.Bind<float>("Item: " + ItemName, "Director Multiplier", 1.75f, "Adjust the multiplier to the number of credits the director gets. Only for Variant 2.");
             directorMultiplierStacking = config.Bind<float>("Item: " + ItemName, "Director Multiplier Stacking", 1f, "Adjust the multiplier bonus provided by every stack except the first (This means that in multiplayer, if two players have the item, the base multiplier will still only be applied once, and this one applied for every other stack). Only for Variant 2.");
-            variantBreakAmount = config.Bind<int>("Item: " + ItemName, "Amount of Breaks", -1, "Adjust how many items in the stack Variant 2 breaks when stage-transitioning. The number of items broken times the multiplier is how much the director credits will be increased by (thus breaking only one means the muliplier will only apply once, per player). A negative number means it will break the entire stack. Only for Variant 2.");
+            variantBreakAmount = config.Bind<int>("Item: " + ItemName, "Variant 2 Breaks per Stage", -1, "Adjust how many items in the stack Variant 2 breaks when stage-transitioning. The number of items broken times the multiplier is how much the director credits will be increased by (thus breaking only one means the muliplier will only apply once, per player). A negative number means it will break the entire stack. Only for Variant 2.");
             
 
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "FragileDamageBonus", "Adjust which item this is the void pair of.");
@@ -451,18 +482,98 @@ namespace vanillaVoid.Items
 
         public override void Hooks()
         {
-            if (itemVariantFix.Value == 1)
+            
+            if (itemVariant.Value == 0 || itemVariant.Value == 1)
             {
                 On.RoR2.HealthComponent.UpdateLastHitTime += BreakItem;
+                
             }
             RoR2.SceneDirector.onPrePopulateSceneServer += HelpDirector;
             //On.RoR2.Stage.RespawnCharacter += StageRewards;
         }
+        public class WatchToken : MonoBehaviour
+        {
+            //prevents hilarity from happening
+        }
 
+        //private void AddWatchTokenOnPickup(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self)
+        //{
+        //    if (WatchToken)
+        //    {
+        //        self.gameObject.AddComponent<WatchToken>();
+        //    }
+        //
+        //    CharacterBody victimBody = dmgReport.victimBody;
+        //    self.gameObject.AddComponent<ExeToken>();
+        //}
+        
         private void HelpDirector(SceneDirector obj)
         {
             Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
-            if ((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariantFix.Value == 1) {
+            if((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariant.Value == 0)
+            {
+                //int itemCount = 0;
+                foreach (var player in PlayerCharacterMasterController.instances)
+                {
+                    int itemCount = player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+                    if (itemCount > 0)
+                    {
+                        int rewardCount = itemsPerStage.Value + (itemsPerStageStacking.Value * (itemCount - 1));
+                        for(int i = 0; i< rewardCount; i++)
+                        {
+                            if (watchVoidRng == null)
+                            {
+                                watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
+                            }
+
+                            //ItemIndex itemResult = ItemIndex.None;
+                            PickupIndex pickupResult;// = PickupIndex.none;
+                            int randInt = watchVoidRng.RangeInt(1, 100); // 1-79 white // 80-99 green // 100 red
+                            if (randInt < 80)
+                            {
+                                List<PickupIndex> whiteList = new List<PickupIndex>(Run.instance.availableTier1DropList);
+                                Util.ShuffleList(whiteList, watchVoidRng);
+                                //itemResult = whiteList[0].itemIndex;
+                                pickupResult = whiteList[0];
+                                Debug.Log("selected a white");
+                            }else if(randInt < 100)
+                            {
+                                List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier1DropList);
+                                Util.ShuffleList(greenList, watchVoidRng);
+                                //itemResult = greenList[0].itemIndex;
+                                pickupResult = greenList[0];
+                                Debug.Log("selected a green");
+                            }
+                            else
+                            {
+                                List<PickupIndex> redList = new List<PickupIndex>(Run.instance.availableTier1DropList);
+                                Util.ShuffleList(redList, watchVoidRng);
+                                //itemResult = redList[0].itemIndex;
+                                pickupResult = redList[0];
+                                Debug.Log("selected a red");
+                            }
+                            //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+                            float num = 360f / (float)rewardCount;
+                            Vector3 a = Quaternion.AngleAxis(num * (float)i, Vector3.up) * Vector3.forward;
+                            Vector3 position = player.gameObject.transform.position + a * 8f + Vector3.up * 8f;
+                             
+                            PickupDropletController.CreatePickupDroplet(pickupResult, position, Vector3.zero);
+                            //EffectManager.SpawnEffect(Singularity.effectPrefab, new EffectData
+                            //{
+                            //    origin = position,
+                            //    scale = 2f
+                            //}, true);
+                            //this.itemDropCount++;
+
+                            player.master.inventory.GiveItem(pickupResult.itemIndex, 1);
+                            GenericPickupController.SendPickupMessage(player.master, pickupResult);
+                            //CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, itemResult, CharacterMasterNotificationQueue.TransformationType.Default);
+
+                        }
+                    }
+                }
+            }
+            else if ((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariant.Value == 1) {
                 int itemCount = 0;
                 foreach (var player in PlayerCharacterMasterController.instances)
                 {
@@ -470,7 +581,7 @@ namespace vanillaVoid.Items
                 }
                 obj.interactableCredit += (int)(directorBuff.Value + (stackingBuff.Value * (itemCount - 1)));
             }
-            else if(obj.interactableCredit != 0 && itemVariantFix.Value == 2)
+            else if(obj.interactableCredit != 0 && itemVariant.Value == 2)
             {
                 int itemCount = 0;
                 int tempItemCount = 0;
@@ -521,7 +632,8 @@ namespace vanillaVoid.Items
         private void BreakItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker)
         {
             orig.Invoke(self, damageValue, damagePosition, damageIsSilent, attacker);
-            if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<ClockworkMechanism>.instance.GetCount(self.body) > 0 && self.isHealthLow && !(self.GetComponent<CharacterBody>().GetBuffCount(recentBreak) > 0) && itemVariantFix.Value == 1 )
+
+            if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<ClockworkMechanism>.instance.GetCount(self.body) > 0 && self.isHealthLow && !(self.GetComponent<CharacterBody>().GetBuffCount(recentBreak) > 0) )
             {
                 self.GetComponent<CharacterBody>().AddTimedBuff(recentBreak, breakCooldown.Value);
                 if (watchVoidRng == null)

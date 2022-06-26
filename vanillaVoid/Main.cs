@@ -131,8 +131,12 @@ namespace vanillaVoid
             On.RoR2.HoldoutZoneController.UpdateHealingNovas += BarrierLotusNova;
 
             On.RoR2.SceneDirector.PlaceTeleporter += PrimoridalTeleporterCheck;
-            
+            //On.RoR2.Stage.RespawnCharacter += ClockworkItemDrops;
 
+            //if(itemVariant.Value == 0 || itemVariant.Value == 1)){
+            //    On.RoR2.CharacterBody.OnInventoryChanged += AddWatchTokenOnPickup;
+            //}
+            //On.RoR2.CharacterBody.OnInventoryChanged += AddWatchTokenOnPickup;
             //ExeBladeCreateProjectile();
 
 
@@ -825,6 +829,121 @@ namespace vanillaVoid
             //player.body.healthComponent.AddBarrier(player.body.healthComponent.health * ItemBase<BarrierLotus>.instance.barrierAmount.Value); //25% 
 
         }
+        //private void ClockworkItemDrops(On.RoR2.Stage.orig_RespawnCharacter orig, Stage self, CharacterMaster characterMaster)
+        //{
+        //    orig(self, characterMaster);
+        //
+        //    if (ItemBase<ClockworkMechanism>.instance.itemVariant.Value == 0)
+        //    {
+        //        //int itemCount = 0;
+        //        foreach (var player in PlayerCharacterMasterController.instances)
+        //        {
+        //            int itemCount = player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+        //            if (itemCount > 0)
+        //            {
+        //                int rewardCount = ItemBase<ClockworkMechanism>.instance.itemsPerStage.Value + (ItemBase<ClockworkMechanism>.instance.itemsPerStageStacking.Value * (itemCount - 1));
+        //                ClockworkDelayedItemDrops(rewardCount, player.gameObject.transform.position);
+        //            }
+        //            //if (itemCount > 0)
+        //            //{
+        //            //    int rewardCount = ItemBase<ClockworkMechanism>.instance.itemsPerStage.Value + (ItemBase<ClockworkMechanism>.instance.itemsPerStageStacking.Value * (itemCount - 1));
+        //            //    for (int i = 0; i < rewardCount; i++)
+        //            //    {
+        //            //        if (ItemBase<ClockworkMechanism>.instance.watchVoidRng == null)
+        //            //        {
+        //            //            ItemBase<ClockworkMechanism>.instance.watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
+        //            //        }
+        //            //
+        //            //        //ItemIndex itemResult = ItemIndex.None;
+        //            //        PickupIndex pickupResult = PickupIndex.none;
+        //            //        int randInt = ItemBase<ClockworkMechanism>.instance.watchVoidRng.RangeInt(1, 100); // 1-79 white // 80-99 green // 100 red
+        //            //        if (randInt < 80)
+        //            //        {
+        //            //            List<PickupIndex> whiteList = new List<PickupIndex>(Run.instance.availableTier1DropList);
+        //            //            Util.ShuffleList(whiteList, ItemBase<ClockworkMechanism>.instance.watchVoidRng);
+        //            //            //itemResult = whiteList[0].itemIndex;
+        //            //            pickupResult = whiteList[0];
+        //            //            Debug.Log("selected a white");
+        //            //        }
+        //            //        else if (randInt < 100)
+        //            //        {
+        //            //            List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier1DropList);
+        //            //            Util.ShuffleList(greenList, ItemBase<ClockworkMechanism>.instance.watchVoidRng);
+        //            //            //itemResult = greenList[0].itemIndex;
+        //            //            pickupResult = greenList[0];
+        //            //            Debug.Log("selected a green");
+        //            //        }
+        //            //        else
+        //            //        {
+        //            //            List<PickupIndex> redList = new List<PickupIndex>(Run.instance.availableTier1DropList);
+        //            //            Util.ShuffleList(redList, ItemBase<ClockworkMechanism>.instance.watchVoidRng);
+        //            //            //itemResult = redList[0].itemIndex;
+        //            //            pickupResult = redList[0];
+        //            //            Debug.Log("selected a red");
+        //            //        }
+        //            //        //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+        //            //        float num = 360f / (float)rewardCount;
+        //            //        Vector3 a = Quaternion.AngleAxis(num * (float)i, Vector3.up) * Vector3.forward;
+        //            //        Vector3 position = player.gameObject.transform.position + a * 4f + Vector3.up * 8f;
+        //            //        Debug.Log("spawned it at " + position);
+        //            //        PickupDropletController.CreatePickupDroplet(pickupResult, position, Vector3.zero);
+        //            //        Debug.Log("spawned it");
+        //            //
+        //            //    }
+        //            //}
+        //        }
+        //    }
+        //}
+        //
+        //IEnumerator ClockworkDelayedItemDrops(int rewardCount, Vector3 playerPos)
+        //{
+        //    //int rewardCount = ItemBase<ClockworkMechanism>.instance.itemsPerStage.Value + (ItemBase<ClockworkMechanism>.instance.itemsPerStageStacking.Value * (itemCount - 1));
+        //    for (int i = 0; i < rewardCount; i++)
+        //    {
+        //        yield return new WaitForSeconds(.05f);
+        //        if (ItemBase<ClockworkMechanism>.instance.watchVoidRng == null)
+        //        {
+        //            ItemBase<ClockworkMechanism>.instance.watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
+        //        }
+        //
+        //        //ItemIndex itemResult = ItemIndex.None;
+        //        PickupIndex pickupResult = PickupIndex.none;
+        //        int randInt = ItemBase<ClockworkMechanism>.instance.watchVoidRng.RangeInt(1, 100); // 1-79 white // 80-99 green // 100 red
+        //        if (randInt < 80)
+        //        {
+        //            List<PickupIndex> whiteList = new List<PickupIndex>(Run.instance.availableTier1DropList);
+        //            Util.ShuffleList(whiteList, ItemBase<ClockworkMechanism>.instance.watchVoidRng);
+        //            //itemResult = whiteList[0].itemIndex;
+        //            pickupResult = whiteList[0];
+        //            Debug.Log("selected a white");
+        //        }
+        //        else if (randInt < 100)
+        //        {
+        //            List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier1DropList);
+        //            Util.ShuffleList(greenList, ItemBase<ClockworkMechanism>.instance.watchVoidRng);
+        //            //itemResult = greenList[0].itemIndex;
+        //            pickupResult = greenList[0];
+        //            Debug.Log("selected a green");
+        //        }
+        //        else
+        //        {
+        //            List<PickupIndex> redList = new List<PickupIndex>(Run.instance.availableTier1DropList);
+        //            Util.ShuffleList(redList, ItemBase<ClockworkMechanism>.instance.watchVoidRng);
+        //            //itemResult = redList[0].itemIndex;
+        //            pickupResult = redList[0];
+        //            Debug.Log("selected a red");
+        //        }
+        //        //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+        //        float num = 360f / (float)rewardCount;
+        //        Vector3 a = Quaternion.AngleAxis(num * (float)i, Vector3.up) * Vector3.forward;
+        //        Vector3 position = playerPos + a * 4f + Vector3.up * 8f;
+        //        Debug.Log("spawned it at " + position);
+        //        PickupDropletController.CreatePickupDroplet(pickupResult, position, Vector3.zero);
+        //        Debug.Log("spawned it");
+        //
+        //    }
+        //}
+
     }
 
 
