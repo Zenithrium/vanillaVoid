@@ -37,7 +37,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.1.7";
+        public const string ModVer = "1.1.8";
 
         public static ExpansionDef sotvDLC; 
 
@@ -70,30 +70,35 @@ namespace vanillaVoid
             IL.RoR2.HealthComponent.TakeDamage += (il) => //LensOrrery and lost seer's interaction 
             {
                 ILCursor c = new ILCursor(il);
-                c.GotoNext(
+                if(c.TryGotoNext(
                     x => x.MatchCallOrCallvirt<CharacterBody>("get_inventory"),
                     x => x.MatchLdsfld(typeof(DLC1Content.Items), "CritGlassesVoid"),
                     x => x.MatchCallOrCallvirt<Inventory>("GetItemCount"),
                     x => x.MatchConvR4(),
                     x => x.MatchLdcR4(0.5f)
-                    );
-                c.Index += 4;
-                //c.Next.Operand = 100f;
-                c.Remove();
-                c.Emit(OpCodes.Ldloc_1);
-                c.EmitDelegate<Func<CharacterBody, float>>((cb) =>
+                    ))
                 {
-                    if (cb.master.inventory)
+                    c.Index += 4;
+                    c.Remove();
+                    c.Emit(OpCodes.Ldloc_1);
+                    //c.TryGotoNext();
+                    c.EmitDelegate<Func<CharacterBody, float>>((cb) =>
                     {
-                        int orrery = cb.master.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
-                        if (orrery > 0)
+                        if (cb.master.inventory)
                         {
-                            return 0.5f + (.5f * (LensOrrery.newLensBonus.Value + (LensOrrery.newStackingLensBonus.Value * (orrery - 1))));
+                            int orrery = cb.master.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
+                            if (orrery > 0)
+                            {
+                                return 0.5f + (.5f * (LensOrrery.newLensBonus.Value + (LensOrrery.newStackingLensBonus.Value * (orrery - 1))));
+                            }
                         }
-                    }
-                    return 0.5f;
-                });
-               
+                        return 0.5f;
+                    });
+                }
+                else
+                {
+                    Logger.LogError("Failed to apply Lost Seer's Orrery Hook");
+                }
             };
 
 
@@ -546,13 +551,22 @@ namespace vanillaVoid
             //    //isPrimoridal = true;
             //}
             //Debug.Log("checked for primoridal");
-            StartCoroutine(LotusDelayedPlacement(self));
+            string sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
+            if (sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
+            {
+                StartCoroutine(LotusDelayedPlacement(self));
+            }
             orig(self);
         }
 
         IEnumerator LotusDelayedPlacement(SceneDirector self)
         {
             yield return new WaitForSeconds(4f);
+            //if (SceneCatalog.GetSceneDefForCurrentScene().baseSceneName == "skymeadow")
+            //{
+            //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+            //    teleporterPos += celestialAdjust;
+            //}
             teleporterName = self.teleporterSpawnCard.ToString();
             //Debug.Log("checking for primoridal: " + self.teleporterSpawnCard.ToString());
 
@@ -638,11 +652,11 @@ namespace vanillaVoid
                 itemCount += player.master.inventory.GetItemCount(ItemBase<BarrierLotus>.instance.ItemDef);
                 teamDex = player.master.teamIndex;
             }
-            if(itemCount > 0)
+            if (itemCount > 0)
             {
                 teleporterPos = obj.teleporterInstance.transform.position;
                 //Debug.Log(SceneCatalog.GetSceneDefForCurrentScene().baseSceneName);
-                if(teleporterName.Contains("iscLunarTeleporter"))
+                if (teleporterName.Contains("iscLunarTeleporter"))
                 {
                     Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
                     teleporterPos += celestialAdjust;
@@ -654,21 +668,24 @@ namespace vanillaVoid
                 //    teleporterPos += celestialAdjust;
                 //}
 
-
-                Quaternion rot = Quaternion.Euler(0, 180, 0);
-                var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
-                tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
-                tempLotus.transform.position = teleporterPos + heightAdjust;
-                NetworkServer.Spawn(tempLotus);
-                tempLotusObject = tempLotus;
-                lotusSpawned = true;
-
-                EffectData effectData = new EffectData
+                string sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
+                if (sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
                 {
-                    origin = tempLotus.transform.position
-                };
-                effectData.SetNetworkedObjectReference(tempLotus.gameObject);
-                EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
+                    Quaternion rot = Quaternion.Euler(0, 180, 0);
+                    var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
+                    tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
+                    tempLotus.transform.position = teleporterPos + heightAdjust;
+                    NetworkServer.Spawn(tempLotus);
+                    tempLotusObject = tempLotus;
+                    lotusSpawned = true;
+
+                    EffectData effectData = new EffectData
+                    {
+                        origin = tempLotus.transform.position
+                    };
+                    effectData.SetNetworkedObjectReference(tempLotus.gameObject);
+                    EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
+                }
             }
 
         }
@@ -695,19 +712,23 @@ namespace vanillaVoid
                     //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
                     //    teleporterPos += celestialAdjust;
                     //}
-                    Quaternion rot = Quaternion.Euler(0, 180, 0);
-                    var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
-                    tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
-                    tempLotus.transform.position = teleporterPos + heightAdjust;
-                    NetworkServer.Spawn(tempLotus);
-                    tempLotusObject = tempLotus;
-                    lotusSpawned = true;
-                    EffectData effectData = new EffectData
+                    string sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
+                    if (sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
                     {
-                        origin = tempLotus.transform.position
-                    };
-                    effectData.SetNetworkedObjectReference(tempLotus.gameObject);
-                    EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
+                        Quaternion rot = Quaternion.Euler(0, 180, 0);
+                        var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
+                        tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
+                        tempLotus.transform.position = teleporterPos + heightAdjust;
+                        NetworkServer.Spawn(tempLotus);
+                        tempLotusObject = tempLotus;
+                        lotusSpawned = true;
+                        EffectData effectData = new EffectData
+                        {
+                            origin = tempLotus.transform.position
+                        };
+                        effectData.SetNetworkedObjectReference(tempLotus.gameObject);
+                        EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
+                    }
                 }
             }
             orig(self);

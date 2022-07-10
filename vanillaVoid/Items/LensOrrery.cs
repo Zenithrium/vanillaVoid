@@ -517,12 +517,12 @@ namespace vanillaVoid.Items
                         if (attackerBody.inventory.GetItemCount(DLC1Content.Items.ConvertCritChanceToCritDamage) > 0 && rgCrit)
                         {
                             critChanceModified = 50;
-                            Debug.Log("has crit damage item. giving fake crit for func | crit mult:" + attackerBody.critMultiplier + " | " + damageInfo.damage);
+                            //Debug.Log("has crit damage item. giving fake crit for func | crit mult:" + attackerBody.critMultiplier + " | " + damageInfo.damage);
                             //todo: railgunner compat
                             for (int i = 1; i <= orreryCount; i++)
                             {
                                 bool orreryCrit = Util.CheckRoll(critChanceModified, attackerBody.master.luck, attackerBody.master);
-                                Debug.Log("attempt " + i + ":");
+                                //Debug.Log("attempt " + i + ":");
                                 if (orreryCrit)
                                 {
                                     
@@ -531,7 +531,7 @@ namespace vanillaVoid.Items
                                     critChanceModified *= critMod;
                                     damageInfo.crit = true;
 
-                                    Debug.Log("critted: " + orreryCrit + "| " + damageInfo.damage);
+                                    //Debug.Log("critted: " + orreryCrit + "| " + damageInfo.damage);
                                     //Debug.Log("random check 1 " + Util.CheckRoll(critChanceModified, attackerBody.master));
                                     //Debug.Log("random check 2 " + Util.CheckRoll(critChanceModified, attackerBody.master));
                                 }
@@ -545,7 +545,7 @@ namespace vanillaVoid.Items
                                 var additionalDmgFromCrit = ((damageInfo.damage * critMult) - damageInfo.damage);
                                 additionalDmgFromCrit /= critMult; //game handles the 'real' crit separately, meaning all the damage bonus added here will then get multipled expoentially and that's a little much imo
                                 damageInfo.damage += (additionalDmgFromCrit * critCount);
-                                Debug.Log("add dmg: " + additionalDmgFromCrit + " | final: " + damageInfo.damage);
+                                //Debug.Log("add dmg: " + additionalDmgFromCrit + " | final: " + damageInfo.damage);
                                 if (damageInfo.crit)
                                 {
                                     //damageInfo.damage /= attackerBody.critMultiplier; //remove the extra crit 
@@ -593,7 +593,7 @@ namespace vanillaVoid.Items
                             for (int i = 0; i <= orreryCount; i++)
                             {
                                 bool orreryCrit = Util.CheckRoll(critChanceModified, attackerBody.master.luck, attackerBody.master);
-                                Debug.Log("attempt " + i + ":");
+                                //Debug.Log("attempt " + i + ":");
                                 if (orreryCrit)
                                 {
                                     critCount++;
@@ -601,7 +601,7 @@ namespace vanillaVoid.Items
                                     critChanceModified *= critMod;
                                     damageInfo.crit = true;
 
-                                    Debug.Log("critted: " + orreryCrit);
+                                    //Debug.Log("critted: " + orreryCrit);
                                     //Debug.Log("random check 1 " + Util.CheckRoll(critChanceModified, attackerBody.master));
                                     //Debug.Log("random check 2 " + Util.CheckRoll(critChanceModified, attackerBody.master));
                                 }
@@ -611,7 +611,7 @@ namespace vanillaVoid.Items
                                 }
                             }
                             //damageInfo.damage = hitDamage;
-                            Debug.Log("critted: " + critCount + " times, " + (damageInfo.crit && !(rgCrit && orreryCount == 0)));
+                            //Debug.Log("critted: " + critCount + " times, " + (damageInfo.crit && !(rgCrit && orreryCount == 0)));
                             if (damageInfo.crit)
                             {
                                 //damageInfo.damage = hitDamage;
@@ -623,7 +623,7 @@ namespace vanillaVoid.Items
                                 additionalDmgFromCrit /= (critMult);
                                 //additionalDmgFromCrit -= (damageInfo.damage/ critMult);//game handles the 'real' crit separately, meaning all the damage bonus added here will then get multipled expoentially and that's a little much imo
                                 damageInfo.damage += (additionalDmgFromCrit * (critCount - 1));
-                                Debug.Log("add dmg: " + additionalDmgFromCrit + " | final: " + damageInfo.damage);
+                                //Debug.Log("add dmg: " + additionalDmgFromCrit + " | final: " + damageInfo.damage);
 
                                 //var additionalDmgFromCrit2 = ((damageInfo.damage * critMult) - (damageInfo.damage));
                                 //additionalDmgFromCrit2 

@@ -509,7 +509,7 @@ namespace vanillaVoid.Items
         
         private void HelpDirector(SceneDirector obj)
         {
-            Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
+            //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
             if((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariant.Value == 0)
             {
                 //int itemCount = 0;
@@ -535,14 +535,14 @@ namespace vanillaVoid.Items
                                 Util.ShuffleList(whiteList, watchVoidRng);
                                 //itemResult = whiteList[0].itemIndex;
                                 pickupResult = whiteList[0];
-                                Debug.Log("selected a white");
+                                //Debug.Log("selected a white");
                             }else if(randInt < 100)
                             {
                                 List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier1DropList);
                                 Util.ShuffleList(greenList, watchVoidRng);
                                 //itemResult = greenList[0].itemIndex;
                                 pickupResult = greenList[0];
-                                Debug.Log("selected a green");
+                                //Debug.Log("selected a green");
                             }
                             else
                             {
@@ -550,14 +550,14 @@ namespace vanillaVoid.Items
                                 Util.ShuffleList(redList, watchVoidRng);
                                 //itemResult = redList[0].itemIndex;
                                 pickupResult = redList[0];
-                                Debug.Log("selected a red");
+                                //Debug.Log("selected a red");
                             }
                             //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
                             float num = 360f / (float)rewardCount;
                             Vector3 a = Quaternion.AngleAxis(num * (float)i, Vector3.up) * Vector3.forward;
                             Vector3 position = player.gameObject.transform.position + a * 8f + Vector3.up * 8f;
                              
-                            PickupDropletController.CreatePickupDroplet(pickupResult, position, Vector3.zero);
+                            //PickupDropletController.CreatePickupDroplet(pickupResult, position, Vector3.zero); // <- this sort of worked? work on it later
                             //EffectManager.SpawnEffect(Singularity.effectPrefab, new EffectData
                             //{
                             //    origin = position,
@@ -626,7 +626,7 @@ namespace vanillaVoid.Items
                 }
                 //obj.interactableCredit *= (int)(directorMultiplier.Value * (float)itemCount);
             }
-            Debug.Log("function ending, interactable credits after: " + obj.interactableCredit);
+            //Debug.Log("function ending, interactable credits after: " + obj.interactableCredit);
         }
 
         private void BreakItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker)
