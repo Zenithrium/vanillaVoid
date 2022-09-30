@@ -85,9 +85,13 @@ namespace vanillaVoid.Items
             model.AddComponent<NetworkIdentity>();
             model.AddComponent<ProjectileGhostController>();
 
+            //var netID = model.GetComponent<NetworkIdentity>();
+            
+
             var projectileController = RocketProjectile.GetComponent<ProjectileController>();
             projectileController.ghostPrefab = model;
             projectileController.startSound = "Play_item_void_critGlasses";
+            projectileController.allowPrediction = false;
             //RocketProjectile.GetComponent<EffectComponent>().soundName = "Play_item_void_critGlasses";
             //RocketProjectile.GetComponent<ProjectileExplosion>();
 

@@ -397,17 +397,20 @@ namespace vanillaVoid.Items
                     if (stackCount > 0)
                     {
                         //var healthPercentage = self.health / self.fullCombinedHealth;
-                        var mult = (1 - self.combinedHealthFraction) * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
-
+                        var healthFraction = Mathf.Clamp((1 - self.combinedHealthFraction), 0f, 1f);
+                        //Debug.Log("health fraction: " + healthFraction);
+                        var mult = healthFraction * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
+                        
                         damageInfo.damage = damageInfo.damage + (damageInfo.damage * mult);
                         float maxDamage = initialDmg + (initialDmg * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1))));
                         //Debug.Log("max damage: " + maxDamage + " | actual damage: " + damageInfo.damage + " | original damage: " + initialDmg);
                         //damageInfo.damage = damageInfo.damage * (1 + (victimBody.GetBuffCount(adzeDebuff) * dmgPerDebuff.Value));
-                        if(damageInfo.damage > maxDamage)
-                        {
-                            //Debug.Log("damage was too high! oopsies!!!");
-                            damageInfo.damage = maxDamage; // i don't know if this is a needed check, but i *think* i was noticing insanely high damage numbers with adze on the end score screen. maybe this'll fix that? or maybe it was another mod entirely
-                        }
+                        //if(damageInfo.damage > maxDamage)
+                        //{
+                        //    //Debug.Log("damage was too high! oopsies!!!");
+                        //    damageInfo.damage = maxDamage; // i don't know if this is a needed check, but i *think* i was noticing insanely high damage numbers with adze on the end score screen. maybe this'll fix that? or maybe it was another mod entirely
+                        //}
+                        damageInfo.damage = Mathf.Min(damageInfo.damage, maxDamage);
                     }
                 }
             }

@@ -20,6 +20,8 @@ namespace vanillaVoid.Items
 {
     public class LensOrrery : ItemBase<LensOrrery>
     {
+        public static ConfigEntry<bool> dumbcompat;
+
         public static ConfigEntry<float> newLensBonus;
 
         public static ConfigEntry<float> newStackingLensBonus;
@@ -39,7 +41,7 @@ namespace vanillaVoid.Items
         public override string ItemLangTokenName => "ORRERY_ITEM";
 
         //public override string ItemPickupDesc => "Increased effectiveness of lens-related items. Your Critical Strikes can dip an additional time. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
-        public override string ItemPickupDesc => "Lens-related items are more effective. Critical Strikes can occur an additional time, with half the chance of the previous one. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+        public override string ItemPickupDesc => "The Lens-Maker's work is more effective. Critical Strikes can occur an additional time, with half the chance of the previous one. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
         
         //public override string ItemFullDescription => $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses and Lost Seer's Lenses are <style=cIsUtility>{lensBonus.Value * 100}%</style> <style=cStack>(+{stackingLensBonus.Value * 100}% per stack)</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can dip <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
         public override string ItemFullDescription => tempItemFullDescription;
@@ -77,11 +79,11 @@ namespace vanillaVoid.Items
             CreateConfig(config);
             if(newStackingLensBonus.Value == 0)
             {
-                tempItemFullDescription = $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses and Lost Seer's Lenses are <style=cIsUtility>{newLensBonus.Value * 100}%</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can occur <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times, with each additional occurance having <style=cIsDamage>{critModifier.Value * 100}%</style> <style=cStack>(+{critModifierStacking.Value * 100}% per stack)</style> of the crit chance of the previous crit. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+                tempItemFullDescription = $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses are <style=cIsUtility>{newLensBonus.Value * 100}%</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can occur <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times, with each additional occurance having <style=cIsDamage>{critModifier.Value * 100}%</style> <style=cStack>(+{critModifierStacking.Value * 100}% per stack)</style> of the crit chance of the previous crit. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
             }
             else
             {
-                tempItemFullDescription = $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses and Lost Seer's Lenses are <style=cIsUtility>{newLensBonus.Value * 100}%</style> <style=cStack>(+{newStackingLensBonus.Value * 100} per stack)</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can occur <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times, with each additional occurance having <style=cIsDamage>{critModifier.Value * 100}%</style> <style=cStack>(+{critModifierStacking.Value * 100}% per stack)</style> of the crit chance of the previous crit. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+                tempItemFullDescription = $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses are <style=cIsUtility>{newLensBonus.Value * 100}%</style> <style=cStack>(+{newStackingLensBonus.Value * 100} per stack)</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can occur <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times, with each additional occurance having <style=cIsDamage>{critModifier.Value * 100}%</style> <style=cStack>(+{critModifierStacking.Value * 100}% per stack)</style> of the crit chance of the previous crit. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
             }
             CreateLang();
             CreateItem();
@@ -104,8 +106,9 @@ namespace vanillaVoid.Items
         {
             string name = ItemName == "Lens-Maker's Orrery" ? "Lens-Makers Orrery" : ItemName;
 
-            newLensBonus = config.Bind<float>("Item: " + name, "Glasses Buff", .3f, "Adjust the percent buff to crit glasses on the first stack.");
-            newStackingLensBonus = config.Bind<float>("Item: " + name, "Glasses Buff per Stack", 0f, "Adjust the percent buff to crit glasses per stack. Recommened value is .1 if you want this mechanic.");
+            //dumbcompat = config.Bind<bool>("Item: " + name, "Mod Compat - Remove Lost Seer's Buff", true, "Should stay on, but if you're having a strange issue (ex. health bars not showing up on enemies) edit this to be false.");
+            newLensBonus = config.Bind<float>("Item: " + name, "Crit Buff", .3f, "Adjust the percent buff to crit glasses on the first stack.");
+            newStackingLensBonus = config.Bind<float>("Item: " + name, "Crit Buff per Stack", 0.05f, "Adjust the percent buff to crit glasses per stack.");
             additionalCritLevels = config.Bind<float>("Item: " + name, "Additional Crit Levels", 1f, "Adjust the number of additional crit levels each stack allows.");
             critModifier = config.Bind<float>("Item: " + name, "Crit Reduction", .5f, "Adjust how much the chance for additional crits are reduced. .5 is 50%, meaning subsequent crit chances are halved.");
             critModifierStacking = config.Bind<float>("Item: " + name, "Crit Reduction Reduction", .05f, "Adjust how much the crit reduction is reduced per stack. Basically, for every stack above the first, the crit reduction on subsequent crits is reduced by this amount. Having two stacks would make additonal crits have 55% of the previous's chance, assuming this number is default.");

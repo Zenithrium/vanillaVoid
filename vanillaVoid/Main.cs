@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Configuration;
 using R2API;
 using R2API.Utils;
 using RoR2.ExpansionManagement;
@@ -37,7 +38,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.1.8";
+        public const string ModVer = "1.1.13";
 
         public static ExpansionDef sotvDLC; 
 
@@ -56,51 +57,57 @@ namespace vanillaVoid
         public static GameObject lotusObject;
         public static GameObject lotusPulse;
 
+        public Xoroshiro128Plus genericRng;
+
+        //public static ConfigEntry<bool> orreryCompat;
+
         Vector3 heightAdjust = new Vector3(0, 2.312f, 0);
         Vector3 heightAdjustPulse = new Vector3(0, 2.5f, 0);
         float previousPulseFraction = 0;
         float secondsUntilBarrierAttempt = 0;
         private void Awake()
         {
+            //orreryCompat = Config.Bind<bool>("Mod Compatability", "Enable Lost Seers Buff", true, "Should generally stay on, but if you're having a strange issue (ex. health bars not showing up on enemies) edit this to be false.");
+
             ModLogger = Logger;
 
             var harm = new Harmony(Info.Metadata.GUID);
             new PatchClassProcessor(harm, typeof(ModdedDamageColors)).Patch();
-
-            IL.RoR2.HealthComponent.TakeDamage += (il) => //LensOrrery and lost seer's interaction 
-            {
-                ILCursor c = new ILCursor(il);
-                if(c.TryGotoNext(
-                    x => x.MatchCallOrCallvirt<CharacterBody>("get_inventory"),
-                    x => x.MatchLdsfld(typeof(DLC1Content.Items), "CritGlassesVoid"),
-                    x => x.MatchCallOrCallvirt<Inventory>("GetItemCount"),
-                    x => x.MatchConvR4(),
-                    x => x.MatchLdcR4(0.5f)
-                    ))
-                {
-                    c.Index += 4;
-                    c.Remove();
-                    c.Emit(OpCodes.Ldloc_1);
-                    //c.TryGotoNext();
-                    c.EmitDelegate<Func<CharacterBody, float>>((cb) =>
-                    {
-                        if (cb.master.inventory)
-                        {
-                            int orrery = cb.master.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
-                            if (orrery > 0)
-                            {
-                                return 0.5f + (.5f * (LensOrrery.newLensBonus.Value + (LensOrrery.newStackingLensBonus.Value * (orrery - 1))));
-                            }
-                        }
-                        return 0.5f;
-                    });
-                }
-                else
-                {
-                    Logger.LogError("Failed to apply Lost Seer's Orrery Hook");
-                }
-            };
-
+            //if (LensOrrery.dumbcompat.Value) { 
+            //    IL.RoR2.HealthComponent.TakeDamage += (il) => //LensOrrery and lost seer's interaction 
+            //    {
+            //        ILCursor c = new ILCursor(il);
+            //        if (c.TryGotoNext(
+            //            x => x.MatchCallOrCallvirt<CharacterBody>("get_inventory"),
+            //            x => x.MatchLdsfld(typeof(DLC1Content.Items), "CritGlassesVoid"),
+            //            x => x.MatchCallOrCallvirt<Inventory>("GetItemCount"),
+            //            x => x.MatchConvR4(),
+            //            x => x.MatchLdcR4(0.5f)
+            //            ))
+            //        {
+            //            c.Index += 4;
+            //            c.Remove();
+            //            c.Emit(OpCodes.Ldloc_1);
+            //            //c.TryGotoNext();
+            //            c.EmitDelegate<Func<CharacterBody, float>>((cb) =>
+            //            {
+            //                if (cb.master.inventory)
+            //                {
+            //                    int orrery = cb.master.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
+            //                    if (orrery > 0)
+            //                    {
+            //                        return 0.5f + (.5f * (LensOrrery.newLensBonus.Value + (LensOrrery.newStackingLensBonus.Value * (orrery - 1))));
+            //                    }
+            //                }
+            //                return 0.5f;
+            //            });
+            //        }
+            //        else
+            //        {
+            //            Logger.LogError("Failed to apply Lost Seer's Orrery Hook");
+            //        }
+            //    };
+            //}
 
             //IL.RoR2.HealthComponent.TakeDamage += (il) => // just stop doing crit checks if you have orrery because its being handled in LensOrrery.cs 
             //{
@@ -157,10 +164,13 @@ namespace vanillaVoid
             lotusObject = MainAssets.LoadAsset<GameObject>("mdlLotusWorldObject.prefab"); 
             lotusObject.AddComponent<TeamFilter>();
             lotusObject.AddComponent<NetworkIdentity>();
+            
 
             //bladeObject.AddComponent<Rigidbody>();
             PrefabAPI.RegisterNetworkPrefab(bladeObject);
             PrefabAPI.RegisterNetworkPrefab(lotusObject);
+
+            //ExtraterrestrialExhaust.RocketProjectile.
             //R2API.ContentAddition.AddNetworkedObject(bladeObject);
             //R2API.ContentAddition.AddNetworkedObject(lotusObject);
 
@@ -223,6 +233,42 @@ namespace vanillaVoid
                 }
             }
 
+            //if (orreryCompat.Value)
+            //{
+            //    IL.RoR2.HealthComponent.TakeDamage += (il) => //LensOrrery and lost seer's interaction 
+            //    {
+            //        ILCursor c = new ILCursor(il);
+            //        if (c.TryGotoNext(
+            //            x => x.MatchCallOrCallvirt<CharacterBody>("get_inventory"),
+            //            x => x.MatchLdsfld(typeof(DLC1Content.Items), "CritGlassesVoid"),
+            //            x => x.MatchCallOrCallvirt<Inventory>("GetItemCount"),
+            //            x => x.MatchConvR4(),
+            //            x => x.MatchLdcR4(0.5f)
+            //            ))
+            //        {
+            //            c.Index += 4;
+            //            c.Remove();
+            //            c.Emit(OpCodes.Ldloc_1);
+            //            //c.TryGotoNext();
+            //            c.EmitDelegate<Func<CharacterBody, float>>((cb) =>
+            //            {
+            //                if (cb.master.inventory)
+            //                {
+            //                    int orrery = cb.master.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
+            //                    if (orrery > 0)
+            //                    {
+            //                        return 0.5f + (.5f * (LensOrrery.newLensBonus.Value + (LensOrrery.newStackingLensBonus.Value * (orrery - 1))));
+            //                    }
+            //                }
+            //                return 0.5f;
+            //            });
+            //        }
+            //        else
+            //        {
+            //            Logger.LogError("Failed to apply Lost Seer's Orrery Hook");
+            //        }
+            //    };
+            //}
         }
 
         /// <summary>
@@ -317,13 +363,29 @@ namespace vanillaVoid
             var inventoryCount = self.inventory.GetItemCount(ItemBase<ExtraterrestrialExhaust>.instance.ItemDef);
             if (inventoryCount > 0 && skill.cooldownRemaining > 0) //maybe make this higher
             {
-                var playerPos = self.GetComponent<CharacterBody>().corePosition;
+                //var playerPos = self.GetComponent<CharacterBody>().corePosition;
                 float skillCD = skill.baseRechargeInterval;
-                
+
                 //Debug.Log("cooldown is " + skillCD);
                 int missleCount = (int)Math.Ceiling(skillCD / ItemBase<ExtraterrestrialExhaust>.instance.secondsPerRocket.Value);
                 //Debug.Log("rockets firing: " + missleCount);
-                
+                //Debug.Log("lunar primary: " + skill.stock); 
+                if (skill.skillDef.ToString().Contains("LunarPrimaryReplacement"))
+                {
+                    //if (genericRng == null)
+                    //{
+                    //    genericRng = new Xoroshiro128Plus(Run.instance.seed);
+                    //}
+                    //int roll = genericRng.RangeInt(1, 100);
+                    if (skill.stock % 2 != 0)
+                    {
+                        missleCount = 1;
+                    }
+                    else
+                    {
+                        missleCount = 0;
+                    }
+                }
                 StartCoroutine(delayedRockets(self, missleCount, inventoryCount)); //this can probably be done better
             }
 
@@ -344,7 +406,7 @@ namespace vanillaVoid
                 float random = UnityEngine.Random.Range(-30, 30);
                 Quaternion UpwardsQuat = Quaternion.Euler(270, random, 0);
                 Vector3 Upwards = new Vector3(270, random, 0);
-                Debug.Log(((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100));
+                //Debug.Log(((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100));
                 float rocketDamage = player.damage * ((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100);
                 for(int j = 0; j < icbmMod; j++)
                 {
@@ -374,7 +436,7 @@ namespace vanillaVoid
                         //speedOverride = 1f,
                     };
                     #pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                    ProjectileManager.instance.FireProjectileServer(fireProjectileInfo);
+                    ProjectileManager.instance.FireProjectile(fireProjectileInfo);
                     #pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 }
                 //FireProjectileInfo fireProjectileInfo = new FireProjectileInfo()
@@ -447,7 +509,7 @@ namespace vanillaVoid
             CharacterBody victimBody = dmgReport.victimBody;
             dmgReport.victimBody.gameObject.AddComponent<ExeToken>();
             CharacterBody attackerBody = dmgReport.attackerBody;
-            if (attackerBody.inventory)
+            if (attackerBody.inventory && NetworkServer.active)
             {
                 var bladeCount = attackerBody.inventory.GetItemCount(ItemBase<ExeBlade>.instance.ItemDef);
                 if (bladeCount > 0)
@@ -470,7 +532,6 @@ namespace vanillaVoid
 
         IEnumerator ExeBladeDelayedExecutions(int bladeCount, GameObject bladeObject, DamageReport dmgReport)
         {
-            //Debug.Log("hello, i am the ienumerator");
             bladeObject.AddComponent<ExeToken>(); //oopsies!!! don't break game
             
             bladeObject.AddComponent<Rigidbody>();
@@ -478,13 +539,11 @@ namespace vanillaVoid
             var bladeCollider = bladeObject.GetComponent<BoxCollider>(); // default size = (0.8, 4.3, 1.8)
 
             bladeRigid.drag = .5f;
-            //bladeRigid.mass = 10f;
-            //Vector3 colliderSize = new Vector3(0.1f, 2f, 0.1f);
+
             float randomHeight = UnityEngine.Random.Range(2.45f, 2.95f);
             bladeCollider.size = new Vector3(0.1f, randomHeight, 0.1f);
 
             bladeRigid.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
-            //bladeRigid.isKinematic = true;
 
             float randomX = UnityEngine.Random.Range(-20, 10);
             float randomY = UnityEngine.Random.Range(0, 360);
