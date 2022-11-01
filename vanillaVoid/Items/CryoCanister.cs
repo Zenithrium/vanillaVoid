@@ -41,12 +41,10 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
 
         public override string ItemPickupDesc => "Killing an enemy slows and eventually freezes other nearby enemies. <style=cIsVoid>Corrupts all Gasolines</style>.";
 
-        public override string ItemFullDescription => $"Killing an enemy <style=cIsUtility>slows</style> all enemies within <style=cIsDamage>10m</style> <style=cStack>(+2.5m per stack)</style>, which lasts for <style=cIsUtility>5</style> <style=cStack>(+2.5 per stack)</style> seconds. Upon applying <style=cIsUtility>{requiredStacksForFreeze.Value} stacks</style> of <style=cIsUtility>slow</style> to an enemy, they are <style=cIsDamage>frozen</style>. Less effective on bosses. <style=cIsVoid>Corrupts all Gasolines</style>.";
+        public override string ItemFullDescription => $"Killing an enemy <style=cIsUtility>slows</style> all enemies within <style=cIsDamage>{aoeRangeBase.Value}m</style> <style=cStack>(+{aoeRangeStacking.Value}m per stack)</style> for <style=cIsDamage>{baseDamageAOE.Value * 100}%</style> <style=cStack>(+{stackingDamageAOE.Value * 100}% per stack)</style> base damage, which lasts for <style=cIsUtility>{slowDuration.Value}</style> <style=cStack>(+{slowDuration.Value * .5} per stack)</style> seconds. Upon applying <style=cIsUtility>{requiredStacksForFreeze.Value} stacks</style> of <style=cIsUtility>slow</style> to an enemy, they are <style=cIsDamage>frozen</style>. Freezing is less effective on bosses. <style=cIsVoid>Corrupts all Gasolines</style>.";
 
-        public override string ItemLore => $"<style=cSub>Order: Lens-Maker's Orrery \nTracking Number: ******** \nEstimated Delivery: 1/13/2072 \nShipping Method: High Priority/Fragile/Confidiential \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" +
-            "The Lens-Maker, as mysterious as they are influential. From my research I have surmised that she has been appointed to \"Final Verdict\", the most prestigious role of leadership in the House Beyond. Our team managed to locate a workshop of hers where she was supposedly working on some never-before concieved tech - but something was off. " +
-            "Looking through her schematics and trinkets I found something odd - something unlike what I was anticipating. A simple orrery, clearly her design, but without her classic red, replaced with a peculiar purple. At first I worried that when she learned of our arrival, when she left in a rush, that we had ruined some of her masterpieces...but maybe it's best we interrupted her. " +
-            "\n\nGiven that this is one of a kind, and quite a special work of hers at that; I expect much more than just currency in payment.";
+        public override string ItemLore => $"<style=cSub>Order: Supercritical Coolant \nTracking Number: 03691215 \nEstimated Delivery: 25/10/2112 \nShipping Method: High Priority/Fragile \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" +
+            "Originally we studied Void occurrences from afar, observing and cataloguing the distribution of galaxies and refining cosmological evolution models. We are in a new age of cosmic exploration. Advancements in space travel partnered with determined curiosity have brought us closer to our object of study, and with it, revelation.";
 
         public override ItemTier Tier => ItemTier.VoidTier1;
 
@@ -61,8 +59,16 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
 
         public BuffDef preFreezeSlow { get; private set; }
 
-        public GameObject iceDeathAOEObject;// = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/EliteIce/AffixWhiteExplosion.prefab").WaitForCompletion();
+        //public GameObject iceDeathAOEObject;// = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/EliteIce/AffixWhiteExplosion.prefab").WaitForCompletion();
         GameObject iceDeathObject;
+
+        public GameObject iceDeathAOEObject { get; set; } = MainAssets.LoadAsset<GameObject>("CryoAOEExplosionEffect");
+        public GameObject iceDeathAOEObjectLazy;
+
+        public GameObject iceDeathAOEObjectFucked;
+        public GameObject iceDeathObjectFucked;
+        //GameObject gameObject = UnityEngine.Object.Instantiate(iceDeathAOEObject, position, Quaternion.identity);
+
 
         public override void Init(ConfigFile config)
         {
@@ -73,18 +79,45 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
             VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
             CreateBuff();
 
-            string aoePath = "RoR2/Base/EliteIce/AffixWhiteExplosion.prefab";
-            iceDeathAOEObject = Addressables.LoadAssetAsync<GameObject>(aoePath).WaitForCompletion();
+            //RoR2/Base/EliteIce/AffixWhiteExplosion.prefab
+            //string aoePath = "RoR2/Base/Common/VFX/OmniImpactVFXFrozen.prefab"; // "RoR2 /Base/Common/VFX/OmniImpactVFXFrozen.prefab";
+            //iceDeathAOEObjectLazy = Addressables.LoadAssetAsync<GameObject>(aoePath).WaitForCompletion();
+            //
+            //Debug.Log(" cryo canister vfx fake: " + iceDeathAOEObjectLazy);
+            //
+            //string aoePath2 = "RoR2/Base/EliteIce/AffixWhiteExplosion.prefab";
+            //iceDeathAOEObjectFucked = Addressables.LoadAssetAsync<GameObject>(aoePath).WaitForCompletion();
+            //
+            //GameObject iceDeathObjectFucked = UnityEngine.Object.Instantiate<GameObject>(iceDeathAOEObjectFucked);
+            //iceDeathObjectFucked.AddComponent<NetworkIdentity>();
+            //
+            ////GameObject iceDeathObject = UnityEngine.Object.Instantiate<GameObject>(iceDeathAOEObject);
 
-            GameObject iceDeathObject = UnityEngine.Object.Instantiate<GameObject>(iceDeathAOEObject);
-            iceDeathObject.AddComponent<NetworkIdentity>();
+            //iceDeathAOEObject = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("CryoAOEExplosionEffect");
+            ////iceDeathAOEObject = GlobalEventManager.CommonAssets.bleedOnHitAndExplodeImpactEffect;
+            ////iceDeathAOEObject.
+            //var effComp = iceDeathAOEObject.AddComponent<EffectComponent>();
+            //effComp.positionAtReferencedTransform = true;
+            //var vfxAtrb = iceDeathAOEObject.AddComponent<VFXAttributes>();
+            //vfxAtrb.vfxIntensity = VFXAttributes.VFXIntensity.Medium;
+            //vfxAtrb.vfxPriority = VFXAttributes.VFXPriority.Always;
+            //ContentAddition.AddEffect(iceDeathAOEObject);
+            //Debug.Log(" cryo canister vfx: " + iceDeathAOEObject);
+            //iceDeathAOEObject.AddComponent<NetworkIdentity>();
+            //PrefabAPI.RegisterNetworkPrefab(iceDeathAOEObject);
+
+            //EffectDef effectDef = new EffectDef(iceDeathAOEObject);
+            //ContentAddition.AddEffect(iceDeathAOEObject);
+            //AssetsMainAssets.Add(effectDef);
+
+            //i hate modding
 
             Hooks(); 
         }
         public void CreateBuff()
         {
             preFreezeSlow = ScriptableObject.CreateInstance<BuffDef>();
-            preFreezeSlow.buffColor = Color.blue;
+            preFreezeSlow.buffColor = Color.cyan;
             preFreezeSlow.canStack = true;
             preFreezeSlow.isDebuff = true;
             preFreezeSlow.name = "ZnVV" + "preFreezeSlow";
@@ -101,10 +134,7 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
             requiredStacksForFreeze = config.Bind<float>("Item: " + ItemName, "Stacks Required for Freeze", 2f, "Adjust the number of stacks needed to freeze an enemy.");
             requiredStacksForBossFreeze = config.Bind<float>("Item: " + ItemName, "Stacks Required for Boss Freeze", 10f, "Adjust the number of stacks needed to freeze a boss.");
             slowPercentage = config.Bind<float>("Item: " + ItemName, "Percent Slow", .5f, "Adjust the percentage slow the buff causes.");
-            slowDuration = config.Bind<float>("Item: " + ItemName, "Slow Duration", 5, "Adjust the duration the slow lasts, in seconds.");
-
-
- 
+            slowDuration = config.Bind<float>("Item: " + ItemName, "Slow Duration", 4, "Adjust the duration the slow lasts, in seconds.");
 
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "IgniteOnKill", "Adjust which item this is the void pair of.");
         }
@@ -131,9 +161,9 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(0.02629241f, 0.2568354f, -0.2131178f),
-                    localAngles = new Vector3(351.7242f, 10.67858f, 20.43508f),
+                    childName = "ThighL",
+                    localPos = new Vector3(0.1515263f, 0.06217923f, -0.01854283f),
+                    localAngles = new Vector3(294.0765f, 24.31453f, 41.70001f),
                     localScale = new Vector3(0.08f, 0.08f, 0.08f)
                 }
             });
@@ -143,10 +173,10 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(0.1503672f, 0.1435245f, -0.07638646f),
-                    localAngles = new Vector3(345.9114f, 300.3137f, 23.08318f),
-                    localScale = new Vector3(.08f, .08f, .08f)
+                    childName = "ThighL",
+                    localPos = new Vector3(0.1019495f, -0.004779898f, 0.08037122f),
+                    localAngles = new Vector3(307.2001f, 179.7792f, 96.47073f),
+                    localScale = new Vector3(0.065f, 0.065f, 0.065f)
                 }
             });
             rules.Add("mdlBandit2", new RoR2.ItemDisplayRule[]
@@ -155,10 +185,10 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(0.07648633f, 0.07626516f, -0.171931f),
-                    localAngles = new Vector3(4.41012f, 156.408f, 333.5214f),
-                    localScale = new Vector3(.09f, .09f, .09f)
+                    childName = "ThighR",
+                    localPos = new Vector3(-0.3334707f, -0.03016165f,  -0.1781694f),
+                    localAngles = new Vector3(340.6444f, 200.5811f, 6.510907f),
+                    localScale = new Vector3(0.07f, 0.07f, 0.07f)
                 }
             });
             rules.Add("mdlToolbot", new RoR2.ItemDisplayRule[]
@@ -167,9 +197,9 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(0.7626196f, 0.8972478f, -2.416836f),
-                    localAngles = new Vector3(352.209f, 276.9412f, 21.69027f),
+                    childName = "ThighR",
+                    localPos = new Vector3(-1.213294f, 0.9907005f, -5.987041f),
+                    localAngles = new Vector3(287.2282f, 278.8165f, 82.6935f),
                     localScale = new Vector3(.5f, .5f, .5f)
                 }
             });
@@ -179,9 +209,9 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(0.1661014f, 0.2427287f, -0.2980944f),
-                    localAngles = new Vector3(353.9857f, 276.0242f, 30.12733f),
+                    childName = "ThighL",
+                    localPos = new Vector3(0.1874898f, 0.1037676f, 0.04180111f),
+                    localAngles = new Vector3(283.4243f, 178.2074f, 65.93817f),
                     localScale = new Vector3(.08f, .08f, .08f)
                 }
             });
@@ -192,9 +222,9 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "Head",
-                    localPos = new Vector3(0.571964f, 0.2234386f, -0.2234011f),
-                    localAngles = new Vector3(351.7031f, 89.96729f, 109.932f),
-                    localScale = new Vector3(.25f, .25f, .25f)
+                    localPos = new Vector3(-0.7404389f, 0.07693511f, 0.002353907f),
+                    localAngles = new Vector3(61.9685f, 160.8914f, 234.2564f),
+                    localScale = new Vector3(.2f, .2f, .2f)
 
                     //localPos = new Vector3(0.3982559f, 0.5157748f, 1.197929f), //std turret
                     //localAngles = new Vector3(2.650187f, 268.003f, 247.601f),
@@ -207,10 +237,10 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(0.1125494f, 0.1737099f, -0.3271036f),
-                    localAngles = new Vector3(5.788457f, 7.310323f, 19.54668f),
-                    localScale = new Vector3(.09f, .09f, .09f)
+                    childName = "ThighL",
+                    localPos = new Vector3(0.128604f, 0.04170567f, 0.0362651f),
+                    localAngles = new Vector3(294.3157f, 50.21239f, 8.014451f),
+                    localScale = new Vector3(0.07f, 0.07f, 0.07f)
                 }
                 
             });
@@ -220,10 +250,10 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(0.1414333f, 0.1708212f, -0.205414f),
-                    localAngles = new Vector3(352.4888f, 291.1599f, 19.03975f),
-                    localScale = new Vector3(.08f, .08f, .08f)
+                    childName = "ThighL",
+                    localPos = new Vector3(0.1502278f, 0.02505913f, 0.005195001f),
+                    localAngles = new Vector3(312.9884f, 185.7034f, 77.97595f),
+                    localScale = new Vector3(0.075f, 0.075f, 0.075f)
                 }
             });
             rules.Add("mdlTreebot", new RoR2.ItemDisplayRule[]
@@ -232,9 +262,9 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "CalfBackL",
-                    localPos = new Vector3(0.08891746f, 0.5175744f, -0.03669554f),
-                    localAngles = new Vector3(352.6626f, 273.883f, 23.80008f),
+                    childName = "HeadBase",
+                    localPos = new Vector3(0.6552188f, -0.1591174f, -0.1081835f),
+                    localAngles = new Vector3(28.51935f, 16.06732f, 68.01345f),
                     localScale = new Vector3(.09f, .09f, .09f)
                 }
             });
@@ -244,9 +274,9 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(0.1394217f, 0.1633563f, -0.3964019f),
-                    localAngles = new Vector3(357.2906f, 279.8901f, 17.20597f),
+                    childName = "ThighL",
+                    localPos = new Vector3(0.1418974f, 0.1018404f, 0.1193604f),
+                    localAngles = new Vector3(305.2793f, 13.87357f, 33.9735f),
                     localScale = new Vector3(0.09f, 0.09f, 0.09f)
                 }
             });
@@ -256,10 +286,10 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(-1.443816f, -0.6864427f, 3.308026f),
-                    localAngles = new Vector3(26.11133f, 5.543665f, 25.21973f),
-                    localScale = new Vector3(.8f, .8f, .8f)
+                    childName = "ThighL",
+                    localPos = new Vector3(1.189638f, -0.05416813f, -0.431556f),
+                    localAngles = new Vector3(327.4012f, 170.4274f, 285.5928f),
+                    localScale = new Vector3(0.5f, 0.5f, 0.5f)
                 }
             });
             rules.Add("mdlCaptain", new RoR2.ItemDisplayRule[]
@@ -268,10 +298,10 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(0.1425444f, 0.1892054f, -0.2536568f),
-                    localAngles = new Vector3(349.48f, 296.4531f, 17.46299f),
-                    localScale = new Vector3(.115f, .115f, .115f)
+                    childName = "ThighL",
+                    localPos = new Vector3(0.1160537f, -0.05998493f, 0.09456927f),
+                    localAngles = new Vector3(352.1081f, 175.0939f, 243.0748f),
+                    localScale = new Vector3(0.06f, 0.06f, 0.06f)
                 }
             });
             rules.Add("mdlRailGunner", new RoR2.ItemDisplayRule[]
@@ -281,9 +311,9 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "Backpack",
-                    localPos = new Vector3(0.2669638f, -0.08863433f, -0.07332691f),
-                    localAngles = new Vector3(355.9068f, 102.4288f, 11.93598f),
-                    localScale = new Vector3(.08f, .08f, .08f)
+                    localPos = new Vector3(-0.09908636f, -0.4335292f, 0.0002002567f),
+                    localAngles = new Vector3(3.861964f, 59.13883f, 332.0835f),
+                    localScale = new Vector3(0.07f, 0.07f, 0.07f)
                 }
             });
             rules.Add("mdlVoidSurvivor", new RoR2.ItemDisplayRule[]
@@ -292,10 +322,10 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "CalfR",
-                    localPos = new Vector3(0.02665846f, 0.2549812f, -0.07270494f),
-                    localAngles = new Vector3(11.88894f, 359.9499f, 204.7378f),
-                    localScale = new Vector3(0.075f, 0.075f, 0.075f)
+                    childName = "ThighR",
+                    localPos = new Vector3(0.01783761f, 0.1200769f, -0.1452967f),
+                    localAngles = new Vector3(315.8733f, 81.28423f, 78.75524f),
+                    localScale = new Vector3(0.07f, 0.07f, 0.07f)
                 }
             });
             rules.Add("mdlScav", new RoR2.ItemDisplayRule[]
@@ -305,9 +335,9 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "Weapon",
-                    localPos = new Vector3(1.91149f, 11.57303f, 4.621446f),
-                    localAngles = new Vector3(353.9657f, 129.2633f, 20.15013f),
-                    localScale = new Vector3(2f, 2f, 2f)
+                    localPos = new Vector3(4.056051f, -0.3732671f, 0.59979f),
+                    localAngles = new Vector3(298.3842f, 184.4189f, 56.38975f),
+                    localScale = new Vector3(1f, 1f, 1f)
                 }
             });
 
@@ -318,9 +348,9 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName =  "Shield",
-                    localPos =   new Vector3(0.1429525f, 0.009444445f, -0.231735f),
-                    localAngles = new Vector3(0.949871f, 227.3962f, 30.76947f),
+                    childName =  "CalfL",
+                    localPos =   new Vector3(0.03588771f, 0.09803209f, 0.1293422f),
+                    localAngles = new Vector3(307.0168f, 268.4248f, 63.07141f),
                     localScale = new Vector3(0.085f, 0.085f, 0.085f)
                 }
             });
@@ -330,10 +360,10 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(-0.001040328f, 0.0004106277f, 0.001044341f),
-                    localAngles = new Vector3(350.0445f, 351.373f, 112.076f),
-                    localScale = new Vector3(0.003f, 0.004f, 0.0035f)
+                    childName = "Pelvis",
+                    localPos = new Vector3(-0.0006026067f, 0.002815368f, 0.009515685f),
+                    localAngles = new Vector3(308.2012f, 0.3406859f, 60.02274f),
+                    localScale = new Vector3(0.003f, 0.003f, 0.003f)
                 }
             });
             rules.Add("mdlPaladin", new RoR2.ItemDisplayRule[] //these ones don't work for some reason!
@@ -342,10 +372,10 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(0.2842848f, -0.1576135f, 0.01475417f),
-                    localAngles = new Vector3(4.996761f, 302.908f, 315.8754f),
-                    localScale = new Vector3(0.1f, 0.1f, 0.1f)
+                    childName = "ThighR",
+                    localPos = new Vector3(0.1704589f, 0.2944336f, 0.09629773f),
+                    localAngles = new Vector3(302.1373f, 171.8758f, 50.29458f),
+                    localScale = new Vector3(0.09f, 0.09f, 0.09f)
                 }
             });
             //rules.Add("mdlChef", new RoR2.ItemDisplayRule[]
@@ -366,9 +396,9 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "PickL",
-                    localPos = new Vector3(-0.003641347f, 0.001164402f, 0.000302475f),
-                    localAngles = new Vector3(352.0699f, 17.21215f, 12.00122f),
+                    childName = "LegL",
+                    localPos = new Vector3(0.0001376976f, 0.000773763f, 0.001397073f),
+                    localAngles = new Vector3(296.4636f, 275.2156f, 65.79694f),
                     localScale = new Vector3(0.001f, 0.001f, 0.001f)
                 }
             });
@@ -390,10 +420,10 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(-0.1678362f, 0.2800805f, -0.1426394f),
-                    localAngles = new Vector3(5.870443f, 265.1015f, 331.878f),
-                    localScale = new Vector3(0.07f, 0.07f, 0.07f)
+                    childName = "ThighL",
+                    localPos = new Vector3(-0.2642168f, 0.08241536f, -0.03230814f),
+                    localAngles = new Vector3(80.15402f, 192.351f, 264.9937f),
+                    localScale = new Vector3(0.085f, 0.085f, 0.085f)
                 }
             });
             rules.Add("JavangleMystBody", new RoR2.ItemDisplayRule[]
@@ -402,10 +432,34 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "UpperTorso",
-                    localPos = new Vector3(-0.0004795195f, 0.03674114f, -0.1753576f),
-                    localAngles = new Vector3(4.924208f, 197.0649f, 346.5102f),
-                    localScale = new Vector3(0.075f, 0.075f, 0.075f)
+                    childName = "Sheath",
+                    localPos = new Vector3(0.04240592f, 0.2797743f, -0.004625648f),
+                    localAngles = new Vector3(61.60046f, 171.9134f, 239.4733f),
+                    localScale = new Vector3(0.061f, 0.061f, 0.061f)
+                }
+            });
+            rules.Add("mdlExecutioner", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "ThighL",
+                    localPos = new Vector3(0.001009098f, 0.002151658f, -0.0001070039f),
+                    localAngles = new Vector3(306.6896f, 353.9325f, 64.98692f),
+                    localScale = new Vector3(0.0006f, 0.0006f, 0.0006f)
+                }
+            });
+            rules.Add("mdlNemmando", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "ThighL",
+                    localPos = new Vector3(0.001197227f, 0.001904767f, 0.00006217563f),
+                    localAngles = new Vector3(299.9001f, 176.2292f, 45.39405f),
+                    localScale = new Vector3(0.0007f, 0.0007f, 0.0007f)
                 }
             });
 
@@ -416,7 +470,8 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
         {
             //On.RoR2.HealthComponent.TakeDamage += AdzeDamageBonus;
             GlobalEventManager.onCharacterDeathGlobal += CryoCanisterAOE;
-            RecalculateStatsAPI.GetStatCoefficients += CalculateStatsCryoHook;            
+            RecalculateStatsAPI.GetStatCoefficients += CalculateStatsCryoHook;      
+            
         }
 
         private void CalculateStatsCryoHook(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
@@ -425,12 +480,7 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
             {
                 if (sender.GetBuffCount(preFreezeSlow) > 0)
                 {
-                    args.moveSpeedReductionMultAdd = slowPercentage.Value;
-                    //args.critAdd += baseCrit.Value;
-                    //if (glassesCount > 0)
-                    //{
-                    //    args.critAdd += (glassesCount * 10 * (newLensBonus.Value + ((orreryCount - 1) * newStackingLensBonus.Value)));
-                    //}
+                    args.moveSpeedReductionMultAdd =+ slowPercentage.Value;
                 }
             }
         }
@@ -443,18 +493,9 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
         {
             if (!dmgReport.attacker || !dmgReport.attackerBody || !dmgReport.victim || !dmgReport.victimBody)
             {
-                Debug.Log("fake");
+                //Debug.Log("fake");
                 return; //end func if death wasn't killed by something real enough
             }
-
-            //var cryoComponent = dmgReport.victimBody.GetComponent<CryoToken>();
-            //if (cryoComponent)
-            //{
-            //    return; //prevent game crash  
-            //}
-            //
-            //CharacterBody victimBody = dmgReport.victimBody;
-            //dmgReport.victimBody.gameObject.AddComponent<CryoToken>();
 
             CharacterBody victimBody = dmgReport.victimBody;
             //dmgReport.victimBody.gameObject.AddComponent<ExeToken>();
@@ -468,7 +509,15 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                     float victimRadius = victimBody.radius;
                     float effectiveRadius = stackRadius + victimRadius;
                     float AOEDamageMult = baseDamageAOE.Value + (stackingDamageAOE.Value * (float)(cryoCount - 1));
+
+                    EffectData effectData = new EffectData
+                    {
+                        origin = victimBody.corePosition
+                    };
+                    effectData.SetNetworkedObjectReference(victimBody.gameObject);
+                    EffectManager.SpawnEffect(EntityStates.Mage.Weapon.FireIceOrb.effectPrefab, effectData, true);
                     
+                        //EntityStates.Mage.Weapon.FireIceOrb.effectPrefab
                     float AOEDamage = dmgReport.attackerBody.damage * AOEDamageMult;
                     Vector3 corePosition = victimBody.corePosition;
 
@@ -481,14 +530,15 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                     cryoAOESphereSearch.OrderCandidatesByDistance();
                     cryoAOESphereSearch.GetHurtBoxes(cryoAOEHurtBoxBuffer);
                     cryoAOESphereSearch.ClearCandidates();
-                    Debug.Log("found: " + cryoAOEHurtBoxBuffer.Count);
+                    //Debug.Log("found: " + cryoAOEHurtBoxBuffer.Count);
                     for (int i = 0; i < cryoAOEHurtBoxBuffer.Count; i++)
                     {
                         HurtBox hurtBox = cryoAOEHurtBoxBuffer[i];
                         if (hurtBox.healthComponent && hurtBox.healthComponent.body)
                         {
-                            Debug.Log("found a health component and hc body");
-                            hurtBox.healthComponent.body.AddTimedBuff(preFreezeSlow, slowDuration.Value);
+                            float duartion = slowDuration.Value + ((slowDuration.Value / 2f) * (cryoCount - 1));
+                            //Debug.Log("found a health component and hc body");
+                            hurtBox.healthComponent.body.AddTimedBuffAuthority(preFreezeSlow.buffIndex, duartion);
                             DamageInfo damageInfo = new DamageInfo
                             {
                                 attacker = attackerBody.gameObject,
@@ -497,34 +547,62 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                                 position = corePosition,
                                 procCoefficient = 1,
                                 damageType = DamageType.AOE,
-                                damageColorIndex = DamageColorIndex.Default,
+                                damageColorIndex = DamageColorIndex.Item,
                             };
                             hurtBox.healthComponent.TakeDamage(damageInfo);
-                            Debug.Log("sent take damage");
+                            //Debug.Log("sent take damage");
                             //self.GetComponent<CharacterBody>().AddTimedBuff(preFreezeSlow, slowDuration.Value);
                             if (hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow) >= requiredStacksForFreeze.Value)
                             {
+                                //float duartion = slowDuration.Value + ((slowDuration.Value / 2f) * (cryoCount - 1));
                                 if (!hurtBox.healthComponent.body.isBoss)
                                 {
-                                    hurtBox.healthComponent.isInFrozenState = true;
+                                    //hurtBox.healthComponent.isInFrozenState = true;
+                                    SetStateOnHurt setState = hurtBox.healthComponent.body.gameObject.GetComponent<SetStateOnHurt>();
+                                    if (setState)
+                                    {
+                                        int buffCount = hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow);
+                                        for(int j = 0; j < buffCount; j++)
+                                        {
+                                            hurtBox.healthComponent.body.RemoveOldestTimedBuff(preFreezeSlow);
+                                        }
+
+                                        setState.SetFrozen(duartion);
+                                    }
                                 }
                                 else if(hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow) >= requiredStacksForBossFreeze.Value)
                                 {
-                                    hurtBox.healthComponent.isInFrozenState = true;
+                                    //hurtBox.healthComponent.isInFrozenState = true;
+                                    SetStateOnHurt setState = hurtBox.healthComponent.body.gameObject.GetComponent<SetStateOnHurt>();
+                                    if (setState)
+                                    {
+                                        int buffCount = hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow);
+                                        for (int j = 0; j < buffCount; j++)
+                                        {
+                                            hurtBox.healthComponent.body.RemoveOldestTimedBuff(preFreezeSlow);
+                                        }
+
+                                        setState.SetFrozen(duartion);
+                                    }
                                 }
-                                
-                                EffectData effectData = new EffectData
+
+                                EffectData effectData2 = new EffectData
                                 {
                                     origin = victimBody.corePosition
                                 };
-                                //EffectManager.SpawnEffect(GlobalEventManager.CommonAssets.igniteOnKillExplosionEffectPrefab, effectData, transmit: true);
+                                effectData2.SetNetworkedObjectReference(victimBody.gameObject);
+                                EffectManager.SpawnEffect(EntityStates.Mage.Weapon.IceNova.impactEffectPrefab, effectData2, true);
+                                //EffectManager.SpawnEffect(EntityStates.Mage.Weapon.IceNova.novaEffectPrefab, effectData2, true);
 
-                                //Quaternion Quat = Quaternion.Euler(0, 0, 0);
-                                //GameObject iceDeathObject = UnityEngine.Object.Instantiate<GameObject>(iceDeathAOEObject, victimBody.corePosition, Quat);
-                                //iceDeathObject.GetComponent<TeamFilter>().teamIndex = attackerBody.teamComponent.teamIndex;
+                                //EntityStates.Mage.Weapon.FireIceOrb.effectPrefab;
+                                //GlobalEventManager.CommonAssets.bleedOnHitAndExplodeImpactEffect
+                                //EffectManager.SpawnEffect(iceDeathAOEObjectLazy, effectData, true);
+                                //effectData.SetNetworkedObjectReference(victimBody.gameObject);
+                                ////EffectManager.SpawnEffect(iceDeathAOEObject, effectData, true);
+                                //EffectManager.SpawnEffect(iceDeathAOEObjectLazy, effectData, true);
+                                //GameObject gameObject = UnityEngine.Object.Instantiate(iceDeathAOEObject, victimBody.corePosition, Quaternion.identity);
+                                //iceDeathObject.AddComponent<EffectComponent>();
 
-                                //NetworkServer.Spawn(iceDeathObject);
-                                EffectManager.SpawnEffect(iceDeathObject, effectData, true);
                             }
                             //Quaternion rot = Quaternion.Euler(0, 180, 0);
                             //var tempBlade = Instantiate(bladeObject, victimBody.corePosition, rot);
@@ -539,6 +617,21 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
                             //EffectManager.SpawnEffect(GlobalEventManager.CommonAssets.igniteOnKillExplosionEffectPrefab, effectData, transmit: true);
                             //StartCoroutine(ExeBladeDelayedExecutions(bladeCount, tempBlade, dmgReport));
                         }
+                    }
+                    cryoAOEHurtBoxBuffer.Clear();
+
+                    //if (victimBody.GetBuffCount(preFreezeSlow) > requiredStacksForFreeze.Value)
+                    //{
+                    //}
+
+                    if (victimBody.healthComponent.isInFrozenState)
+                    {
+                        EffectData effectData2 = new EffectData
+                        {
+                            origin = victimBody.corePosition
+                        };
+                        effectData2.SetNetworkedObjectReference(victimBody.gameObject);
+                        EffectManager.SpawnEffect(EntityStates.Mage.Weapon.IceNova.impactEffectPrefab, effectData2, true);
                     }
                 }
             }

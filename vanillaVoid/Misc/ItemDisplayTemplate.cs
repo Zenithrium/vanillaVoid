@@ -287,6 +287,30 @@ namespace vanillaVoid.Misc
                     localAngles = new Vector3(0f, 0f, 0f),
                     localScale = new Vector3(1f, 1f, 1f)
                 }
+            });
+            rules.Add("ExecutionerBody", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(-0.1678362f, 0.2800805f, -0.1426394f),
+                    localAngles = new Vector3(5.870443f, 265.1015f, 331.878f),
+                    localScale = new Vector3(0.07f, 0.07f, 0.07f)
+                }
+            });
+            rules.Add("NemmandoBody", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(-0.1678362f, 0.2800805f, -0.1426394f),
+                    localAngles = new Vector3(5.870443f, 265.1015f, 331.878f),
+                    localScale = new Vector3(0.07f, 0.07f, 0.07f)
+                }
             });*/
     }
 }

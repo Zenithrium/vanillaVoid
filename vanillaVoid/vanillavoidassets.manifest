@@ -1,12 +1,12 @@
 ManifestFileVersion: 0
-CRC: 1691027304
+CRC: 3076127178
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 5db8048736fadb027e5c754894a3ad2d
+    Hash: 1cc5f4097f1f86055eb0eb2117906849
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 1fe3abd029edb3522ae5dbbc711d0a74
+    Hash: b879b6395fdb6691b062236505bcdead
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -25,6 +25,12 @@ ClassTypes:
   Script: {instanceID: 0}
 - Class: 48
   Script: {instanceID: 0}
+- Class: 108
+  Script: {instanceID: 0}
+- Class: 198
+  Script: {instanceID: 0}
+- Class: 199
+  Script: {instanceID: 0}
 - Class: 213
   Script: {instanceID: 0}
 SerializeReferenceClassIdentifiers: []
@@ -39,13 +45,17 @@ Assets:
 - Assets/Models/Prefabs/Item/ClockworkWatch/mdlClockworkPickup.prefab
 - Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryDisplay.prefab
 - Assets/Models/Prefabs/Item/CryoItem/mdlCryoPickup.prefab
+- Assets/Models/Prefabs/Item/CryoItem/meshCryoExplosion.mesh
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedEmptyDisplay.prefab
 - Assets/Models/Prefabs/Item/MessItem/mdlMessDisplay.prefab
+- Assets/Models/Prefabs/Item/CryoItem/texChargeShadow.png
 - Assets/Textures/Icons/Item/VialsItem/vialsIcon.png
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedVialsPickup.prefab
 - Assets/Models/Prefabs/Item/StaffItem/mdlStaffPickup.prefab
+- Assets/Models/Prefabs/Item/CryoItem/ChargeShadow.mat
 - Assets/Textures/Icons/Item/CryoItem/cryoIcon512.png
 - Assets/Textures/Icons/Item/BladeItem/bladeIcon512OLD.png
+- Assets/Models/Prefabs/Item/CryoItem/matDistortion.mat
 - Assets/Textures/Materials/Item/AbyssalAdze/MiscMetalTexture.mat
 - Assets/Textures/Icons/Item/ClockworkWatch/watchIcon512.png
 - Assets/Models/Prefabs/Item/ExtVent/mdlVentPickup.prefab
@@ -86,6 +96,8 @@ Assets:
 - Assets/Textures/Materials/Item/ClockworkWatch/backMat.mat
 - Assets/Textures/Icons/Item/MessItem/brokenMessIcon512.png
 - Assets/Models/Prefabs/Item/AbyssalAdze/mdlAdzePickup.prefab
+- Assets/Models/Prefabs/Item/CryoItem/CryoAOEExplosionEffect.prefab
+- Assets/Models/Prefabs/Item/CryoItem/texDistortionNormal.jpg
 - Assets/Textures/Icons/Item/VialsItem/vialsIcon512.png
 - Assets/Textures/Materials/Item/AbyssalAdze/HandleLowerTexture.mat
 - Assets/Models/Prefabs/Item/LotusItem/mdlFinalLotusDisplay.prefab
@@ -95,4 +107,5 @@ Assets:
 - Assets/Models/Prefabs/Item/AbyssalAdze/mdlAdzeDisplay.prefab
 - Assets/Textures/Icons/Buffs/shatterStatus.png
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladeWorldObject.prefab
+- Assets/Textures/Icons/Buffs/orreryDamage.png
 Dependencies: []

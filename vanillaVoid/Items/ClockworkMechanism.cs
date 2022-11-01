@@ -475,6 +475,30 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.0375f, 0.0375f, 0.0375f)
                 }
             });
+            rules.Add("mdlExecutioner", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "HandL",
+                    localPos = new Vector3(0.0007848355f, -0.00006233127f, -0.000125948f),
+                    localAngles = new Vector3(41.89046f, 95.15518f, 350.9249f),
+                    localScale = new Vector3(0.0005f, 0.0005f, 0.0005f)
+                }
+            });
+            rules.Add("mdlNemmando", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "ArmL",
+                    localPos = new Vector3(0.00009739055f, 0.001602058f, -0.0005851662f),
+                    localAngles = new Vector3(4.887274f, 261.3586f, 57.98376f),
+                    localScale = new Vector3(0.0005f, 0.0005f, 0.0005f)
+                }
+            });
 
             return rules;
 
@@ -635,7 +659,12 @@ namespace vanillaVoid.Items
             //Debug.Log("attacker: " + attacker);
             if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<ClockworkMechanism>.instance.GetCount(self.body) > 0 && self.isHealthLow && !(self.GetComponent<CharacterBody>().GetBuffCount(recentBreak) > 0) && attacker)
             {
-                self.GetComponent<CharacterBody>().AddTimedBuff(recentBreak, breakCooldown.Value);
+                var cb = self.GetComponent<CharacterBody>();
+                for(int i = 0; i < Mathf.Floor(breakCooldown.Value); i++)
+                {
+                    cb.AddTimedBuffAuthority(recentBreak.buffIndex, i);
+                }
+
                 if (watchVoidRng == null)
                 {
                     watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);

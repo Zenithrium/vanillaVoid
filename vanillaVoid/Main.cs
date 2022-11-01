@@ -38,7 +38,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.1.13";
+        public const string ModVer = "1.2.0";
 
         public static ExpansionDef sotvDLC; 
 
@@ -611,7 +611,7 @@ namespace vanillaVoid
             //}
             //Debug.Log("checked for primoridal");
             string sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
-            if (sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
+            if (sceneName != "arena" && sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
             {
                 StartCoroutine(LotusDelayedPlacement(self));
             }

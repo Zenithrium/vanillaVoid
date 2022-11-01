@@ -9,7 +9,6 @@
 		<Compile Remove="Equipment\EliteEquipment\ExampleEliteEquipment.cs" />
 		<Compile Remove="Equipment\ExampleEquipment.cs" />
 		<Compile Remove="Equipment\ExampleEquipWithTargeting.cs" />
-		<Compile Remove="Items\CryoCanister.cs" />
 		<Compile Remove="Items\ExampleItem.cs" />
 		<Compile Remove="Items\WickedStaff.cs" />
 	</ItemGroup>
