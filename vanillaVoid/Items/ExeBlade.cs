@@ -27,15 +27,21 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<float> additionalDuration;
 
+        public ConfigEntry<float> baseDamageAOEExe;
+
+        public ConfigEntry<float> aoeRangeBaseExe;
+
+        //public ConfigEntry<float> aoeRangeStackingExe;
+
         public ConfigEntry<string> voidPair;
 
         public override string ItemName => "Executioner's Burden";
 
         public override string ItemLangTokenName => "EXEBLADE_ITEM";
 
-        public override string ItemPickupDesc => "Your 'On-Kill' effects occur an additional time upon killing an elite. <style=cIsVoid>Corrupts all Old Guillotines</style>.";
+        public override string ItemPickupDesc => "Your 'On-Kill' effects occur an additional time upon killing an elite. Additionally causes a damaging AOE upon elite kill. <style=cIsVoid>Corrupts all Old Guillotines</style>.";
 
-        public override string ItemFullDescription => $"Your <style=cIsDamage>On-Kill</style> effects occur <style=cIsDamage>{additionalProcs.Value}</style> <style=cStack>(+{additionalProcs.Value} per stack)</style> additional times upon killing an elite. Killing blows on elites are rolled <style=cIsUtility>+{luckBonus.Value}</style> times for a <style=cIsUtility>favorable outcome</style>. <style=cIsVoid>Corrupts all Old Guillotines</style>.";
+        public override string ItemFullDescription => $"Your <style=cIsDamage>On-Kill</style> effects occur <style=cIsDamage>{additionalProcs.Value}</style> <style=cStack>(+{additionalProcs.Value} per stack)</style> additional times upon killing an elite. Killing blows on elites are rolled <style=cIsUtility>+{luckBonus.Value}</style> times for a <style=cIsUtility>favorable outcome</style>. Additionally causes a <style=cIsDamage>{aoeRangeBaseExe.Value}m</style> explosion, dealing <style=cIsDamage>{baseDamageAOEExe.Value * 100}%</style> base damage. <style=cIsVoid>Corrupts all Old Guillotines</style>.";
 
         public override string ItemLore => $"<style=cMono>//-- AUTO-TRANSCRIPTION FROM CARGO BAY 14 OF UES [Redacted] --//</style>" +
             "\n\n\"Hey Joe, how are things g....what is all that. Why do you have so many swords.\"" +
@@ -75,6 +81,9 @@ namespace vanillaVoid.Items
             additionalProcs = config.Bind<float>("Item: " + name, "Number of Addtional Procs", 1f, "Adjust the number of additional times on kill effects occur per stack.");
             deathDelay = config.Bind<float>("Item: " + name, "Time between Extra Procs", .3f, "Adjust the amount of time between each additional on-kill proc.");
             additionalDuration = config.Bind<float>("Item: " + name, "Additional Duration", 2.5f, "Adjust the amount of time the sword exists after the on-kill procs are finished.");
+
+            baseDamageAOEExe = config.Bind<float>("Item: " + name, "Percent Base Damage", 1f, "Adjust the percent base damage the AOE does.");
+            aoeRangeBaseExe = config.Bind<float>("Item: " + name, "Range of AOE", 12f, "Adjust the range of the damaging AOE on the first stack.");
             voidPair = config.Bind<string>("Item: " + name, "Item to Corrupt", "ExecuteLowHealthElite", "Adjust which item this is the void pair of.");
         }
 

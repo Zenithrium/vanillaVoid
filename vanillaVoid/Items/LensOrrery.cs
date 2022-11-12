@@ -53,10 +53,7 @@ namespace vanillaVoid.Items
         public override string ItemFullDescription => tempItemFullDescription;
         //public override string ItemFullDescription => $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses and Lost Seer's Lenses are <style=cIsUtility>{newLensBonus.Value * 100}%</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can occur <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times, with each additional occurance having <style=cIsDamage>{critModifier.Value * 100}%</style> <style=cStack>(+{critModifierStacking.Value * 100}% per stack)</style> of the crit chance of the previous crit. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
 
-        public override string ItemLore => $"<style=cSub>Order: Lens-Maker's Orrery \nTracking Number: ******** \nEstimated Delivery: 1/13/2072 \nShipping Method: High Priority/Fragile/Confidiential \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" + 
-            "The Lens-Maker, as mysterious as they are influential. From my research I have surmised that she has been appointed to \"Final Verdict\", the most prestigious role of leadership in the House Beyond. Our team managed to locate a workshop of hers where she was supposedly working on some never-before concieved tech - but something was off. " +
-            "Looking through her schematics and trinkets I found something odd - something unlike what I was anticipating. A simple orrery, clearly her design, but without her classic red, replaced with a peculiar purple. At first I worried that when she learned of our arrival, when she left in a rush, that we had ruined some of her masterpieces...but maybe it's best we interrupted her. " +
-            "\n\nGiven that this is one of a kind, and quite a special work of hers at that; I expect much more than just currency in payment.";
+        public override string ItemLore => tempLore;
 
         public override ItemTier Tier => ItemTier.VoidTier3;
 
@@ -89,7 +86,7 @@ namespace vanillaVoid.Items
             CreateConfig(config);
             if (itemVariant.Value == 0)
             {
-                tempItemFullDescription = $"<style=cIsDamage>Non-critical hits</style> grant a buff that increases <style=cIsDamage>damage</style> by <style=cIsDamage>{buffDamageBonus.Value * 100}%</style>, that is <style=cDeath> cleared upon landing a critical hit</style>. Stacks up to <style=cIsDamage>{buffStacksPerCount.Value}</style> <style=cStack>(+{buffStacksPerCount.Value} per stack)</style>. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+                tempItemFullDescription = $"<style=cIsDamage>Non-critical hits</style> grant a stacking buff that increases <style=cIsDamage>damage</style> by <style=cIsDamage>{buffDamageBonus.Value * 100}%</style>, that is <style=cDeath>cleared upon landing a critical hit</style>. Stacks up to <style=cIsDamage>{buffStacksPerCount.Value}</style> <style=cStack>(+{buffStacksPerCount.Value} per stack)</style> times. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
                 tempItemPickupDesc = "Non-critical hits grant a stacking damage bonus that is lost upon critting. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
                 tempLore = $"<style=cSub>Order: Lens-Maker's Orrery \nTracking Number: ******** \nEstimated Delivery: 1/13/2072 \nShipping Method: High Priority/Fragile/Confidiential \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" +
             "The Lens-Maker, as mysterious as they are influential. From my research I have surmised that she has been appointed to \"Final Verdict\", the most prestigious role of leadership in the House Beyond. Our team managed to locate a workshop of hers where she was supposedly working on some never-before concieved tech - but something was off. " +
@@ -145,7 +142,7 @@ namespace vanillaVoid.Items
 
             //dumbcompat = config.Bind<bool>("Item: " + name, "Mod Compat - Remove Lost Seer's Buff", true, "Should stay on, but if you're having a strange issue (ex. health bars not showing up on enemies) edit this to be false.");
             itemVariant = config.Bind<int>("Item: " + name, "Variant of Item", 0, "Adjust which version of " + name + " you'd prefer to use. Variant 0 grants a stacking damage bonus upon not critting, lost upon critting. Variant 1 gives the chance to crit again upon critting.");
-            buffDamageBonus = config.Bind<float>("Item: " + name, "Damage Bonus per Buff Stack", .5f, "Variant 0 - Adjust the damage bonus granted by each stack of the non-crit buff.");
+            buffDamageBonus = config.Bind<float>("Item: " + name, "Buff Damage Bonus", .3f, "Variant 0 - Adjust the damage bonus granted by each stack of the non-crit buff. Multiply this by the max buffs to get the max damage bonus.");
             buffStacksPerCount = config.Bind<int>("Item: " + name, "Max Buffs per Stack", 5, "Variant 0 - Adjust max number of stacks of the damage buff can be active at once, per stack.");
 
 
@@ -522,10 +519,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0.1678362f, 0.2800805f, 0.1426394f),
-                    localAngles = new Vector3(5.870443f, 265.1015f, 331.878f),
-                    localScale = new Vector3(0.07f, 0.07f, 0.07f)
+                    childName = "GunModel",
+                    localPos = new Vector3(0.00241691f, -0.0003880012f, 0.04620515f),
+                    localAngles = new Vector3(3.986509f, 244.0173f, 270.5367f),
+                    localScale = new Vector3(0.19f, 0.19f, 0.19f)
                 }
             });
             rules.Add("mdlNemmando", new RoR2.ItemDisplayRule[]
@@ -534,10 +531,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0.1678362f, 0.2800805f, 0.1426394f),
-                    localAngles = new Vector3(5.870443f, 265.1015f, 331.878f),
-                    localScale = new Vector3(0.07f, 0.07f, 0.07f)
+                    childName = "GunModel",
+                    localPos = new Vector3(-0.002628392f, -0.0001575379f, 0.002101175f),
+                    localAngles = new Vector3(89.08657f, 212.5788f, 304.3118f),
+                    localScale = new Vector3(0.016f, 0.016f, 0.016f)
                 }
             });
 
@@ -663,7 +660,7 @@ namespace vanillaVoid.Items
                         {
                             if (!damageInfo.crit)
                             {
-                                if (attackerBody.GetBuffCount(OrreryDamageBonus) < 5)
+                                if (attackerBody.GetBuffCount(OrreryDamageBonus) < buffStacksPerCount.Value)
                                 {
                                     attackerBody.AddBuff(OrreryDamageBonus);
                                 }

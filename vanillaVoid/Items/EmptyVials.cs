@@ -17,6 +17,9 @@ namespace vanillaVoid.Items
 {
     public class EmptyVials : ItemBase<EmptyVials>
     {
+
+        public ConfigEntry<int> refreshAmount;
+
         public override string ItemName => "Empty Vials";
 
         public override string ItemLangTokenName => "EMPTY_VIALS";
@@ -39,7 +42,7 @@ namespace vanillaVoid.Items
 
         public override void Init(ConfigFile config)
         {
-            //CreateConfig(config);
+            CreateConfig(config);
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
@@ -60,10 +63,16 @@ namespace vanillaVoid.Items
             RoR2.SceneDirector.onPrePopulateSceneServer += RefreshVials;
         }
 
+        public override void CreateConfig(ConfigFile config)
+        {
+            //consumeStack = config.Bind<bool>("Item: " + ItemName, "Consume Stack", false, "Adjust if each potion should upgrade a whole stack, like benthic, or only one.");
+            refreshAmount = config.Bind<int>("Item: " + ItemName, "Refresh Amount", 1, "Adjust how many empty potions refresh at the start of a new stage. A negative number will refresh all stacks.");
+        }
+
         private void RefreshVials(SceneDirector obj)
         {
-            int refreshAmount = EnhancementVials.instance.refreshAmount.Value;
-            if (refreshAmount != 0)
+            int refreshAmnt = refreshAmount.Value;
+            if (refreshAmnt != 0)
             {
                 //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
                 //int itemCount = 0;
@@ -71,21 +80,21 @@ namespace vanillaVoid.Items
                 {
                     int itemCount = 0;
                     itemCount += player.master.inventory.GetItemCount(ItemBase<EmptyVials>.instance.ItemDef);
-                    if(itemCount > 0 && refreshAmount < 0)
+                    if(itemCount > 0 && refreshAmnt < 0)
                     {
                         player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, itemCount);
                         player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, itemCount);
                         CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
 
                     }
-                    else if (itemCount > 0 && itemCount > refreshAmount)
+                    else if (itemCount > 0 && itemCount > refreshAmnt)
                     {
-                        player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, refreshAmount);
-                        player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, refreshAmount);
+                        player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, refreshAmnt);
+                        player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, refreshAmnt);
                         CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
 
                     }
-                    else if(itemCount > 0 && itemCount <= refreshAmount)
+                    else if(itemCount > 0 && itemCount <= refreshAmnt)
                     {
                         player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, itemCount);
                         player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, itemCount);

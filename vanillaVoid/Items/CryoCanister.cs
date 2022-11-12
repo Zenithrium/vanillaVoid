@@ -13,7 +13,7 @@ using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
 using VoidItemAPI;
 
-namespace vanillaVoid.Items // this item isn't finished. it basically does what its supposed to, but has little to no visuals and doesn't unslow/unfreeze
+namespace vanillaVoid.Items
 {
     public class CryoCanister : ItemBase<CryoCanister>
     {
@@ -128,7 +128,7 @@ namespace vanillaVoid.Items // this item isn't finished. it basically does what 
         public override void CreateConfig(ConfigFile config)
         {
             baseDamageAOE = config.Bind<float>("Item: " + ItemName, "Percent Base Damage", .25f, "Adjust the percent base damage the AOE does.");
-            stackingDamageAOE = config.Bind<float>("Item: " + ItemName, "Percent Base Damage Stacking", .25f, "Adjust the percent base damage the AOE gain per stack.");
+            stackingDamageAOE = config.Bind<float>("Item: " + ItemName, "Percent Base Damage Stacking", .25f, "Adjust the percent base damage the AOE gains per stack.");
             aoeRangeBase = config.Bind<float>("Item: " + ItemName, "Range of AOE", 10f, "Adjust the range of the slow AOE on the first stack.");
             aoeRangeStacking = config.Bind<float>("Item: " + ItemName, "Range Increase per Stack", 2.5f, "Adjust the range the slow AOE gains per stack.");
             requiredStacksForFreeze = config.Bind<float>("Item: " + ItemName, "Stacks Required for Freeze", 2f, "Adjust the number of stacks needed to freeze an enemy.");

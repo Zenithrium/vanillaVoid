@@ -184,7 +184,7 @@ namespace vanillaVoid.Items
         {
             recentBreak = ScriptableObject.CreateInstance<BuffDef>();
             recentBreak.buffColor = Color.white;
-            recentBreak.canStack = false;
+            recentBreak.canStack = true;
             recentBreak.isDebuff = false;
             recentBreak.name = "ZnVV" + "shatterStatus";
             recentBreak.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("shatterStatus");
@@ -660,7 +660,7 @@ namespace vanillaVoid.Items
             if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<ClockworkMechanism>.instance.GetCount(self.body) > 0 && self.isHealthLow && !(self.GetComponent<CharacterBody>().GetBuffCount(recentBreak) > 0) && attacker)
             {
                 var cb = self.GetComponent<CharacterBody>();
-                for(int i = 0; i < Mathf.Floor(breakCooldown.Value); i++)
+                for(int i = 1; i <= Mathf.Ceil(breakCooldown.Value); i++)
                 {
                     cb.AddTimedBuffAuthority(recentBreak.buffIndex, i);
                 }
