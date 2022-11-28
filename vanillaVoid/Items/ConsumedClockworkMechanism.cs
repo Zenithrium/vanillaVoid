@@ -21,9 +21,9 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "BROKEN_MESS";
 
-        public override string ItemPickupDesc => tempItemPickupDesc;
+        public override string ItemPickupDesc => "Its time has run out...";
 
-        public override string ItemFullDescription => tempItemFullDescription;
+        public override string ItemFullDescription => "Its time has run out...";
 
         public override string ItemLore => $"Make it stop!\n\nIt's out of my hands, I'm only a clock \nDon't worry, I'm sure you'll be fine \nBut eventually everyone runs out of time";
 
@@ -37,21 +37,9 @@ namespace vanillaVoid.Items
 
         public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.AIBlacklist };
 
-        string tempItemPickupDesc;
-        string tempItemFullDescription;
         public override void Init(ConfigFile config)
         {
             //CreateConfig(config);
-            if(ClockworkMechanism.instance.itemVariant.Value == 0 || ClockworkMechanism.instance.itemVariant.Value == 1)
-            {
-                tempItemPickupDesc = "Its time has run out...";
-                tempItemFullDescription = "Its time has run out...";
-            }
-            else
-            {
-                tempItemPickupDesc = "May your greed know no bounds.";
-                tempItemFullDescription = "May your greed know no bounds.";
-            }
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;

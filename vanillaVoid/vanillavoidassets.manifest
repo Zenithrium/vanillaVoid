@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 3076127178
+CRC: 3727722553
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 1cc5f4097f1f86055eb0eb2117906849
+    Hash: fbd863c752765488cdb3e15d49d58fcf
   TypeTreeHash:
     serializedVersion: 2
     Hash: b879b6395fdb6691b062236505bcdead
@@ -51,6 +51,7 @@ Assets:
 - Assets/Models/Prefabs/Item/CryoItem/texChargeShadow.png
 - Assets/Textures/Icons/Item/VialsItem/vialsIcon.png
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedVialsPickup.prefab
+- Assets/raw/quill/realdiffuse.png
 - Assets/Models/Prefabs/Item/StaffItem/mdlStaffPickup.prefab
 - Assets/Models/Prefabs/Item/CryoItem/ChargeShadow.mat
 - Assets/Textures/Icons/Item/CryoItem/cryoIcon512.png
@@ -61,6 +62,8 @@ Assets:
 - Assets/Models/Prefabs/Item/ExtVent/mdlVentPickup.prefab
 - Assets/Textures/Icons/Item/BladeItem/bladeIcon.png
 - Assets/Models/Prefabs/Item/LotusItem/mdlLotusWorldObject.prefab
+- Assets/Models/Prefabs/Item/QuillItem/mdlQuillPickup.prefab
+- Assets/Models/Prefabs/Item/QuillItem/mdlPotSoloDisplay.prefab
 - Assets/Textures/Icons/Item/ventItem/ventIcon.png
 - Assets/Models/Prefabs/Item/StaffItem/mdlStaffDisplay.prefab
 - Assets/Textures/Icons/Item/AbyssalAdze/adzeIcon.png
@@ -70,6 +73,8 @@ Assets:
 - Assets/Models/Prefabs/Item/ExtVent/ventOrb.prefab
 - Assets/Textures/Materials/Item/Mess/voidorb.mat
 - Assets/Textures/Materials/Item/AbyssalAdze/HeadMaterial.mat
+- Assets/Models/Prefabs/Item/QuillItem/mdlQuillSoloDisplay.prefab
+- Assets/Models/Prefabs/Item/QuillItem/mdlQuillPickupReal.prefab
 - Assets/Textures/Icons/Item/AbyssalAdze/adzeIcon512.png
 - Assets/Models/Prefabs/Item/LotusItem/mdlFinalLotusPickup.prefab
 - Assets/Textures/Materials/Item/Mess/metallictexture.mat
@@ -85,6 +90,7 @@ Assets:
 - Assets/Textures/Icons/Item/VialsEmptyItem/emptyVialsIcon512.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/mdlClockworkDisplay.prefab
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladePickup.prefab
+- Assets/raw/quill/quillMat.mat
 - Assets/Textures/Icons/Item/OrreryItem/orreryIcon512.png
 - Assets/Textures/Materials/Item/ClockworkWatch/valveMat.mat
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedVialsDisplay.prefab
@@ -98,13 +104,16 @@ Assets:
 - Assets/Models/Prefabs/Item/AbyssalAdze/mdlAdzePickup.prefab
 - Assets/Models/Prefabs/Item/CryoItem/CryoAOEExplosionEffect.prefab
 - Assets/Models/Prefabs/Item/CryoItem/texDistortionNormal.jpg
+- Assets/raw/quill/quillsolo.fbx
 - Assets/Textures/Icons/Item/VialsItem/vialsIcon512.png
 - Assets/Textures/Materials/Item/AbyssalAdze/HandleLowerTexture.mat
 - Assets/Models/Prefabs/Item/LotusItem/mdlFinalLotusDisplay.prefab
 - Assets/Textures/Materials/Item/AbyssalAdze/orbTranspTexture.mat
 - Assets/Textures/Materials/Item/AbyssalAdze/HandleTexture.mat
 - Assets/Textures/Materials/Item/Mess/geartexture.mat
+- Assets/Textures/Icons/Item/QuillItem/quillIcon512.png
 - Assets/Models/Prefabs/Item/AbyssalAdze/mdlAdzeDisplay.prefab
+- Assets/raw/quill/normalbetter.png
 - Assets/Textures/Icons/Buffs/shatterStatus.png
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladeWorldObject.prefab
 - Assets/Textures/Icons/Buffs/orreryDamage.png

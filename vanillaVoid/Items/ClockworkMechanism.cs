@@ -78,6 +78,7 @@ namespace vanillaVoid.Items
         public override void Init(ConfigFile config)
         {
             CreateConfig(config);
+
             switch (itemVariant.Value)
             {
                 case 0:

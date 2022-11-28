@@ -17,7 +17,7 @@ namespace vanillaVoid.Items
 {
     public class EnhancementVials : ItemBase<EnhancementVials>
     {
-        //public ConfigEntry<int> refreshAmount;
+        public ConfigEntry<int> refreshAmount;
 
         public ConfigEntry<string> voidPair;
 
@@ -27,9 +27,9 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "EHANCE_VIALS_ITEM";
 
-        public override string ItemPickupDesc => $"Upgrade an item at low health. Consumed on use. At the start of each stage, {EmptyVials.instance.refreshAmount.Value} stack regenerates. <style=cIsVoid>Corrupts all Power Elixirs</style>.";
+        public override string ItemPickupDesc => $"Upgrade an item at low health. Consumed on use. At the start of each stage, {refreshAmount.Value} stack regenerates. <style=cIsVoid>Corrupts all Power Elixirs</style>.";
 
-        public override string ItemFullDescription => $"Taking damage to below <style=cIsHealth>25% health</style> <style=cIsUtility>consumes</style> this item, <style=cIsUtility>upgrading</style> another item. At the start of each stage, <style=cIsUtility>{EmptyVials.instance.refreshAmount.Value}</style> stack regenerates. <style=cIsVoid>Corrupts all Power Elixirs</style>.";
+        public override string ItemFullDescription => $"Taking damage to below <style=cIsHealth>25% health</style> <style=cIsUtility>consumes</style> this item, <style=cIsUtility>upgrading</style> another item. At the start of each stage, <style=cIsUtility>{refreshAmount.Value}</style> stack regenerates. <style=cIsVoid>Corrupts all Power Elixirs</style>.";
 
         public override string ItemLore => $"\"What an experiment this will be...our first forray into the void! Gather round, for this will forever change each and every one of our lives!\" \n\nA few days later, a janitor discovered a strange pile of objects scattered around various colorful test tubes. They thought little of it.";
 
@@ -39,26 +39,72 @@ namespace vanillaVoid.Items
 
         public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("vialsIcon512.png");
 
-
         public static GameObject ItemBodyModelPrefab;
 
         public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.Utility, ItemTag.LowHealth };
+
+        // -- broken vials -- //
+        //public string BrokenItemName => "Empty Vials";
+        //
+        //public string BrokenItemLangTokenName => "EMPTY_VIALS";
+        //
+        //public string BrokenItemPickupDesc => "The experiment has completed, for now...";
+        //
+        //public string BrokenItemFullDescription => $"The experiment has completed, for now...";
+        //
+        //public string BrokenItemLore => $"Hi! Hope you're enjoying the mod, or whatever you're doing in order to have seen this. Have a nice day!";
+        //
+        //public ItemTier BrokenTier => ItemTier.NoTier;
+        //
+        //public GameObject BrokenItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlInvertedEmptyPickup.prefab");
+        //
+        //public Sprite BrokenItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("emptyVialsIcon512.png");
+        //
+        //public GameObject BrokenItemBodyModelPrefab;
+        //
+        //ItemDef BrokenItemDef;
+        //public ItemTag[] BrokenItemTags => new ItemTag[1] { ItemTag.AIBlacklist };
 
         public override void Init(ConfigFile config)
         {
             CreateConfig(config);
             CreateLang();
             CreateItem();
+
+            //CreateBrokenItem();
+
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
             VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
 
             Hooks(); 
         }
 
+        //protected void CreateBrokenItem()
+        //{
+        //    LanguageAPI.Add("ITEM_" + BrokenItemLangTokenName + "_NAME", BrokenItemName);
+        //    LanguageAPI.Add("ITEM_" + BrokenItemLangTokenName + "_PICKUP", BrokenItemPickupDesc);
+        //    LanguageAPI.Add("ITEM_" + BrokenItemLangTokenName + "_DESCRIPTION", BrokenItemFullDescription);
+        //    LanguageAPI.Add("ITEM_" + BrokenItemLangTokenName + "_LORE", BrokenItemLore);
+        //
+        //    BrokenItemDef = ScriptableObject.CreateInstance<ItemDef>();
+        //    BrokenItemDef.name = "ITEM_BROKEN" + BrokenItemLangTokenName;
+        //    BrokenItemDef.nameToken = "ITEM_BROKEN" + BrokenItemLangTokenName + "_NAME";
+        //    BrokenItemDef.pickupToken = "ITEM_BROKEN" + BrokenItemLangTokenName + "_PICKUP";
+        //    BrokenItemDef.descriptionToken = "ITEM_BROKEN" + BrokenItemLangTokenName + "_DESCRIPTION";
+        //    BrokenItemDef.loreToken = "ITEM_BROKEN" + BrokenItemLangTokenName + "_LORE";
+        //    BrokenItemDef.pickupModelPrefab = BrokenItemModel;
+        //    BrokenItemDef.pickupIconSprite = BrokenItemIcon;
+        //    BrokenItemDef.hidden = true;
+        //    BrokenItemDef.canRemove = CanRemove;
+        //    BrokenItemDef.deprecatedTier = BrokenTier;
+        //
+        //    ItemAPI.Add(new CustomItem(BrokenItemDef, CreateItemDisplayRules()));
+        //}
+
         public override void CreateConfig(ConfigFile config)
         {
             //consumeStack = config.Bind<bool>("Item: " + ItemName, "Consume Stack", false, "Adjust if each potion should upgrade a whole stack, like benthic, or only one.");
-            //refreshAmount = config.Bind<int>("Item: " + ItemName, "Refresh Amount", 1, "Adjust how many empty potions refresh at the start of a new stage. A negative number will refresh all stacks.");
+            refreshAmount = config.Bind<int>("Item: " + ItemName, "Refresh Amount", 1, "Adjust how many empty potions refresh at the start of a new stage. A negative number will refresh all stacks.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "HealingPotion", "Adjust which item this is the void pair of.");
         }
 
@@ -393,6 +439,46 @@ namespace vanillaVoid.Items
         public override void Hooks()
         {
             On.RoR2.HealthComponent.UpdateLastHitTime += BreakItem;
+
+            //for broken item
+            RoR2.SceneDirector.onPrePopulateSceneServer += RefreshVials;
+        }
+
+        private void RefreshVials(SceneDirector obj)
+        {
+            int refreshAmnt = refreshAmount.Value;
+            if (refreshAmnt != 0)
+            {
+                //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
+                //int itemCount = 0;
+                foreach (var player in PlayerCharacterMasterController.instances)
+                {
+                    int itemCount = 0;
+                    var brokenItemDef = ItemBase<EmptyVials>.instance.ItemDef;
+                    itemCount += player.master.inventory.GetItemCount(brokenItemDef);
+                    if (itemCount > 0 && refreshAmnt < 0)
+                    {
+                        player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, itemCount);
+                        player.master.inventory.RemoveItem(brokenItemDef, itemCount);
+                        CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, brokenItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
+
+                    }
+                    else if (itemCount > 0 && itemCount > refreshAmnt)
+                    {
+                        player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, refreshAmnt);
+                        player.master.inventory.RemoveItem(brokenItemDef, refreshAmnt);
+                        CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, brokenItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
+
+                    }
+                    else if (itemCount > 0 && itemCount <= refreshAmnt)
+                    {
+                        player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, itemCount);
+                        player.master.inventory.RemoveItem(brokenItemDef, itemCount);
+                        CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, brokenItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
+                    }
+                }
+            }
+            //Debug.Log("function ending, interactable credits after: " + obj.interactableCredit);
         }
 
         private void BreakItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker)
@@ -408,6 +494,7 @@ namespace vanillaVoid.Items
                 int potionCount = ItemBase<EnhancementVials>.instance.GetCount(self.body);
                 int potionLeftCount = potionCount;
                 int oldItemCount = 0;
+                var brokenItemDef = ItemBase<EmptyVials>.instance.ItemDef;
                 while (!isDone)
                 {
                     List<ItemIndex> inventoryList = new List<ItemIndex>(self.body.inventory.itemAcquisitionOrder);
@@ -468,8 +555,8 @@ namespace vanillaVoid.Items
                     }
                 }
                 self.body.inventory.RemoveItem(ItemBase<EnhancementVials>.instance.ItemDef, potionCount);
-                self.body.inventory.GiveItem(ItemBase<EmptyVials>.instance.ItemDef, potionCount);
-                CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
+                self.body.inventory.GiveItem(brokenItemDef, potionCount);
+                CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, brokenItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
                 EffectData effectData = new EffectData
                 {
                     origin = self.transform.position

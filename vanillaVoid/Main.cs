@@ -38,7 +38,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.2.1";
+        public const string ModVer = "1.3.0";
 
         public static ExpansionDef sotvDLC; 
 
@@ -309,8 +309,28 @@ namespace vanillaVoid
             //}
             //else
             //{
-            enabled = Config.Bind<bool>("Item: " + name, "Enable Item?", true, "Should this item appear in runs?").Value;
-            aiBlacklist = Config.Bind<bool>("Item: " + name, "Blacklist Item from AI Use?", false, "Should the AI not be able to obtain this item?").Value;
+
+            //Debug.Log("stats on: " + item.ItemName + " | tier: " + item.Tier + " | icon:" + item.ItemIcon + " | tags: " + item.ItemTags);
+
+
+            if (item.Tier == ItemTier.NoTier)
+            {
+                enabled = true;
+                aiBlacklist = true;
+                //Debug.Log("Adding Broken Item: " + item.ItemName);
+            }
+            else
+            {
+                //Debug.Log("ignoring config for: " + item.ItemName);
+                //enabled = true;
+                //aiBlacklist = true;
+                //Debug.Log("Adding Normal Item: " + item.ItemName);
+                enabled = Config.Bind<bool>("Item: " + name, "Enable Item?", true, "Should this item appear in runs?").Value;
+                aiBlacklist = Config.Bind<bool>("Item: " + name, "Blacklist Item from AI Use?", false, "Should the AI not be able to obtain this item?").Value;
+            }
+
+            //enabled = Config.Bind<bool>("Item: " + name, "Enable Item?", true, "Should this item appear in runs?").Value;
+            //aiBlacklist = Config.Bind<bool>("Item: " + name, "Blacklist Item from AI Use?", false, "Should the AI not be able to obtain this item?").Value;
 
             //}
             //var enabled = Config.Bind<bool>("Item: " + name, "Enable Item?", true, "Should this item appear in runs?").Value;
@@ -893,6 +913,11 @@ namespace vanillaVoid
 
                             StartCoroutine(LotusDelayedBarrier(self, teamDex));
 
+                            string effect2 = "RoR2/DLC1/VoidSuppressor/SuppressorClapEffect.prefab";
+                            GameObject effect2Prefab = Addressables.LoadAssetAsync<GameObject>(effect2).WaitForCompletion();
+                            Vector3 vec = new Vector3(0, 0, 0);
+                            EffectManager.SimpleImpactEffect(effect2Prefab, teleporterPos + heightAdjustPulse, vec, true);
+
                             //foreach (var player in PlayerCharacterMasterController.instances)
                             //{
                             //    if (self.IsBodyInChargingRadius(player.body) && player.body.teamComponent.teamIndex == teamDex)
@@ -912,7 +937,7 @@ namespace vanillaVoid
                             //
                             //    }
                             //}
-                        }   
+                        }
                     }
                 }
             }
@@ -951,6 +976,9 @@ namespace vanillaVoid
                     {
                         //Debug.Log("yoo health component!!");
                         player.body.healthComponent.AddBarrier(player.body.healthComponent.fullCombinedHealth * ItemBase<BarrierLotus>.instance.barrierAmount.Value); //25% 
+                        //string effect2 = "RoR2/DLC1/VoidSuppressor/SuppressorClapEffect.prefab";
+                        //GameObject effect2Prefab = Addressables.LoadAssetAsync<GameObject>(effect2).WaitForCompletion();
+                        //EffectManager.SimpleImpactEffect(effect2Prefab, player.body.transform.position, player.body.aimOrigin, true);
                     }
                     else
                     {
