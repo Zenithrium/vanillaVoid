@@ -1264,8 +1264,11 @@ namespace vanillaVoid
             if (sender)
             {
                 Debug.Log("is buff? : " + sender.HasBuff(lotusSlow));
-                Debug.Log("warbanner? : " + sender.HasBuff(RoR2Content.Buffs.Warbanner));
-                if (sender.HasBuff(lotusSlow))
+                // Debug.Log("warbanner? : " + sender.HasBuff(RoR2Content.Buffs.Warbanner));
+                var token = sender.gameObject.GetComponent<LotusBodyToken>();
+                Debug.Log("token? : " + token);
+                Debug.Log("sender: " + sender + " | " + sender.name);
+                if (sender.HasBuff(lotusSlow) || token)
                 {
                     float slow = (1 - slowCoeffValue);
                     Debug.Log("slow: " + slow);
