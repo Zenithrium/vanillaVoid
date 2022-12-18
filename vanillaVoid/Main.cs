@@ -1280,6 +1280,7 @@ namespace vanillaVoid
 
         private void LastTry(On.RoR2.CharacterBody.orig_FixedUpdate orig, CharacterBody self)
         {
+            orig(self);
             if(self.GetBuffCount(lotusSlow) > 0 && slowCoeffValue < 1)
             {
                 var token = self.gameObject.GetComponent<LotusBodyToken>();
@@ -1423,7 +1424,7 @@ namespace vanillaVoid
 
         public void CreateLotusBuff()
         {
-            var buffColor = new Color(0.7568f, 0.1019f, 0.9372f);
+            var buffColor = new Color(0.2588f, 0.0392f, 0.9882f);
             lotusSlow = ScriptableObject.CreateInstance<BuffDef>();
             lotusSlow.buffColor = buffColor;
             lotusSlow.canStack = false;
