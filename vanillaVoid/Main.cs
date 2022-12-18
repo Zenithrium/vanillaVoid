@@ -24,6 +24,7 @@ using UnityEngine.Networking;
 using RoR2.Projectile;
 using vanillaVoid.Misc;
 using EntityStates.TeleporterHealNovaController;
+using static vanillaVoid.Utils.Components.MaterialControllerComponents;
 
 namespace vanillaVoid
 {
@@ -38,9 +39,9 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.3.1";
+        public const string ModVer = "1.3.2";
 
-        public static ExpansionDef sotvDLC; 
+        public static ExpansionDef sotvDLC;
 
         public static AssetBundle MainAssets;
 
@@ -52,78 +53,54 @@ namespace vanillaVoid
         //Provides a direct access to this plugin's logger for use in any of your other classes.
         public static BepInEx.Logging.ManualLogSource ModLogger;
 
+        public static GameObject platformObject;
+        public static GameObject portalObject;
+
         public static GameObject bladeObject;
 
         public static GameObject lotusObject;
         public static GameObject lotusPulse;
+        public static GameObject lotusCollider;
 
         public Xoroshiro128Plus genericRng;
 
         //public static ConfigEntry<bool> orreryCompat;
+        public static ConfigEntry<bool> locusExit;
+        public static ConfigEntry<int> LocusBonus;
+
+        public static ConfigEntry<int> LotusVariant;
+        public static ConfigEntry<float> LotusDuration;
+        public static ConfigEntry<float> LotusSlowPercent;
+        GameObject lotusEffect;
 
         Vector3 heightAdjust = new Vector3(0, 2.312f, 0);
         Vector3 heightAdjustPulse = new Vector3(0, 2.5f, 0);
         float previousPulseFraction = 0;
         float secondsUntilBarrierAttempt = 0;
+
+        public float lotusTimer;
+        //public float lotusDuration = 25f;
+        AnimationCurve speedCurve;
+
+        public static BuffDef lotusSlow { get; private set; }
+
         private void Awake()
         {
             //orreryCompat = Config.Bind<bool>("Mod Compatability", "Enable Lost Seers Buff", true, "Should generally stay on, but if you're having a strange issue (ex. health bars not showing up on enemies) edit this to be false.");
+            locusExit = Config.Bind<bool>("Tweaks: Void Locus", "Exit Portal", true, "If enabled, spawns a portal in the void locus letting you return to normal stages if you want to.");
+            LocusBonus = Config.Bind<int>("Tweaks: Void Locus", "Locus Bonus Credits", 0, "If you want to make going to the void locus have a little more of a reward, increase this number. Should be increased in at least multiples of 50ish");
+
+            string lotusname = "Crystalline Lotus";
+
+            LotusVariant = Config.Bind<int>("Item: " + lotusname, "Variant of Item", 0, "Adjust which version of " + lotusname + " you'd prefer to use. Variant 0 releases slowing novas per pulse, which reduce enemy and projectile speed, while Variant 1 provides 50% barrier per pulse.");
+            LotusDuration = Config.Bind<float>("Item: " + lotusname, "Slow Duration", 35f, "Adjust how long the slow should last per pulse. A given slow is replaced by the next slow, so with enough lotuses, the full duration won't get used. However, increasing this also decreases the rate at which the slow fades.");
+            LotusSlowPercent = Config.Bind<float>("Item: " + lotusname, "Slow Percent", 0.075f, "Adjust the strongest slow percent (between 0 and 1). Increasing this also makes it so the slow 'feels' shorter, as high values (near 1) feel very minor.");
+
 
             ModLogger = Logger;
 
             var harm = new Harmony(Info.Metadata.GUID);
             new PatchClassProcessor(harm, typeof(ModdedDamageColors)).Patch();
-            
-            //if (LensOrrery.dumbcompat.Value) { 
-            //    IL.RoR2.HealthComponent.TakeDamage += (il) => //LensOrrery and lost seer's interaction 
-            //    {
-            //        ILCursor c = new ILCursor(il);
-            //        if (c.TryGotoNext(
-            //            x => x.MatchCallOrCallvirt<CharacterBody>("get_inventory"),
-            //            x => x.MatchLdsfld(typeof(DLC1Content.Items), "CritGlassesVoid"),
-            //            x => x.MatchCallOrCallvirt<Inventory>("GetItemCount"),
-            //            x => x.MatchConvR4(),
-            //            x => x.MatchLdcR4(0.5f)
-            //            ))
-            //        {
-            //            c.Index += 4;
-            //            c.Remove();
-            //            c.Emit(OpCodes.Ldloc_1);
-            //            //c.TryGotoNext();
-            //            c.EmitDelegate<Func<CharacterBody, float>>((cb) =>
-            //            {
-            //                if (cb.master.inventory)
-            //                {
-            //                    int orrery = cb.master.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
-            //                    if (orrery > 0)
-            //                    {
-            //                        return 0.5f + (.5f * (LensOrrery.newLensBonus.Value + (LensOrrery.newStackingLensBonus.Value * (orrery - 1))));
-            //                    }
-            //                }
-            //                return 0.5f;
-            //            });
-            //        }
-            //        else
-            //        {
-            //            Logger.LogError("Failed to apply Lost Seer's Orrery Hook");
-            //        }
-            //    };
-            //}
-
-            //IL.RoR2.HealthComponent.TakeDamage += (il) => // just stop doing crit checks if you have orrery because its being handled in LensOrrery.cs 
-            //{
-            //    ILCursor c = new ILCursor(il);
-            //    ILLabel label = null;
-            //    c.GotoNext(MoveType.After,
-            //        x => x.MatchLdarg(1),
-            //        x => x.MatchLdfld<DamageInfo>("crit"),
-            //        x => x.MatchBrfalse(out label)
-            //        );
-            //    c.Emit(OpCodes.Ldloc_1);
-            //    c.EmitDelegate<Func<CharacterBody, int>>((cb) => { return cb.master.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef); });
-            //    c.Emit(OpCodes.Brtrue, label);
-            //};
-
 
             sotvDLC = ExpansionCatalog.expansionDefs.FirstOrDefault(x => x.nameToken == "DLC1_NAME");  //learn what sotv is 
 
@@ -131,10 +108,10 @@ namespace vanillaVoid
             {
                 MainAssets = AssetBundle.LoadFromStream(stream);
             }
-            
+
             //var swordClass = new ExeSwordObject();
             //swordClass.Initalize();
-            
+
             On.RoR2.CharacterBody.OnSkillActivated += ExtExhaustFireProjectile;
 
             GlobalEventManager.onCharacterDeathGlobal += ExeBladeExtraDeath;
@@ -142,8 +119,19 @@ namespace vanillaVoid
             //RoR2.SceneDirector.onPostPopulateSceneServer += AddLotusOnEnter;
             On.RoR2.CharacterBody.OnInventoryChanged += AddLotusOnPickup;
             On.RoR2.HoldoutZoneController.UpdateHealingNovas += BarrierLotusNova;
+            //On.RoR2.HoldoutZoneController.FixedUpdate += LotusSlowNova;
 
             On.RoR2.SceneDirector.PlaceTeleporter += PrimoridalTeleporterCheck;
+
+            Stage.onServerStageBegin += AddLocusStuff;
+            RoR2.SceneDirector.onPrePopulateSceneServer += LocusDirectorHelp;
+            //On.RoR2.Projectile.SlowDownProjectiles.OnTriggerEnter += fuck;
+            RecalculateStatsAPI.GetStatCoefficients += LotusSlowStatsHook;
+            //On.RoR2.CharacterBody.FixedUpdate += LotusSlowVisuals;
+            //n.RoR2.CharacterModel.UpdateOverlays += AddLotusMaterial;
+            On.RoR2.CharacterBody.FixedUpdate += LastTry;
+
+
             //On.RoR2.Stage.RespawnCharacter += ClockworkItemDrops;
 
             //if(itemVariant.Value == 0 || itemVariant.Value == 1)){
@@ -154,7 +142,7 @@ namespace vanillaVoid
 
 
             //PrefabAPI.InstantiateClone(bladeObject, "exeBladePrefab", true);
-            bladeObject = MainAssets.LoadAsset<GameObject>("mdlBladeWorldObject.prefab"); 
+            bladeObject = MainAssets.LoadAsset<GameObject>("mdlBladeWorldObject.prefab");
             bladeObject.AddComponent<TeamFilter>();
             bladeObject.AddComponent<HealthComponent>();
             bladeObject.AddComponent<NetworkIdentity>();
@@ -162,14 +150,71 @@ namespace vanillaVoid
             bladeObject.AddComponent<Rigidbody>();
 
 
-            lotusObject = MainAssets.LoadAsset<GameObject>("mdlLotusWorldObject.prefab"); 
+            lotusObject = MainAssets.LoadAsset<GameObject>("mdlLotusWorldObject.prefab");
             lotusObject.AddComponent<TeamFilter>();
             lotusObject.AddComponent<NetworkIdentity>();
-            
 
-            //bladeObject.AddComponent<Rigidbody>();
+            lotusCollider = MainAssets.LoadAsset<GameObject>("LotusTeleporterCollider.prefab");
+            lotusCollider.AddComponent<TeamFilter>();
+            lotusCollider.AddComponent<NetworkIdentity>();
+            //lotusCollider.AddComponent<LotusColliderToken>();
+            lotusCollider.AddComponent<BuffWard>();
+            lotusCollider.AddComponent<SlowDownProjectiles>();
+
+            //List<LotusBodyToken> bodyTokens = new List<LotusBodyToken>();
+
+
+            platformObject = MainAssets.LoadAsset<GameObject>("mdlPlatformSeparate.prefab");
+            platformObject.AddComponent<NetworkIdentity>();
+            var tempSDP = platformObject.AddComponent<SurfaceDefProvider>();
+            tempSDP.surfaceDef = Addressables.LoadAssetAsync<SurfaceDef>("RoR2/Base/Common/sdMetal.asset").WaitForCompletion();
+
+            string material = "RoR2/DLC1/Common/matVoidmetalTrim.mat"; //"RoR2/DLC1/voidstage/matVoidMetalTrimGrassyVertexColorsOnly.mat"; // what the game uses, but it looks bad for some reason :(
+            var pflower = platformObject.transform.Find("platformlower").GetComponent<MeshRenderer>();
+            var pfupper = platformObject.transform.Find("platformupper").GetComponent<MeshRenderer>();
+            pflower.material = Addressables.LoadAssetAsync<Material>(material).WaitForCompletion();
+            pfupper.material = Addressables.LoadAssetAsync<Material>(material).WaitForCompletion();
+
+            portalObject = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/PortalArena/PortalArena.prefab").WaitForCompletion();
+            var tempLight = portalObject.GetComponentInChildren<Light>();
+            if (tempLight)
+            {
+                tempLight.enabled = false;
+            }
+
+
             PrefabAPI.RegisterNetworkPrefab(bladeObject);
             PrefabAPI.RegisterNetworkPrefab(lotusObject);
+            PrefabAPI.RegisterNetworkPrefab(platformObject);
+
+            string effect = "RoR2/DLC1/VoidRaidCrab/VoidRaidCrabDeathPending.prefab";
+            GameObject effectPrefab = Addressables.LoadAssetAsync<GameObject>(effect).WaitForCompletion();
+            //effectPrefab.AddComponent<NetworkIdentity>();
+
+            lotusEffect = PrefabAPI.InstantiateClone(effectPrefab, "lotusEffect");
+            lotusEffect.AddComponent<NetworkIdentity>();
+            var effectcomp = lotusEffect.GetComponent<EffectComponent>();
+            if (effectcomp)
+            {
+                Debug.Log(effectcomp + " < | > " + effectcomp.soundName);
+                effectcomp.soundName = "";
+                Debug.Log(effectcomp + " < | > " + effectcomp.soundName);
+            }
+
+            var timer = lotusEffect.AddComponent<DestroyOnTimer>();
+            float delay = 1.15f;
+            timer.duration = delay;
+
+            ContentAddition.AddEffect(lotusEffect);
+
+            speedCurve = new AnimationCurve();
+            speedCurve.keys = new Keyframe[] {
+            new Keyframe(0, LotusSlowPercent.Value, 0.33f, 0.33f),
+            new Keyframe(0.5f, 0.3f, 0.33f, 0.33f),
+            new Keyframe(1, 1, 0.33f, 0.33f)
+            };
+
+            CreateLotusBuff();
 
             //ExtraterrestrialExhaust.RocketProjectile.
             //R2API.ContentAddition.AddNetworkedObject(bladeObject);
@@ -234,42 +279,6 @@ namespace vanillaVoid
                 }
             }
 
-            //if (orreryCompat.Value)
-            //{
-            //    IL.RoR2.HealthComponent.TakeDamage += (il) => //LensOrrery and lost seer's interaction 
-            //    {
-            //        ILCursor c = new ILCursor(il);
-            //        if (c.TryGotoNext(
-            //            x => x.MatchCallOrCallvirt<CharacterBody>("get_inventory"),
-            //            x => x.MatchLdsfld(typeof(DLC1Content.Items), "CritGlassesVoid"),
-            //            x => x.MatchCallOrCallvirt<Inventory>("GetItemCount"),
-            //            x => x.MatchConvR4(),
-            //            x => x.MatchLdcR4(0.5f)
-            //            ))
-            //        {
-            //            c.Index += 4;
-            //            c.Remove();
-            //            c.Emit(OpCodes.Ldloc_1);
-            //            //c.TryGotoNext();
-            //            c.EmitDelegate<Func<CharacterBody, float>>((cb) =>
-            //            {
-            //                if (cb.master.inventory)
-            //                {
-            //                    int orrery = cb.master.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
-            //                    if (orrery > 0)
-            //                    {
-            //                        return 0.5f + (.5f * (LensOrrery.newLensBonus.Value + (LensOrrery.newStackingLensBonus.Value * (orrery - 1))));
-            //                    }
-            //                }
-            //                return 0.5f;
-            //            });
-            //        }
-            //        else
-            //        {
-            //            Logger.LogError("Failed to apply Lost Seer's Orrery Hook");
-            //        }
-            //    };
-            //}
         }
 
         /// <summary>
@@ -416,7 +425,7 @@ namespace vanillaVoid
         IEnumerator delayedRockets(RoR2.CharacterBody player, int missileCount, int inventoryCount)
         {
             int icbmMod = 1;
-            if(player.inventory.GetItemCount(DLC1Content.Items.MoreMissile) > 0)
+            if (player.inventory.GetItemCount(DLC1Content.Items.MoreMissile) > 0)
             {
                 icbmMod = 3;
             }
@@ -429,7 +438,7 @@ namespace vanillaVoid
                 Vector3 Upwards = new Vector3(270, random, 0);
                 //Debug.Log(((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100));
                 float rocketDamage = player.damage * ((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100);
-                for(int j = 0; j < icbmMod; j++)
+                for (int j = 0; j < icbmMod; j++)
                 {
                     switch (j)
                     {
@@ -452,13 +461,13 @@ namespace vanillaVoid
                         crit = player.RollCrit(),
                         projectilePrefab = ExtraterrestrialExhaust.RocketProjectile,
                         force = 10f,
-                        
+
                         //useSpeedOverride = true,
                         //speedOverride = 1f,
                     };
-                    #pragma warning disable Publicizer001 // Accessing a member that was not originally public
+#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                     ProjectileManager.instance.FireProjectile(fireProjectileInfo);
-                    #pragma warning restore Publicizer001 // Accessing a member that was not originally public
+#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 }
                 //FireProjectileInfo fireProjectileInfo = new FireProjectileInfo()
                 //{
@@ -512,7 +521,7 @@ namespace vanillaVoid
                 //#pragma warning disable Publicizer001 // Accessing a member that was not originally public
                 //                ProjectileManager.instance.FireProjectileServer(fireProjectileInfo);
                 //#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-            } 
+            }
         }
 
         private static readonly SphereSearch exeBladeSphereSearch = new SphereSearch();
@@ -557,7 +566,7 @@ namespace vanillaVoid
         IEnumerator ExeBladeDelayedExecutions(int bladeCount, GameObject bladeObject, DamageReport dmgReport)
         {
             bladeObject.AddComponent<ExeToken>(); //oopsies!!! don't break game
-            
+
             bladeObject.AddComponent<Rigidbody>();
             var bladeRigid = bladeObject.GetComponent<Rigidbody>();
             var bladeCollider = bladeObject.GetComponent<BoxCollider>(); // default size = (0.8, 4.3, 1.8)
@@ -610,7 +619,7 @@ namespace vanillaVoid
                     };
                     effectDataPulse.SetNetworkedObjectReference(bladeObject);
                     //var bisonEffect = EntityStates.Bison.SpawnState.spawnEffectPrefab;
-                    
+
                     EffectManager.SpawnEffect(HealthComponent.AssetReferences.executeEffectPrefab, effectDataPulse, true);
                     //EntityStates.BeetleGuardMonster.GroundSlam.slamEffectPrefab
                     float AOEDamage = dmgReport.attackerBody.damage * AOEDamageMult;
@@ -647,7 +656,7 @@ namespace vanillaVoid
                     exeBladeHurtBoxBuffer.Clear();
                 }
             }
-            
+
             yield return new WaitForSeconds(ItemBase<ExeBlade>.instance.additionalDuration.Value);
             EffectData effectData = new EffectData
             {
@@ -658,7 +667,7 @@ namespace vanillaVoid
 
             Destroy(bladeObject);
         }
-        
+
         public class ExeToken : MonoBehaviour
         {
             //prevents hilarity from happening
@@ -666,9 +675,16 @@ namespace vanillaVoid
 
         Vector3 teleporterPos;
         GameObject tempLotusObject;
+        GameObject tempLotusCollider;
         bool lotusSpawned = false;
         bool isPrimoridal = false;
         string teleporterName = "";
+        public float slowCoeffValue = 1f;
+        //bool detonationTime = false;
+
+        //private Material lotusSlowMaterial;
+        //lotusSlowMaterial = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/matSlow80Debuff.mat").WaitForCompletion();
+        //lotusSlowMaterial.mainTexture = MainAssets.LoadAsset<Texture>("texRampIce2.png");
 
         private void PrimoridalTeleporterCheck(On.RoR2.SceneDirector.orig_PlaceTeleporter orig, SceneDirector self)
         {
@@ -822,6 +838,7 @@ namespace vanillaVoid
             }
 
         }
+
         private void AddLotusOnPickup(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self)
         {
             if (!lotusSpawned)
@@ -866,9 +883,19 @@ namespace vanillaVoid
             }
             orig(self);
         }
+
         //Vector3 heightAdjust = new Vector3(0, 1.5f, 0);
         //float previousPulseFraction = 0;
         //float secondsUntilBarrierAttempt = 0;
+        //LotusColliderToken lotusTimerToken;
+
+
+        //private void LotusSlowNova(On.RoR2.HoldoutZoneController.orig_FixedUpdate orig, HoldoutZoneController self)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+
         private void BarrierLotusNova(On.RoR2.HoldoutZoneController.orig_UpdateHealingNovas orig, HoldoutZoneController self, bool isCharging)
         {
             int itemCount = 0;
@@ -879,18 +906,103 @@ namespace vanillaVoid
                 teamDex = player.master.teamIndex;
             }
 
+            if (slowCoeffValue < 1)
+            {
+                lotusTimer += Time.fixedDeltaTime;
+                //Debug.Log(lotusTimer);
+                slowCoeffValue = speedCurve.Evaluate(lotusTimer / LotusDuration.Value);
+                //Debug.Log("coeff: " + slowCoeffValue + " | formula: " + slowCoeffValue * (Time.fixedDeltaTime / 10));
+            }
+            else
+            {
+                slowCoeffValue = 1;
+                if (tempLotusCollider)
+                {
+                    var tempward = tempLotusCollider.GetComponent<BuffWard>();
+                    tempward.enabled = false;
+                }
+                //ward.enabled = false;
+            }
+
             if (itemCount > 0 && isCharging)
             {
-                if(NetworkServer.active && Time.fixedDeltaTime > 0f)
+                if (NetworkServer.active && Time.fixedDeltaTime > 0f)
                 {
-                    
-                    if(secondsUntilBarrierAttempt > 0f)
+                    if (!tempLotusCollider)
+                    {
+                        tempLotusCollider = UnityEngine.Object.Instantiate<GameObject>(lotusCollider, teleporterPos, new Quaternion(0, 0, 0, 0));
+
+                        NetworkServer.Spawn(tempLotusCollider);
+
+                        var temp = tempLotusCollider.GetComponent<TeamFilter>();
+                        temp.teamIndex = teamDex;
+                        tempLotusCollider.layer = 12;
+
+                        TeamFilter filter = tempLotusCollider.GetComponent<TeamFilter>();
+                        var tempcomp = tempLotusCollider.GetComponent<SlowDownProjectiles>();
+                        tempcomp.teamFilter = filter;
+
+                        var tempward = tempLotusCollider.GetComponent<BuffWard>();
+                        tempward.radius = self.currentRadius;
+                        tempward.buffDef = lotusSlow;
+                        tempward.invertTeamFilter = true;
+                        tempward.buffDuration = 2;
+                        //var spcl = tempLotusCollider.GetComponent<SphereCollider>();
+                        //Debug.Log(self.radiusSmoothTime);
+                        //spcl.radius = self.radiusSmoothTime;
+                        //var wardtemp = tempLotusCollider.GetComponent<BuffWard>();
+
+                    }
+                    //slowCoeffValue += Time.deltaTime;
+
+                    var spcl = tempLotusCollider.GetComponent<SphereCollider>();
+
+                    spcl.radius = self.currentRadius;
+                    //var token = tempLotusCollider.GetComponent<LotusColliderToken>();
+                    //token.teamIndex = teamDex;
+
+                    var ward = tempLotusCollider.GetComponent<BuffWard>();
+                    ward.radius = self.currentRadius;
+                    //ward.buffDef = CryoCanister.instance.preFreezeSlow;
+                    //ward.invertTeamFilter = true;
+                    //ward.buffDuration = 1f;
+
+                    //TeamFilter filter = tempLotusCollider.GetComponent<TeamFilter>();
+                    var comp = tempLotusCollider.GetComponent<SlowDownProjectiles>();
+                    comp.slowDownCoefficient = slowCoeffValue;
+                    //comp.teamFilter = filter;
+
+                    //Debug.Log("team filter: " + comp.teamFilter.teamIndex);
+
+                    //if (slowCoeffValue == 1)
+                    //{
+                    //    ward.enabled = false;
+                    //}
+
+                    //comp.slowDownCoefficient = 1;
+                    //var teamComp = tempLotusCollider.GetComponent<TeamComponent>();
+                    //Debug.Log("team dex: " + teamDex + " | rad: " + self.currentRadius);
+
+                    if (secondsUntilBarrierAttempt > 0f)
                     {
                         //Debug.Log("waiting");
                         secondsUntilBarrierAttempt -= Time.fixedDeltaTime;
                     }
                     else
                     {
+                        //string nova2 = "RoR2/Base/TPHealingNova/TeleporterHealNovaPulse.prefab";
+                        //GameObject novaPrefab2 = Addressables.LoadAssetAsync<GameObject>(nova2).WaitForCompletion();
+                        //novaPrefab2.GetComponent<TeamFilter>().teamIndex = teamDex;
+                        //NetworkServer.Spawn(novaPrefab2);
+
+                        //Quaternion Upwards = Quaternion.Euler(270, 0, 0);
+                        //GameObject pulsePrefab = UnityEngine.Object.Instantiate<GameObject>(TeleporterHealNovaGeneratorMain.pulsePrefab, teleporterPos + heightAdjustPulse, Upwards, base.transform.parent);
+                        //pulsePrefab.GetComponent<TeamFilter>().teamIndex = teamDex;
+                        //pulsePrefab.active = false;
+                        //pulsePrefab.InstantiateClone("fortnite");
+                        //
+                        //NetworkServer.Spawn(pulsePrefab);
+
                         //if(self.charge < (1f / (float)(itemCount + 1)) && previousPulseFraction > 1)
                         //{
                         //    Debug.Log("fixing dumb jank " + previousPulseFraction);
@@ -903,20 +1015,103 @@ namespace vanillaVoid
                         //Debug.Log("waiting for " + nextPulseFraction + " | we are at " + currentCharge);
                         if (nextPulseFraction <= currentCharge)
                         {
-                            Quaternion Upwards = Quaternion.Euler(270, 0, 0);
-                            GameObject pulsePrefab = UnityEngine.Object.Instantiate<GameObject>(TeleporterHealNovaGeneratorMain.pulsePrefab, teleporterPos + heightAdjustPulse, Upwards, base.transform.parent);
-                            pulsePrefab.GetComponent<TeamFilter>().teamIndex = teamDex;
-                            NetworkServer.Spawn(pulsePrefab);
+                            if (LotusVariant.Value == 1)
+                            {
+                                //Quaternion Upwards = Quaternion.Euler(270, 0, 0);
+                                string nova = "RoR2/Base/TPHealingNova/TeleporterHealNovaPulse.prefab";
+                                GameObject novaPrefab = Addressables.LoadAssetAsync<GameObject>(nova).WaitForCompletion();
+                                novaPrefab.GetComponent<TeamFilter>().teamIndex = teamDex;
+                                NetworkServer.Spawn(novaPrefab);
+                                StartCoroutine(LotusDelayedBarrier(self, teamDex));
+                            }
+                            else
+                            {
+                                //slowCoeffValue = .1f;
+                                ward.enabled = true;
+
+                                lotusTimer = 0;
+
+                                slowCoeffValue = speedCurve.Evaluate(lotusTimer / LotusDuration.Value);
+
+                                //if (tempLotusCollider)
+                                //{
+                                //    lotusTimerToken = tempLotusCollider.GetComponent<LotusColliderToken>();
+                                //    if (lotusTimerToken)
+                                //    {
+                                //        lotusTimerToken.Begin();
+                                //        
+                                //    }
+                                //}
+                                //for (int i = 0; i < bodyTokens.Count; i++)
+                                //{
+                                //    bodyTokens[1].End();
+                                //    Destroy(bodyTokens[1]);
+                                //    bodyTokens.RemoveAt(1);
+                                //}
+
+                                //lotusSlowMaterial = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/matSlow80Debuff.mat").WaitForCompletion();
+                                //lotusSlowMaterial.mainTexture = MainAssets.LoadAsset<Texture>("texRampIce2.png");
+
+                                //string effect1 = "RoR2/DLC1/VoidRaidCrab/LaserImpactEffect.prefab"; //"RoR2/DLC1/VoidRaidCrab/LaserImpactEffect.prefab";
+                                //GameObject effect1Prefab = Addressables.LoadAssetAsync<GameObject>(effect1).WaitForCompletion();
+                                ////var ef1efc = effect1Prefab.GetComponent<EffectComponent>();
+                                //EffectManager.SimpleImpactEffect(effect1Prefab, teleporterPos + heightAdjustPulse, new Vector3(0, 0, 0), true);
+
+                                StartCoroutine(Lotus2ExplosionThing(self.gameObject));
+
+                            }
+
+                            //Quaternion Upwards = Quaternion.Euler(270, 0, 0);
+                            //string nova2 = "RoR2/Base/TPHealingNova/TeleporterHealNovaPulse.prefab";
+                            //GameObject novaPrefab2 = Addressables.LoadAssetAsync<GameObject>(nova2).WaitForCompletion();
+                            //novaPrefab2.GetComponent<TeamFilter>().teamIndex = teamDex;
+                            //NetworkServer.Spawn(novaPrefab2);
+
+                            ////novaPrefab.GetComponentInChildren<ParticleSystem>();
+                            ////var system = novaPrefab.GetComponentInChildren<ParticleSystem>();
+                            //List<GameObject> childrens = new List<GameObject>();
+                            //int count = 0;
+                            //while (count < gameObject.transform.childCount)
+                            //{
+                            //    childrens.Add(gameObject.transform.GetChild(count).gameObject);
+                            //    Debug.Log(childrens[count].name);
+                            //    var system = childrens[count].GetComponent<ParticleSystem>();
+                            //    if (system)
+                            //    {
+                            //        Debug.Log(system.startColor);
+                            //        system.startColor = new Color(549f, 0.090f, 0.906f, system.startColor.a);
+                            //    }
+                            //    count++;
+                            //}
+                            //
+                            ////system.startColor = new Color(549f, 0.090f, 0.906f, 1);
+                            //
+                            //
+                            //NetworkServer.Spawn(novaPrefab);
                             previousPulseFraction = nextPulseFraction;
                             secondsUntilBarrierAttempt = 1f;
                             //Debug.Log("holy shit!!!!!!!!!!!!!");
 
-                            StartCoroutine(LotusDelayedBarrier(self, teamDex));
+                            //StartCoroutine(LotusDelayedBarrier(self, teamDex));
+
+                            //slowCoeffValue = .25f;
+                            //ward.enabled = true;
+                            //
+                            ////lotusSlowMaterial = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/matSlow80Debuff.mat").WaitForCompletion();
+                            ////lotusSlowMaterial.mainTexture = MainAssets.LoadAsset<Texture>("texRampIce2.png");
+                            //
+                            //string effect1 = "RoR2/DLC1/VoidRaidCrab/LaserImpactEffect.prefab"; //"RoR2/DLC1/VoidRaidCrab/LaserImpactEffect.prefab";
+                            //GameObject effect1Prefab = Addressables.LoadAssetAsync<GameObject>(effect1).WaitForCompletion();
+                            //var ef1efc = effect1Prefab.GetComponent<EffectComponent>();
+                            //EffectManager.SimpleImpactEffect(effect1Prefab, teleporterPos + heightAdjustPulse, new Vector3(0, 0, 0), true);
 
                             string effect2 = "RoR2/DLC1/VoidSuppressor/SuppressorClapEffect.prefab";
                             GameObject effect2Prefab = Addressables.LoadAssetAsync<GameObject>(effect2).WaitForCompletion();
-                            Vector3 vec = new Vector3(0, 0, 0);
-                            EffectManager.SimpleImpactEffect(effect2Prefab, teleporterPos + heightAdjustPulse, vec, true);
+                            var ef2efc = effect2Prefab.GetComponent<EffectComponent>();
+                            ef2efc.applyScale = true;
+                            ef2efc.referencedObject = effect2Prefab;
+                            effect2Prefab.transform.localScale *= 4;
+                            EffectManager.SimpleImpactEffect(effect2Prefab, teleporterPos, new Vector3(0, 0, 0), true);
 
                             //foreach (var player in PlayerCharacterMasterController.instances)
                             //{
@@ -952,11 +1147,11 @@ namespace vanillaVoid
             //}
             float healFraction = 1f / (float)(itemCount + 1);
             //Debug.Log(healFraction + " hela fraction");
-            for(int i = 1; i <= itemCount; i++)
+            for (int i = 1; i <= itemCount; i++)
             {
                 float temp = (float)i * healFraction;
                 //Debug.Log("temp: " + temp + " | previous: " + prevPulseFraction);
-                if(temp > prevPulseFraction)
+                if (temp > prevPulseFraction)
                 {
                     return temp;
                 }
@@ -987,10 +1182,317 @@ namespace vanillaVoid
 
                 }
             }
+
+
+
+            //List<CharacterMaster> CharMasters(bool playersOnly = false)
+            //{
+            //    return CharacterMaster.readOnlyInstancesList.Where(x => x.hasBody && x.GetBody().healthComponent.alive && (x.GetBody().teamComponent.teamIndex != teamDex)).ToList();
+            //}
+            //if (CharMasters().Count > 3)
+            //{
+            //    if (genericRng == null)
+            //    {
+            //        genericRng = new Xoroshiro128Plus(Run.instance.seed);
+            //    }
+            //    int index = genericRng.RangeInt(0, CharMasters().Count - 3);
+            //    //var target1 = CharMasters().ElementAt(index);
+            //    //var target2 = CharMasters().ElementAt(index + 1);
+            //    //var target3 = CharMasters().ElementAt(index + 2);
+            //    //target1.gameObject.AddComponent<LotusToken>();
+            //    //target2.gameObject.AddComponent<LotusToken>();
+            //    //target3.gameObject.AddComponent<LotusToken>();
+            //    for (int i = index; i < index + 3; i++)
+            //    {
+            //        var target = CharMasters().ElementAt(i);
+            //        var token = target.gameObject.AddComponent<LotusBodyToken>();
+            //        token.self = target.GetBody();
+            //    }
+            //}
+            //else
+            //{
+            //    for (int i = 0; i < CharMasters().Count(); i++)
+            //    {
+            //        var target = CharMasters().ElementAt(i);
+            //        var token = target.gameObject.AddComponent<LotusBodyToken>();
+            //        token.self = target.GetBody();
+            //    }
+            //}
             //yield return new WaitForSeconds(.25f);
             //player.body.healthComponent.AddBarrier(player.body.healthComponent.health * ItemBase<BarrierLotus>.instance.barrierAmount.Value); //25% 
 
         }
+
+        IEnumerator Lotus2ExplosionThing(GameObject gameobject)
+        {
+            var soundID = Util.PlaySound("Play_voidRaid_death", gameobject);
+            //detonationTime = true;
+            //string effect = "RoR2/DLC1/VoidRaidCrab/VoidRaidCrabDeathPending.prefab";
+            //GameObject effectPrefab = Addressables.LoadAssetAsync<GameObject>(effect).WaitForCompletion();
+            ////effectPrefab.AddComponent<NetworkIdentity>();
+            //
+            //GameObject effectpfrb = PrefabAPI.InstantiateClone(effectPrefab, "lotusEffect");
+            //
+            //var effectcomp = effectpfrb.GetComponent<EffectComponent>();
+            //if (effectpfrb)
+            //{
+            //    Debug.Log(effectcomp + " < | > " + effectcomp.soundName);
+            //    effectcomp.soundName = "";
+            //    Debug.Log(effectcomp + " < | > " + effectcomp.soundName);
+            //}
+            //
+            //var timer = effectpfrb.AddComponent<DestroyOnTimer>();
+            //float delay = 1.1f;
+            //timer.duration = delay;
+
+            EffectManager.SimpleEffect(lotusEffect, teleporterPos + heightAdjustPulse, new Quaternion(0, 0, 0, 0), true);
+
+            yield return new WaitForSeconds(1.15f);
+
+            AkSoundEngine.StopPlayingID(soundID);
+
+            //detonationTime = false;
+
+            string effect1 = "RoR2/DLC1/VoidSuppressor/SuppressorRetreatToShellEffect.prefab"; //"RoR2/DLC1/VoidRaidCrab/LaserImpactEffect.prefab";
+            GameObject effect1Prefab = Addressables.LoadAssetAsync<GameObject>(effect1).WaitForCompletion();
+            EffectManager.SimpleImpactEffect(effect1Prefab, teleporterPos + heightAdjustPulse, new Vector3(0, 0, 0), true);
+        }
+
+        private void LotusSlowStatsHook(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            Debug.Log("slow hook being called");
+            if (sender)
+            {
+                Debug.Log("is buff? : " + sender.HasBuff(lotusSlow));
+                Debug.Log("warbanner? : " + sender.HasBuff(RoR2Content.Buffs.Warbanner));
+                if (sender.HasBuff(lotusSlow))
+                {
+                    float slow = (1 - slowCoeffValue);
+                    Debug.Log("slow: " + slow);
+                    args.moveSpeedReductionMultAdd += slow;
+                    args.attackSpeedMultAdd -= slow / 2;
+                }
+            }
+        }
+
+        private void LastTry(On.RoR2.CharacterBody.orig_FixedUpdate orig, CharacterBody self)
+        {
+            if(self.GetBuffCount(lotusSlow) > 0 && slowCoeffValue < 1)
+            {
+                var token = self.gameObject.GetComponent<LotusBodyToken>();
+                if (!token)
+                {
+                    token = self.gameObject.AddComponent<LotusBodyToken>();
+                    token.body = self;
+                    token.coeff = slowCoeffValue;
+                    token.duration = LotusDuration.Value;
+                    token.Begin();
+                    //startTime = Time.time;
+                    //Debug.Log("start time: " + startTime);
+                }
+                else
+                {
+                    if (slowCoeffValue < token.coeff)
+                    {
+                        token.End();
+                        Destroy(token);
+                        int count = self.GetBuffCount(lotusSlow);
+                        for (int i = 0; i < count; i++)
+                        {
+                            self.RemoveOldestTimedBuff(lotusSlow);
+                        }
+
+                        token = self.gameObject.AddComponent<LotusBodyToken>();
+                        token.body = self;
+                        token.coeff = slowCoeffValue;
+                        token.duration = LotusDuration.Value;
+                        token.Begin();
+
+                    }
+                    token.coeff = slowCoeffValue;
+                }
+            }
+            else if(slowCoeffValue >= 1)
+            {
+                int count = self.GetBuffCount(lotusSlow);
+                for(int i = 0; i < count; i++)
+                {
+                    self.RemoveOldestTimedBuff(lotusSlow);
+                }
+                
+                var token = self.gameObject.GetComponent<LotusBodyToken>();
+                if (token)
+                {
+                    token.End();
+                    Destroy(token);
+                    //ndTime = Time.time;
+                    //ebug.Log("end time: " + endTime + " | " + (startTime - endTime));
+                }
+            }
+            //else
+            //{
+            //    //var token = self.gameObject.GetComponent<LotusBodyToken>();
+            //    //if (token)
+            //    //{
+            //    //    token.End();
+            //    //    Destroy(token);
+            //    //}
+            //}
+        }
+
+        //private void LotusSlowVisuals(On.RoR2.CharacterBody.orig_FixedUpdate orig, CharacterBody self)
+        //{
+        //    orig(self);
+        //    var component = self.gameObject.GetComponent<LotusBodyToken>();
+        //    if (self.GetBuffCount(BarrierLotus.instance.lotusSlow) > 0)
+        //    {
+        //        //var component = self.gameObject.GetComponent<LotusBodyToken>();
+        //        if (!component)
+        //        {
+        //            component = self.gameObject.AddComponent<LotusBodyToken>();
+        //            component.body = self;
+        //            component.material = lotusSlowMaterial;
+        //            component.Begin();
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if (component)
+        //        {
+        //            Destroy(component);
+        //        }
+        //    }
+        //
+        //  }
+
+
+        public class LotusBodyToken : MonoBehaviour
+        {
+            public CharacterBody body;
+            public TemporaryOverlay overlay;
+            public float coeff;
+            public Material material;
+            public Material matInstance;
+            public float duration;
+            //public float oldCoeff;
+
+            public void Begin()
+            {
+                Texture tex = MainAssets.LoadAsset<Texture>("texRampIce4.png");
+                material = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/matSlow80Debuff.mat").WaitForCompletion();
+                matInstance = Instantiate(material);
+
+                
+
+                //Debug.Log("boost: " + matInstance.GetFloat("_Boost"));
+                matInstance.SetFloat("_Boost", matInstance.GetFloat("_Boost") - (coeff*2));
+                //matInstance.SetTexture("_RemapTex", tex);
+                //Debug.Log("remap: " + matInstance.GetTexture("_RemapTex"));
+                matInstance.SetTexture("_RemapTex", tex);
+                //Debug.Log("remap: " + matInstance.GetTexture("_RemapTex"));
+                //Color newcolor = new Color(0.549f, 0.090f, 0.906f, material.color.a);
+                //material.color = newcolor;
+
+                //matInstance.shader.SetFieldValue("_RemapTex", tex); //???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+
+                overlay = body.modelLocator.modelTransform.gameObject.AddComponent<RoR2.TemporaryOverlay>();
+                overlay.duration = duration;
+                overlay.alphaCurve = AnimationCurve.EaseInOut(0, 1, 1, .5f);
+
+                overlay.animateShaderAlpha = true;
+                overlay.destroyComponentOnEnd = true;
+                overlay.originalMaterial = matInstance;
+                overlay.AddToCharacerModel(body.modelLocator.modelTransform.GetComponent<RoR2.CharacterModel>());
+
+            }
+
+            public void End()
+            {
+                overlay.RemoveFromCharacterModel();
+            }
+
+            void FixedUpdate()
+            {
+                matInstance.SetFloat("_Boost", 1 - coeff);
+                //Debug.Log("boost: " + matInstance.GetFloat("_Boost"));
+            }
+        }
+
+        public void CreateLotusBuff()
+        {
+            var buffColor = new Color(0.7568f, 0.1019f, 0.9372f);
+            lotusSlow = ScriptableObject.CreateInstance<BuffDef>();
+            lotusSlow.buffColor = buffColor;
+            lotusSlow.canStack = false;
+            lotusSlow.isDebuff = true;
+            //lotusSlow.isHidden = true;
+            lotusSlow.name = "ZnVV" + "lotusSlow";
+            lotusSlow.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("lotusSlow");
+            ContentAddition.AddBuffDef(lotusSlow);
+        }
+
+        //public class LotusColliderToken : MonoBehaviour
+        //{
+        //    public float tokenLotusTimer;
+        //    public GameObject colliderParent;
+        //
+        //    public void Begin()
+        //    {
+        //        tokenLotusTimer = 0;
+        //    }
+        //
+        //
+        //    private void FixedUpdate()
+        //    {
+        //
+        //        tokenLotusTimer += Time.fixedDeltaTime;
+        //    }
+        //}
+
+        private void AddLocusStuff(Stage obj)
+        {
+            //Debug.Log("dlc enabled, obviously");
+            if(obj.sceneDef == SceneCatalog.GetSceneDefFromSceneName("voidstage") && locusExit.Value)
+            {
+                //Debug.Log("attempting");
+            
+                GameObject portal = UnityEngine.Object.Instantiate<GameObject>(portalObject, new Vector3(-37.5f, 19.5f, -284.05f), new Quaternion(0, 70, 0, 0));
+                NetworkServer.Spawn(portal);
+                GameObject platform = UnityEngine.Object.Instantiate<GameObject>(platformObject, new Vector3(-37.5f, 15.25f, -273.5f), new Quaternion(0, 0, 0, 0));
+                NetworkServer.Spawn(platform);
+                
+            }
+            
+        }
+
+        private void LocusDirectorHelp(SceneDirector obj)
+        {
+            string sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
+            if (LocusBonus.Value > 0 && sceneName == "voidstage") 
+            {
+                
+                obj.interactableCredit += LocusBonus.Value;
+
+            }
+        }
+
+        //public class LotusTeleporterToken : MonoBehaviour
+        //{
+        //    public CharacterBody self;
+        //    public float timer = 0;
+        //
+        //    private void Awake()
+        //    {
+        //
+        //    }
+        //
+        //    private void Update()
+        //    {
+        //        timer += Time.deltaTime;
+        //
+        //    }
+        //}
+
         //private void ClockworkItemDrops(On.RoR2.Stage.orig_RespawnCharacter orig, Stage self, CharacterMaster characterMaster)
         //{
         //    orig(self, characterMaster);

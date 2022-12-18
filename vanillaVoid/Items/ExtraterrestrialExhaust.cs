@@ -68,8 +68,8 @@ namespace vanillaVoid.Items
         {
             //rocketsPerSecond = config.Bind<float>("Item: " + ItemName, "Rockets per Second", 2f, "Adjust the number of rockets fired for each second of skill cooldown.");
             secondsPerRocket = config.Bind<float>("Item: " + ItemName, "Seconds per Rocket", 2f, "Adjust the number of seconds of skill cooldown needed to fire a rocket.");
-            rocketDamage = config.Bind<float>("Item: " + ItemName, "Rocket Damage", 25, "Adjust the percent damage dealt on the first stack.");
-            rocketDamageStacking = config.Bind<float>("Item: " + ItemName, "Rocket Damage", 25, "Adjust the percent damage gained per stack.");
+            rocketDamage = config.Bind<float>("Item: " + ItemName, "Rocket Base Damage Percent", 20f, "Adjust the percent damage dealt on the first stack.");
+            rocketDamageStacking = config.Bind<float>("Item: " + ItemName, "Rocket Base Damage Percent Stacking", 20f, "Adjust the percent damage gained per stack.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "Firework", "Adjust which item this is the void pair of.");
         }
 

@@ -142,7 +142,7 @@ namespace vanillaVoid.Items
 
             //dumbcompat = config.Bind<bool>("Item: " + name, "Mod Compat - Remove Lost Seer's Buff", true, "Should stay on, but if you're having a strange issue (ex. health bars not showing up on enemies) edit this to be false.");
             itemVariant = config.Bind<int>("Item: " + name, "Variant of Item", 0, "Adjust which version of " + name + " you'd prefer to use. Variant 0 grants a stacking damage bonus upon not critting, lost upon critting. Variant 1 gives the chance to crit again upon critting.");
-            buffDamageBonus = config.Bind<float>("Item: " + name, "Buff Damage Bonus", .3f, "Variant 0 - Adjust the damage bonus granted by each stack of the non-crit buff. Multiply this by the max buffs to get the max damage bonus.");
+            buffDamageBonus = config.Bind<float>("Item: " + name, "Buff Percent Damage Bonus", .1f, "Variant 0 - Adjust the damage bonus granted by each stack of the non-crit buff. Multiply this by the max buffs to get the max damage bonus.");
             buffStacksPerCount = config.Bind<int>("Item: " + name, "Max Buffs per Stack", 5, "Variant 0 - Adjust max number of stacks of the damage buff can be active at once, per stack.");
 
 

@@ -42,6 +42,8 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
+        //public static BuffDef lotusSlow { get; private set; }
+
         public override ItemTag[] ItemTags => new ItemTag[5] { ItemTag.Utility, ItemTag.Healing, ItemTag.AIBlacklist, ItemTag.CannotCopy, ItemTag.HoldoutZoneRelated };
 
         public override void Init(ConfigFile config)
@@ -51,7 +53,7 @@ namespace vanillaVoid.Items
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
             VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
-
+           // CreateBuff();
             //lotusObject = MainAssets.LoadAsset<GameObject>("mdlLotusWorldObject.prefab"); //lmao it makes the pickup spin WILDLY if you use mdlBladePickup
             //lotusObject.AddComponent<TeamFilter>();
             //lotusObject.AddComponent<NetworkIdentity>();
@@ -393,6 +395,21 @@ namespace vanillaVoid.Items
             //On.RoR2.HealthComponent.TakeDamage += AdzeDamageBonus;
             //On.RoR2.HoldoutZoneController.UpdateHealingNovas += BarrierLotusNova;
         }
+
+        //public void CreateBuff()
+        //{
+        //    var buffColor = new Color(0.7568f, 0.1019f, 0.9372f);
+        //    lotusSlow = ScriptableObject.CreateInstance<BuffDef>();
+        //    lotusSlow.buffColor = buffColor;
+        //    lotusSlow.canStack = false;
+        //    lotusSlow.isDebuff = true;
+        //    //lotusSlow.isHidden = true;
+        //    lotusSlow.name = "ZnVV" + "lotusSlow";
+        //    lotusSlow.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("lotusSlow");
+        //    ContentAddition.AddBuffDef(lotusSlow);
+        //}
+
+
         //int chargesRemaining;
         //private void BarrierLotusNova(On.RoR2.HoldoutZoneController.orig_UpdateHealingNovas orig, HoldoutZoneController self, bool isCharging)
         //{

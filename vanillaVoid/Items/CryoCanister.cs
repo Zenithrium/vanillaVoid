@@ -25,13 +25,16 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<float> aoeRangeStacking;
 
-        public ConfigEntry<float> requiredStacksForFreeze;
+        public ConfigEntry<int> requiredStacksForFreeze;
 
-        public ConfigEntry<float> requiredStacksForBossFreeze;
+        public ConfigEntry<int> requiredStacksForBossFreeze;
 
         public ConfigEntry<float> slowDuration;
 
+        public ConfigEntry<float> slowDurationStacking;
+
         public ConfigEntry<float> slowPercentage;
+
 
         public ConfigEntry<string> voidPair;
 
@@ -127,14 +130,15 @@ namespace vanillaVoid.Items
 
         public override void CreateConfig(ConfigFile config)
         {
-            baseDamageAOE = config.Bind<float>("Item: " + ItemName, "Percent Base Damage", .25f, "Adjust the percent base damage the AOE does.");
-            stackingDamageAOE = config.Bind<float>("Item: " + ItemName, "Percent Base Damage Stacking", .25f, "Adjust the percent base damage the AOE gains per stack.");
+            baseDamageAOE = config.Bind<float>("Item: " + ItemName, "Base Damage Percent", .15f, "Adjust the percent base damage the AOE does.");
+            stackingDamageAOE = config.Bind<float>("Item: " + ItemName, "Base Damage Percent Stacking", .15f, "Adjust the percent base damage the AOE gains per stack.");
             aoeRangeBase = config.Bind<float>("Item: " + ItemName, "Range of AOE", 10f, "Adjust the range of the slow AOE on the first stack.");
             aoeRangeStacking = config.Bind<float>("Item: " + ItemName, "Range Increase per Stack", 2.5f, "Adjust the range the slow AOE gains per stack.");
-            requiredStacksForFreeze = config.Bind<float>("Item: " + ItemName, "Stacks Required for Freeze", 2f, "Adjust the number of stacks needed to freeze an enemy.");
-            requiredStacksForBossFreeze = config.Bind<float>("Item: " + ItemName, "Stacks Required for Boss Freeze", 10f, "Adjust the number of stacks needed to freeze a boss.");
-            slowPercentage = config.Bind<float>("Item: " + ItemName, "Percent Slow", .5f, "Adjust the percentage slow the buff causes.");
-            slowDuration = config.Bind<float>("Item: " + ItemName, "Slow Duration", 4, "Adjust the duration the slow lasts, in seconds.");
+            requiredStacksForFreeze = config.Bind<int>("Item: " + ItemName, "Debuff Stacks Required for Freeze", 3, "Adjust the number of stacks needed to freeze an enemy.");
+            requiredStacksForBossFreeze = config.Bind<int>("Item: " + ItemName, "Buff Stacks Required for Boss Freeze", 10, "Adjust the number of stacks needed to freeze a boss.");
+            slowPercentage = config.Bind<float>("Item: " + ItemName, "Percent Slow", 5f, "Adjust the percentage slow the buff causes.");
+            slowDuration = config.Bind<float>("Item: " + ItemName, "Slow Debuff Duration", 3, "Adjust the duration the slow lasts, in seconds.");
+            slowDurationStacking = config.Bind<float>("Item: " + ItemName, "Slow Debuff Duration per Stack", 1, "Adjust the duration the slow gains per stack.");
 
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "IgniteOnKill", "Adjust which item this is the void pair of.");
         }
@@ -470,17 +474,30 @@ namespace vanillaVoid.Items
         {
             //On.RoR2.HealthComponent.TakeDamage += AdzeDamageBonus;
             GlobalEventManager.onCharacterDeathGlobal += CryoCanisterAOE;
-            RecalculateStatsAPI.GetStatCoefficients += CalculateStatsCryoHook;      
-            
+            RecalculateStatsAPI.GetStatCoefficients += CalculateStatsCryoHook;
+            //On.RoR2.CharacterBody.RecalculateStats += CryoStatsHook;
+
         }
 
+        //private void CryoStatsHook(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody self)
+        //{
+        //    orig(self);
+        //    if (self)
+        //    {
+        //        if(self.GetBuffCount(preFreezeSlow) > 0)
+        //        {
+        //            self.moveSpeed *= slowPercentage.Value;
+        //        }
+        //    }
+        //}
+        //
         private void CalculateStatsCryoHook(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
         {
             if (sender)
             {
                 if (sender.GetBuffCount(preFreezeSlow) > 0)
                 {
-                    args.moveSpeedReductionMultAdd =+ slowPercentage.Value;
+                    args.moveSpeedReductionMultAdd += slowPercentage.Value;
                 }
             }
         }
@@ -536,7 +553,7 @@ namespace vanillaVoid.Items
                         HurtBox hurtBox = cryoAOEHurtBoxBuffer[i];
                         if (hurtBox.healthComponent && hurtBox.healthComponent.body)
                         {
-                            float duartion = slowDuration.Value + ((slowDuration.Value / 2f) * (cryoCount - 1));
+                            float duartion = slowDuration.Value + (slowDurationStacking.Value * (cryoCount - 1));
                             //Debug.Log("found a health component and hc body");
                             hurtBox.healthComponent.body.AddTimedBuffAuthority(preFreezeSlow.buffIndex, duartion);
                             DamageInfo damageInfo = new DamageInfo
@@ -573,17 +590,18 @@ namespace vanillaVoid.Items
                                 else if(hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow) >= requiredStacksForBossFreeze.Value)
                                 {
                                     //hurtBox.healthComponent.isInFrozenState = true;
-                                    SetStateOnHurt setState = hurtBox.healthComponent.body.gameObject.GetComponent<SetStateOnHurt>();
-                                    if (setState)
-                                    {
+                                    //SetStateOnHurt setState = hurtBox.healthComponent.body.gameObject.GetComponent<SetStateOnHurt>();
+                                    //if (setState)
+                                    //{
                                         int buffCount = hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow);
                                         for (int j = 0; j < buffCount; j++)
                                         {
                                             hurtBox.healthComponent.body.RemoveOldestTimedBuff(preFreezeSlow);
                                         }
 
-                                        setState.SetFrozen(duartion);
-                                    }
+                                        //setState.SetFrozen(duartion);
+                                        hurtBox.healthComponent.isInFrozenState = true;
+                                    //}
                                 }
 
                                 EffectData effectData2 = new EffectData
