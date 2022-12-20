@@ -157,8 +157,9 @@ namespace vanillaVoid.Items
         }
         public void CreateBuff()
         {
+            var buffColor = new Color(0.3961f, 0.1215f, 1);
             OrreryDamageBonus = ScriptableObject.CreateInstance<BuffDef>();
-            OrreryDamageBonus.buffColor = Color.magenta;
+            OrreryDamageBonus.buffColor = buffColor;
             OrreryDamageBonus.canStack = true;
             OrreryDamageBonus.isDebuff = false;
             OrreryDamageBonus.name = "ZnVV" + "OrreryDamage";
@@ -173,7 +174,7 @@ namespace vanillaVoid.Items
 
             var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
             itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);
-
+            
             
 
             ItemDisplayRuleDict rules = new ItemDisplayRuleDict();

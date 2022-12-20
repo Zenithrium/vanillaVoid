@@ -62,7 +62,7 @@ namespace vanillaVoid.Items
         public override void CreateConfig(ConfigFile config)
         {
             dashVelocity = config.Bind<float>("Item: " + ItemName, "Dash Velocity", 21f, "Adjust how fast a player goes upon dashing.");
-            shorthopVelocity = config.Bind<float>("Item: " + ItemName, "Shorthop Velocity", .25f, "Adjust the strength of the shorthop upon dashing. This should be quite low or it'll basically just be better than Hopoo Feather.");
+            shorthopVelocity = config.Bind<float>("Item: " + ItemName, "Shorthop Strength", .5f, "Adjust the strength of the shorthop upon dashing. This should be quite low or it'll basically just be better than Hopoo Feather.");
             dashesPerStack = config.Bind<int>("Item: " + ItemName, "Dash Count", 1, "Adjust how many dashes each stack gives.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "Feather", "Adjust which item this is the void pair of.");
         }

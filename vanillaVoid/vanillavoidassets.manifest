@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 1728692819
+CRC: 3251029557
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 8676c97c5905ccedad11d2a90427c31f
+    Hash: bbfdc566ef0a64022e992a1e9b0c9904
   TypeTreeHash:
     serializedVersion: 2
     Hash: 6ba044ad33d408c04b562a940f2669ef
@@ -91,6 +91,7 @@ Assets:
 - Assets/Textures/Icons/Item/AbyssalAdze/adzeIcon512.png
 - Assets/Models/Prefabs/Item/LotusItem/mdlFinalLotusPickup.prefab
 - Assets/Textures/Materials/Item/Mess/metallictexture.mat
+- Assets/Models/Prefabs/Item/LotusItem/mdlLotusWorldObject2.prefab
 - Assets/Textures/Materials/Item/Mess/crabtexture.mat
 - Assets/Textures/Icons/Item/ventItem/ventIcon512.png
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedEmptyPickup.prefab
@@ -114,7 +115,7 @@ Assets:
 - Assets/Textures/Materials/Item/ClockworkWatch/b/mainGrayMat.mat
 - Assets/Textures/Icons/Item/LotusItem/texRampIce2.png
 - Assets/Textures/Materials/Item/Mess/armtexture.mat
-- Assets/Textures/Icons/Item/LotusItem/lotusIcon512.png
+- Assets/Textures/Icons/Item/LotusItem/ancientlotusIcon512.png
 - Assets/Textures/Materials/Item/ClockworkWatch/backMat.mat
 - Assets/Textures/Icons/Item/MessItem/brokenMessIcon512.png
 - Assets/Models/Prefabs/Item/AbyssalAdze/mdlAdzePickup.prefab
@@ -124,6 +125,7 @@ Assets:
 - Assets/raw/quill/quillsolo.fbx
 - Assets/Textures/Icons/Item/VialsItem/vialsIcon512.png
 - Assets/Textures/Materials/Item/AbyssalAdze/HandleLowerTexture.mat
+- Assets/Textures/Icons/Item/LotusItem/lotusIcon512.png
 - Assets/Models/Prefabs/Item/LotusItem/mdlFinalLotusDisplay.prefab
 - Assets/Textures/Materials/Item/AbyssalAdze/orbTranspTexture.mat
 - Assets/Textures/Materials/Item/AbyssalAdze/HandleTexture.mat

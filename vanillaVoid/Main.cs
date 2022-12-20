@@ -9,9 +9,9 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using System.Collections;
-using vanillaVoid.Artifact;
+//using vanillaVoid.Artifact;
 using vanillaVoid.Equipment;
-using vanillaVoid.Equipment.EliteEquipment;
+//using vanillaVoid.Equipment.EliteEquipment;
 using vanillaVoid.Items;
 using RoR2;
 using HarmonyLib;
@@ -24,16 +24,30 @@ using UnityEngine.Networking;
 using RoR2.Projectile;
 using vanillaVoid.Misc;
 using EntityStates.TeleporterHealNovaController;
-using static vanillaVoid.Utils.Components.MaterialControllerComponents;
+//using static vanillaVoid.Utils.Components.MaterialControllerComponents;
 
 namespace vanillaVoid
 {
     [BepInPlugin(ModGuid, ModName, ModVer)]
-    [BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
-    [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
-    [R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI), nameof(EliteAPI), nameof(RecalculateStatsAPI), nameof(PrefabAPI), nameof(DotAPI), nameof(LegacyResourcesAPI))]
 
+    [BepInDependency("com.bepis.r2api", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("com.bepis.r2api.content_management", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("com.bepis.r2api.items", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("com.bepis.r2api.language", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("com.bepis.r2api.prefab", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("com.bepis.r2api.recalculatestats", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("com.bepis.r2api.networking", BepInDependency.DependencyFlags.HardDependency)]
+
+    //[BepInDependency("com.RumblingJOSEPH.VoidItemAPI", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency(VoidItemAPI.VoidItemAPI.MODGUID)]
+    
+    [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
+    //[BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
+    //[NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
+
+    //[R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI), nameof(RecalculateStatsAPI), nameof(PrefabAPI), nameof(LegacyResourcesAPI))]
+
+    //[BepInDependency(VoidItemAPI.VoidItemAPI.MODGUID)]
 
     public class vanillaVoidPlugin : BaseUnityPlugin
     {
@@ -45,10 +59,10 @@ namespace vanillaVoid
 
         public static AssetBundle MainAssets;
 
-        public List<ArtifactBase> Artifacts = new List<ArtifactBase>();
+        //public List<ArtifactBase> Artifacts = new List<ArtifactBase>();
         public List<ItemBase> Items = new List<ItemBase>();
         public List<EquipmentBase> Equipments = new List<EquipmentBase>();
-        public List<EliteEquipmentBase> EliteEquipments = new List<EliteEquipmentBase>();
+        //public List<EliteEquipmentBase> EliteEquipments = new List<EliteEquipmentBase>();
 
         //Provides a direct access to this plugin's logger for use in any of your other classes.
         public static BepInEx.Logging.ManualLogSource ModLogger;
@@ -73,9 +87,10 @@ namespace vanillaVoid
         public static ConfigEntry<float> LotusSlowPercent;
         GameObject lotusEffect;
 
-        Vector3 heightAdjust = new Vector3(0, 2.312f, 0);
+        Vector3 heightAdjust = new Vector3(0, 2.212f, 0);
         Vector3 heightAdjustPulse = new Vector3(0, 2.5f, 0);
         float previousPulseFraction = 0;
+        float currentCharge = 0;
         float secondsUntilBarrierAttempt = 0;
 
         public float lotusTimer;
@@ -93,8 +108,8 @@ namespace vanillaVoid
             string lotusname = "Crystalline Lotus";
 
             LotusVariant = Config.Bind<int>("Item: " + lotusname, "Variant of Item", 0, "Adjust which version of " + lotusname + " you'd prefer to use. Variant 0 releases slowing novas per pulse, which reduce enemy and projectile speed, while Variant 1 provides 50% barrier per pulse.");
-            LotusDuration = Config.Bind<float>("Item: " + lotusname, "Slow Duration", 35f, "Adjust how long the slow should last per pulse. A given slow is replaced by the next slow, so with enough lotuses, the full duration won't get used. However, increasing this also decreases the rate at which the slow fades.");
-            LotusSlowPercent = Config.Bind<float>("Item: " + lotusname, "Slow Percent", 0.075f, "Adjust the strongest slow percent (between 0 and 1). Increasing this also makes it so the slow 'feels' shorter, as high values (near 1) feel very minor.");
+            LotusDuration = Config.Bind<float>("Item: " + lotusname, "Slow Duration", 30f, "Variant 0: Adjust how long the slow should last per pulse. A given slow is replaced by the next slow, so with enough lotuses, the full duration won't get used. However, increasing this also decreases the rate at which the slow fades.");
+            LotusSlowPercent = Config.Bind<float>("Item: " + lotusname, "Slow Percent", 0.075f, "Variant 0: Adjust the strongest slow percent (between 0 and 1). Increasing this also makes it so the slow 'feels' shorter, as high values (near 1) feel very minor.");
 
 
             ModLogger = Logger;
@@ -109,16 +124,13 @@ namespace vanillaVoid
                 MainAssets = AssetBundle.LoadFromStream(stream);
             }
 
-            //var swordClass = new ExeSwordObject();
-            //swordClass.Initalize();
-
             On.RoR2.CharacterBody.OnSkillActivated += ExtExhaustFireProjectile;
 
             GlobalEventManager.onCharacterDeathGlobal += ExeBladeExtraDeath;
 
             //RoR2.SceneDirector.onPostPopulateSceneServer += AddLotusOnEnter;
             On.RoR2.CharacterBody.OnInventoryChanged += AddLotusOnPickup;
-            On.RoR2.HoldoutZoneController.UpdateHealingNovas += BarrierLotusNova;
+            On.RoR2.HoldoutZoneController.UpdateHealingNovas += CrystalLotusNova;
             //On.RoR2.HoldoutZoneController.FixedUpdate += LotusSlowNova;
 
             On.RoR2.SceneDirector.PlaceTeleporter += PrimoridalTeleporterCheck;
@@ -132,16 +144,6 @@ namespace vanillaVoid
             On.RoR2.CharacterBody.FixedUpdate += LastTry;
 
 
-            //On.RoR2.Stage.RespawnCharacter += ClockworkItemDrops;
-
-            //if(itemVariant.Value == 0 || itemVariant.Value == 1)){
-            //    On.RoR2.CharacterBody.OnInventoryChanged += AddWatchTokenOnPickup;
-            //}
-            //On.RoR2.CharacterBody.OnInventoryChanged += AddWatchTokenOnPickup;
-            //ExeBladeCreateProjectile();
-
-
-            //PrefabAPI.InstantiateClone(bladeObject, "exeBladePrefab", true);
             bladeObject = MainAssets.LoadAsset<GameObject>("mdlBladeWorldObject.prefab");
             bladeObject.AddComponent<TeamFilter>();
             bladeObject.AddComponent<HealthComponent>();
@@ -150,7 +152,7 @@ namespace vanillaVoid
             bladeObject.AddComponent<Rigidbody>();
 
 
-            lotusObject = MainAssets.LoadAsset<GameObject>("mdlLotusWorldObject.prefab");
+            lotusObject = MainAssets.LoadAsset<GameObject>("mdlLotusWorldObject2.prefab");
             lotusObject.AddComponent<TeamFilter>();
             lotusObject.AddComponent<NetworkIdentity>();
 
@@ -196,9 +198,9 @@ namespace vanillaVoid
             var effectcomp = lotusEffect.GetComponent<EffectComponent>();
             if (effectcomp)
             {
-                Debug.Log(effectcomp + " < | > " + effectcomp.soundName);
+                //Debug.Log(effectcomp + " < | > " + effectcomp.soundName);
                 effectcomp.soundName = "";
-                Debug.Log(effectcomp + " < | > " + effectcomp.soundName);
+                //Debug.Log(effectcomp + " < | > " + effectcomp.soundName);
             }
 
             var timer = lotusEffect.AddComponent<DestroyOnTimer>();
@@ -224,16 +226,16 @@ namespace vanillaVoid
             // Look here for info on how to set these up: https://github.com/KomradeSpectre/AetheriumMod/blob/rewrite-master/Tutorials/Item%20Mod%20Creation.md#unity-project
 
             //This section automatically scans the project for all artifacts
-            var ArtifactTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(ArtifactBase)));
-
-            foreach (var artifactType in ArtifactTypes)
-            {
-                ArtifactBase artifact = (ArtifactBase)Activator.CreateInstance(artifactType);
-                if (ValidateArtifact(artifact, Artifacts))
-                {
-                    artifact.Init(Config);
-                }
-            }
+            //var ArtifactTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(ArtifactBase)));
+            //
+            //foreach (var artifactType in ArtifactTypes)
+            //{
+            //    ArtifactBase artifact = (ArtifactBase)Activator.CreateInstance(artifactType);
+            //    if (ValidateArtifact(artifact, Artifacts))
+            //    {
+            //        artifact.Init(Config);
+            //    }
+            //}
 
             //This section automatically scans the project for all items
             var ItemTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(ItemBase)));
@@ -267,17 +269,17 @@ namespace vanillaVoid
             }
 
             //this section automatically scans the project for all elite equipment
-            var EliteEquipmentTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(EliteEquipmentBase)));
-
-            foreach (var eliteEquipmentType in EliteEquipmentTypes)
-            {
-                EliteEquipmentBase eliteEquipment = (EliteEquipmentBase)System.Activator.CreateInstance(eliteEquipmentType);
-                if (ValidateEliteEquipment(eliteEquipment, EliteEquipments))
-                {
-                    eliteEquipment.Init(Config);
-
-                }
-            }
+            //var EliteEquipmentTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(EliteEquipmentBase)));
+            //
+            //foreach (var eliteEquipmentType in EliteEquipmentTypes)
+            //{
+            //    EliteEquipmentBase eliteEquipment = (EliteEquipmentBase)System.Activator.CreateInstance(eliteEquipmentType);
+            //    if (ValidateEliteEquipment(eliteEquipment, EliteEquipments))
+            //    {
+            //        eliteEquipment.Init(Config);
+            //
+            //    }
+            //}
 
         }
 
@@ -286,16 +288,16 @@ namespace vanillaVoid
         /// </summary>
         /// <param name="artifact">A new instance of an ArtifactBase class."</param>
         /// <param name="artifactList">The list you would like to add this to if it passes the config check.</param>
-        public bool ValidateArtifact(ArtifactBase artifact, List<ArtifactBase> artifactList)
-        {
-            var enabled = Config.Bind<bool>("Artifact: " + artifact.ArtifactName, "Enable Artifact?", true, "Should this artifact appear for selection?").Value;
-
-            if (enabled)
-            {
-                artifactList.Add(artifact);
-            }
-            return enabled;
-        }
+        //public bool ValidateArtifact(ArtifactBase artifact, List<ArtifactBase> artifactList)
+        //{
+        //    var enabled = Config.Bind<bool>("Artifact: " + artifact.ArtifactName, "Enable Artifact?", true, "Should this artifact appear for selection?").Value;
+        //
+        //    if (enabled)
+        //    {
+        //        artifactList.Add(artifact);
+        //    }
+        //    return enabled;
+        //}
 
         /// <summary>
         /// A helper to easily set up and initialize an item from your item classes if the user has it enabled in their configuration files.
@@ -377,17 +379,18 @@ namespace vanillaVoid
         /// <param name="eliteEquipment">A new instance of an EliteEquipmentBase class.</param>
         /// <param name="eliteEquipmentList">The list you would like to add this to if it passes the config check.</param>
         /// <returns></returns>
-        public bool ValidateEliteEquipment(EliteEquipmentBase eliteEquipment, List<EliteEquipmentBase> eliteEquipmentList)
-        {
-            var enabled = Config.Bind<bool>("Equipment: " + eliteEquipment.EliteEquipmentName, "Enable Elite Equipment?", true, "Should this elite equipment appear in runs? If disabled, the associated elite will not appear in runs either.").Value;
+        //public bool ValidateEliteEquipment(EliteEquipmentBase eliteEquipment, List<EliteEquipmentBase> eliteEquipmentList)
+        //{
+        //    var enabled = Config.Bind<bool>("Equipment: " + eliteEquipment.EliteEquipmentName, "Enable Elite Equipment?", true, "Should this elite equipment appear in runs? If disabled, the associated elite will not appear in runs either.").Value;
+        //
+        //    if (enabled)
+        //    {
+        //        eliteEquipmentList.Add(eliteEquipment);
+        //        return true;
+        //    }
+        //    return false;
+        //}
 
-            if (enabled)
-            {
-                eliteEquipmentList.Add(eliteEquipment);
-                return true;
-            }
-            return false;
-        }
         private void ExtExhaustFireProjectile(On.RoR2.CharacterBody.orig_OnSkillActivated orig, RoR2.CharacterBody self, RoR2.GenericSkill skill)
         {
             var inventoryCount = self.inventory.GetItemCount(ItemBase<ExtraterrestrialExhaust>.instance.ItemDef);
@@ -680,6 +683,7 @@ namespace vanillaVoid
         bool isPrimoridal = false;
         string teleporterName = "";
         public float slowCoeffValue = 1f;
+        bool voidfields = false;
         //bool detonationTime = false;
 
         //private Material lotusSlowMaterial;
@@ -703,7 +707,11 @@ namespace vanillaVoid
             string sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
             if (sceneName != "arena" && sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
             {
+                voidfields = false;
                 StartCoroutine(LotusDelayedPlacement(self));
+            }else if(sceneName == "arena")
+            {
+                voidfields = true;
             }
             orig(self);
         }
@@ -737,7 +745,7 @@ namespace vanillaVoid
             TeamIndex teamDex = default;
             foreach (var player in PlayerCharacterMasterController.instances)
             {
-                itemCount += player.master.inventory.GetItemCount(ItemBase<BarrierLotus>.instance.ItemDef);
+                itemCount += player.master.inventory.GetItemCount(ItemBase<CrystalLotus>.instance.ItemDef);
                 teamDex = player.master.teamIndex;
             }
             if (itemCount > 0)
@@ -757,7 +765,7 @@ namespace vanillaVoid
                 //}
 
 
-                Quaternion rot = Quaternion.Euler(0, 180, 0);
+                Quaternion rot = Quaternion.Euler(1.52666613f, 180, 9.999999f);
                 var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
                 tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
                 tempLotus.transform.position = teleporterPos + heightAdjust;
@@ -798,7 +806,7 @@ namespace vanillaVoid
             TeamIndex teamDex = default;
             foreach (var player in PlayerCharacterMasterController.instances)
             {
-                itemCount += player.master.inventory.GetItemCount(ItemBase<BarrierLotus>.instance.ItemDef);
+                itemCount += player.master.inventory.GetItemCount(ItemBase<CrystalLotus>.instance.ItemDef);
                 teamDex = player.master.teamIndex;
             }
             if (itemCount > 0)
@@ -818,15 +826,16 @@ namespace vanillaVoid
                 //}
 
                 string sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
-                if (sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
+                if (sceneName != "arena " && sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
                 {
-                    Quaternion rot = Quaternion.Euler(0, 180, 0);
+                    Quaternion rot = Quaternion.Euler(1.52666613f, 180, 9.999999f);
                     var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
                     tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
                     tempLotus.transform.position = teleporterPos + heightAdjust;
                     NetworkServer.Spawn(tempLotus);
                     tempLotusObject = tempLotus;
                     lotusSpawned = true;
+                    voidfields = false;
 
                     EffectData effectData = new EffectData
                     {
@@ -834,6 +843,9 @@ namespace vanillaVoid
                     };
                     effectData.SetNetworkedObjectReference(tempLotus.gameObject);
                     EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
+                }else if(sceneName == "arena")
+                {
+                    voidfields = true;
                 }
             }
 
@@ -847,7 +859,7 @@ namespace vanillaVoid
                 TeamIndex teamDex = default;
                 foreach (var player in PlayerCharacterMasterController.instances)
                 {
-                    itemCount += player.master.inventory.GetItemCount(ItemBase<BarrierLotus>.instance.ItemDef);
+                    itemCount += player.master.inventory.GetItemCount(ItemBase<CrystalLotus>.instance.ItemDef);
                     teamDex = player.master.teamIndex;
                 }
                 if (itemCount > 0)
@@ -863,21 +875,26 @@ namespace vanillaVoid
                     //    teleporterPos += celestialAdjust;
                     //}
                     string sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
-                    if (sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
+                    if (sceneName != "arena" && sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
                     {
-                        Quaternion rot = Quaternion.Euler(0, 180, 0);
+                        Quaternion rot = Quaternion.Euler(1.52666613f, 180, 9.999999f);
                         var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
                         tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
                         tempLotus.transform.position = teleporterPos + heightAdjust;
                         NetworkServer.Spawn(tempLotus);
                         tempLotusObject = tempLotus;
                         lotusSpawned = true;
+                        voidfields = false;
+
                         EffectData effectData = new EffectData
                         {
                             origin = tempLotus.transform.position
                         };
                         effectData.SetNetworkedObjectReference(tempLotus.gameObject);
                         EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
+                    }else if(sceneName == "arena")
+                    {
+                        voidfields = true;
                     }
                 }
             }
@@ -896,13 +913,14 @@ namespace vanillaVoid
         //}
 
 
-        private void BarrierLotusNova(On.RoR2.HoldoutZoneController.orig_UpdateHealingNovas orig, HoldoutZoneController self, bool isCharging)
+        private void CrystalLotusNova(On.RoR2.HoldoutZoneController.orig_UpdateHealingNovas orig, HoldoutZoneController self, bool isCharging)
         {
+            //Debug.Log("i am happening " + self.charge);
             int itemCount = 0;
             TeamIndex teamDex = default;
             foreach (var player in PlayerCharacterMasterController.instances)
             {
-                itemCount += player.master.inventory.GetItemCount(ItemBase<BarrierLotus>.instance.ItemDef);
+                itemCount += player.master.inventory.GetItemCount(ItemBase<CrystalLotus>.instance.ItemDef);
                 teamDex = player.master.teamIndex;
             }
 
@@ -916,11 +934,13 @@ namespace vanillaVoid
             else
             {
                 slowCoeffValue = 1;
-                if (tempLotusCollider)
-                {
-                    var tempward = tempLotusCollider.GetComponent<BuffWard>();
-                    tempward.enabled = false;
-                }
+
+                //if (tempLotusCollider && self.charge >= 1)
+                //{
+                //    var tempward = tempLotusCollider.GetComponent<BuffWard>();
+                //    tempward.enabled = false;
+                //    Destroy(tempLotusCollider);
+                //}
                 //ward.enabled = false;
             }
 
@@ -928,9 +948,11 @@ namespace vanillaVoid
             {
                 if (NetworkServer.active && Time.fixedDeltaTime > 0f)
                 {
+                    
                     if (!tempLotusCollider)
                     {
-                        tempLotusCollider = UnityEngine.Object.Instantiate<GameObject>(lotusCollider, teleporterPos, new Quaternion(0, 0, 0, 0));
+                        Vector3 holdoutpos = self.gameObject.transform.position;
+                        tempLotusCollider = UnityEngine.Object.Instantiate<GameObject>(lotusCollider, holdoutpos, new Quaternion(0, 0, 0, 0));
 
                         NetworkServer.Spawn(tempLotusCollider);
 
@@ -946,12 +968,18 @@ namespace vanillaVoid
                         tempward.radius = self.currentRadius;
                         tempward.buffDef = lotusSlow;
                         tempward.invertTeamFilter = true;
-                        tempward.buffDuration = 2;
+                        tempward.enabled = false;
+                        tempward.buffDuration = 1;
                         //var spcl = tempLotusCollider.GetComponent<SphereCollider>();
                         //Debug.Log(self.radiusSmoothTime);
                         //spcl.radius = self.radiusSmoothTime;
                         //var wardtemp = tempLotusCollider.GetComponent<BuffWard>();
 
+                    }
+                    else
+                    {
+                        Vector3 holdoutpos = self.gameObject.transform.position;
+                        tempLotusCollider.transform.position = holdoutpos;
                     }
                     //slowCoeffValue += Time.deltaTime;
 
@@ -1010,8 +1038,16 @@ namespace vanillaVoid
                         //    //Debug.Log("fixing dumb jank " + previousPulseFraction);
                         //}
                         //Debug.Log("previous was: " + previousPulseFraction);
-                        float nextPulseFraction = CalcNextPulseFraction(itemCount * (int)ItemBase<BarrierLotus>.instance.pulseCountStacking.Value, previousPulseFraction);
-                        float currentCharge = self.charge;
+
+                        if (currentCharge > self.charge)
+                        {
+                            previousPulseFraction = 0;
+                            currentCharge = self.charge;
+                        }
+
+                        float nextPulseFraction = CalcNextPulseFraction(itemCount * (int)ItemBase<CrystalLotus>.instance.pulseCountStacking.Value, previousPulseFraction);
+                        currentCharge = self.charge;
+
                         //Debug.Log("waiting for " + nextPulseFraction + " | we are at " + currentCharge);
                         if (nextPulseFraction <= currentCharge)
                         {
@@ -1170,7 +1206,7 @@ namespace vanillaVoid
                     if (player.body.healthComponent)
                     {
                         //Debug.Log("yoo health component!!");
-                        player.body.healthComponent.AddBarrier(player.body.healthComponent.fullCombinedHealth * ItemBase<BarrierLotus>.instance.barrierAmount.Value); //25% 
+                        player.body.healthComponent.AddBarrier(player.body.healthComponent.fullCombinedHealth * ItemBase<CrystalLotus>.instance.barrierAmount.Value); //25% 
                         //string effect2 = "RoR2/DLC1/VoidSuppressor/SuppressorClapEffect.prefab";
                         //GameObject effect2Prefab = Addressables.LoadAssetAsync<GameObject>(effect2).WaitForCompletion();
                         //EffectManager.SimpleImpactEffect(effect2Prefab, player.body.transform.position, player.body.aimOrigin, true);
@@ -1244,34 +1280,43 @@ namespace vanillaVoid
             //var timer = effectpfrb.AddComponent<DestroyOnTimer>();
             //float delay = 1.1f;
             //timer.duration = delay;
-
-            EffectManager.SimpleEffect(lotusEffect, teleporterPos + heightAdjustPulse, new Quaternion(0, 0, 0, 0), true);
+            Vector3 pulsepos;
+            if (voidfields)
+            {
+                pulsepos = gameobject.gameObject.transform.position + (heightAdjustPulse / 2);
+            }
+            else
+            {
+                pulsepos = teleporterPos + heightAdjustPulse;
+            }
+            
+            EffectManager.SimpleEffect(lotusEffect, pulsepos, new Quaternion(0, 0, 0, 0), true);
 
             yield return new WaitForSeconds(1.15f);
 
             AkSoundEngine.StopPlayingID(soundID);
 
             //detonationTime = false;
-
+            //gameobject.gameObject.transform.position
             string effect1 = "RoR2/DLC1/VoidSuppressor/SuppressorRetreatToShellEffect.prefab"; //"RoR2/DLC1/VoidRaidCrab/LaserImpactEffect.prefab";
             GameObject effect1Prefab = Addressables.LoadAssetAsync<GameObject>(effect1).WaitForCompletion();
-            EffectManager.SimpleImpactEffect(effect1Prefab, teleporterPos + heightAdjustPulse, new Vector3(0, 0, 0), true);
+            EffectManager.SimpleImpactEffect(effect1Prefab, pulsepos, new Vector3(0, 0, 0), true);
         }
 
         private void LotusSlowStatsHook(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
         {
-            Debug.Log("slow hook being called");
+            //Debug.Log("slow hook being called");
             if (sender)
             {
-                Debug.Log("is buff? : " + sender.HasBuff(lotusSlow));
+                //Debug.Log("is buff? : " + sender.HasBuff(lotusSlow));
                 // Debug.Log("warbanner? : " + sender.HasBuff(RoR2Content.Buffs.Warbanner));
-                var token = sender.gameObject.GetComponent<LotusBodyToken>();
-                Debug.Log("token? : " + token);
-                Debug.Log("sender: " + sender + " | " + sender.name);
-                if (sender.HasBuff(lotusSlow) || token)
+                //var token = sender.gameObject.GetComponent<LotusBodyToken>();
+                //Debug.Log("token? : " + token);
+                //Debug.Log("sender: " + sender + " | " + sender.name);
+                if (sender.HasBuff(lotusSlow))
                 {
                     float slow = (1 - slowCoeffValue);
-                    Debug.Log("slow: " + slow);
+                    //Debug.Log("slow: " + slow);
                     args.moveSpeedReductionMultAdd += slow;
                     args.attackSpeedMultAdd -= slow / 2;
                 }
@@ -1424,7 +1469,7 @@ namespace vanillaVoid
 
         public void CreateLotusBuff()
         {
-            var buffColor = new Color(0.2588f, 0.0392f, 0.9882f);
+            var buffColor = new Color(0.5215f, 0.3764f, 0.8549f);
             lotusSlow = ScriptableObject.CreateInstance<BuffDef>();
             lotusSlow.buffColor = buffColor;
             lotusSlow.canStack = false;

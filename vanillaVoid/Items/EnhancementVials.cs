@@ -17,7 +17,7 @@ namespace vanillaVoid.Items
 {
     public class EnhancementVials : ItemBase<EnhancementVials>
     {
-        public ConfigEntry<int> refreshAmount;
+        //public ConfigEntry<int> refreshAmount;
 
         public ConfigEntry<string> voidPair;
 
@@ -27,9 +27,9 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "EHANCE_VIALS_ITEM";
 
-        public override string ItemPickupDesc => $"Upgrade an item at low health. Consumed on use. At the start of each stage, {refreshAmount.Value} stack regenerates. <style=cIsVoid>Corrupts all Power Elixirs</style>.";
+        public override string ItemPickupDesc => $"Upgrade an item at low health. Consumed on use. At the start of each stage, {EmptyVials.instance.refreshAmount.Value} stack regenerates. <style=cIsVoid>Corrupts all Power Elixirs</style>.";
 
-        public override string ItemFullDescription => $"Taking damage to below <style=cIsHealth>25% health</style> <style=cIsUtility>consumes</style> this item, <style=cIsUtility>upgrading</style> another item. At the start of each stage, <style=cIsUtility>{refreshAmount.Value}</style> stack regenerates. <style=cIsVoid>Corrupts all Power Elixirs</style>.";
+        public override string ItemFullDescription => $"Taking damage to below <style=cIsHealth>25% health</style> <style=cIsUtility>consumes</style> this item, <style=cIsUtility>upgrading</style> another item. At the start of each stage, <style=cIsUtility>{EmptyVials.instance.refreshAmount.Value}</style> stack regenerates. <style=cIsVoid>Corrupts all Power Elixirs</style>.";
 
         public override string ItemLore => $"\"What an experiment this will be...our first forray into the void! Gather round, for this will forever change each and every one of our lives!\" \n\nA few days later, a janitor discovered a strange pile of objects scattered around various colorful test tubes. They thought little of it.";
 
@@ -104,7 +104,7 @@ namespace vanillaVoid.Items
         public override void CreateConfig(ConfigFile config)
         {
             //consumeStack = config.Bind<bool>("Item: " + ItemName, "Consume Stack", false, "Adjust if each potion should upgrade a whole stack, like benthic, or only one.");
-            refreshAmount = config.Bind<int>("Item: " + ItemName, "Refresh Amount", 1, "Adjust how many empty potions refresh at the start of a new stage. A negative number will refresh all stacks.");
+            //refreshAmount = config.Bind<int>("Item: " + ItemName, "Refresh Amount", 1, "Adjust how many empty potions refresh at the start of a new stage. A negative number will refresh all stacks.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "HealingPotion", "Adjust which item this is the void pair of.");
         }
 
@@ -446,7 +446,7 @@ namespace vanillaVoid.Items
 
         private void RefreshVials(SceneDirector obj)
         {
-            int refreshAmnt = refreshAmount.Value;
+            int refreshAmnt = EmptyVials.instance.refreshAmount.Value;
             if (refreshAmnt != 0)
             {
                 //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
