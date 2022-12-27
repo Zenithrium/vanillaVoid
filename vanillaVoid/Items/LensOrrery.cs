@@ -601,7 +601,7 @@ namespace vanillaVoid.Items
             {
                 if (sender && sender.inventory)
                 {
-                    int orreryCount = sender.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
+                    //int orreryCount = sender.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
                     int buffCount = sender.GetBuffCount(OrreryDamageBonus.buffIndex);
                     if (buffCount > 0)
                     {
@@ -661,7 +661,7 @@ namespace vanillaVoid.Items
                         {
                             if (!damageInfo.crit)
                             {
-                                if (attackerBody.GetBuffCount(OrreryDamageBonus) < buffStacksPerCount.Value)
+                                if (attackerBody.GetBuffCount(OrreryDamageBonus) < buffStacksPerCount.Value * orreryCount)
                                 {
                                     attackerBody.AddBuff(OrreryDamageBonus);
                                 }

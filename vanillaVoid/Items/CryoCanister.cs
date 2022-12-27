@@ -137,8 +137,8 @@ namespace vanillaVoid.Items
             requiredStacksForFreeze = config.Bind<int>("Item: " + ItemName, "Debuff Stacks Required for Freeze", 3, "Adjust the number of stacks needed to freeze an enemy.");
             requiredStacksForBossFreeze = config.Bind<int>("Item: " + ItemName, "Buff Stacks Required for Boss Freeze", 10, "Adjust the number of stacks needed to freeze a boss.");
             slowPercentage = config.Bind<float>("Item: " + ItemName, "Percent Slow", 5f, "Adjust the percentage slow the buff causes.");
-            slowDuration = config.Bind<float>("Item: " + ItemName, "Slow Debuff Duration", 3, "Adjust the duration the slow lasts, in seconds.");
-            slowDurationStacking = config.Bind<float>("Item: " + ItemName, "Slow Debuff Duration per Stack", 1, "Adjust the duration the slow gains per stack.");
+            slowDuration = config.Bind<float>("Item: " + ItemName, "Duration of Slow Debuff", 4, "Adjust the duration the slow lasts, in seconds.");
+            slowDurationStacking = config.Bind<float>("Item: " + ItemName, "Duration of Slow Debuff per Stack", 2, "Adjust the duration the slow gains per stack.");
 
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "IgniteOnKill", "Adjust which item this is the void pair of.");
         }
