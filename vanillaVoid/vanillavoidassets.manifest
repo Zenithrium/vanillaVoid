@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 1205327620
+CRC: 1466388719
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: ea6431470e55b75df9fd8bb5a7cc3c3b
+    Hash: 5976503a227930ca17045cbf0a0dc849
   TypeTreeHash:
     serializedVersion: 2
     Hash: 6ba044ad33d408c04b562a940f2669ef
@@ -59,6 +59,7 @@ Assets:
 - Assets/Textures/Icons/Item/VialsItem/vialsIcon.png
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedVialsPickup.prefab
 - Assets/raw/quill/realdiffuse.png
+- Assets/Models/Misc/matPurpleGrassyStonePink.mat
 - Assets/Models/Misc/mdlPlatformSeparate.prefab
 - Assets/Models/Prefabs/Item/StaffItem/mdlStaffPickup.prefab
 - Assets/Models/Prefabs/Item/CryoItem/ChargeShadow.mat
@@ -69,6 +70,7 @@ Assets:
 - Assets/Textures/Icons/Item/LotusItem/texRampIce3.png
 - Assets/Textures/Materials/Item/AbyssalAdze/MiscMetalTexture.mat
 - Assets/Textures/Icons/Item/ClockworkWatch/watchIcon512.png
+- Assets/Models/Misc/VoidShrine.prefab
 - Assets/Models/Prefabs/Item/ExtVent/mdlVentPickup.prefab
 - Assets/Textures/Icons/Item/BladeItem/bladeIcon.png
 - Assets/Models/Prefabs/Item/LotusItem/mdlLotusWorldObject.prefab

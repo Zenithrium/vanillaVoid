@@ -465,8 +465,8 @@ namespace vanillaVoid.Items
                     dashCurrent = dashMax;
                     count = 0;
                 }
-
-                if (body.inputBank.jump.justPressed && body.characterMotor.jumpCount == body.maxJumpCount && count >= body.maxJumpCount && dashCurrent != 0)
+                
+                if (body.inputBank.jump.justPressed && body.characterMotor.jumpCount == body.maxJumpCount && count >= body.maxJumpCount && dashCurrent != 0 && !body.HasBuff(RoR2Content.Buffs.Nullified) && !body.HasBuff(RoR2Content.Buffs.Entangle))
                 {
                     Vector3 dir = body.inputBank.moveVector;
                     if(dir != Vector3.zero)

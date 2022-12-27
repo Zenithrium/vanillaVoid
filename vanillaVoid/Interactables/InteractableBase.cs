@@ -30,8 +30,8 @@ namespace vanillaVoid.Interactables
 
         protected void CreateLang()
         {
-            LanguageAPI.Add("INTERACTABLE_" + InteractableLangToken + "_NAME", InteractableName);
-            LanguageAPI.Add("INTERACTABLE_" + InteractableLangToken + "_CONTEXT", InteractableContext);
+            LanguageAPI.Add("VV_INTERACTABLE_" + InteractableLangToken + "_NAME", InteractableName);
+            LanguageAPI.Add("VV_INTERACTABLE_" + InteractableLangToken + "_CONTEXT", InteractableContext);
         }
     }
 }

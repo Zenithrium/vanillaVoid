@@ -561,9 +561,9 @@ namespace vanillaVoid.Items
                                 //itemResult = whiteList[0].itemIndex;
                                 pickupResult = whiteList[0];
                                 //Debug.Log("selected a white");
-                            }else if(randInt < 100)
+                            }else if(randInt < 99)
                             {
-                                List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier1DropList);
+                                List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier2DropList);
                                 Util.ShuffleList(greenList, watchVoidRng);
                                 //itemResult = greenList[0].itemIndex;
                                 pickupResult = greenList[0];
@@ -571,14 +571,16 @@ namespace vanillaVoid.Items
                             }
                             else
                             {
-                                List<PickupIndex> redList = new List<PickupIndex>(Run.instance.availableTier1DropList);
+                                List<PickupIndex> redList = new List<PickupIndex>(Run.instance.availableTier3DropList);
                                 Util.ShuffleList(redList, watchVoidRng);
                                 //itemResult = redList[0].itemIndex;
                                 pickupResult = redList[0];
                                 //Debug.Log("selected a red");
                             }
-                            //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
-                            float num = 360f / (float)rewardCount;
+                            //if (Util.CheckRoll(.f))
+
+                                //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+                                float num = 360f / (float)rewardCount;
                             Vector3 a = Quaternion.AngleAxis(num * (float)i, Vector3.up) * Vector3.forward;
                             Vector3 position = player.gameObject.transform.position + a * 8f + Vector3.up * 8f;
                              

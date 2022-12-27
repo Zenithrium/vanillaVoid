@@ -7,10 +7,13 @@
   <ItemGroup>
     <Compile Remove="Artifact\**" />
     <Compile Remove="Equipment\EliteEquipment\**" />
+    <Compile Remove="language\**" />
     <EmbeddedResource Remove="Artifact\**" />
     <EmbeddedResource Remove="Equipment\EliteEquipment\**" />
+    <EmbeddedResource Remove="language\**" />
     <None Remove="Artifact\**" />
     <None Remove="Equipment\EliteEquipment\**" />
+    <None Remove="language\**" />
   </ItemGroup>
 
 	<ItemGroup>

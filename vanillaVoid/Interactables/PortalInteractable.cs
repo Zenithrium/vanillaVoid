@@ -26,7 +26,7 @@ namespace vanillaVoid.Interactables
 
         public override string InteractableLangToken => "SHATTERED_SHRINE";
 
-        public override GameObject InteractableModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlVoidShrine.prefab");
+        public override GameObject InteractableModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("VoidShrine.prefab");
 
         public static GameObject InteractableBodyModelPrefab;
 
@@ -57,8 +57,9 @@ namespace vanillaVoid.Interactables
             CreateConfig(config);
             CreateLang();
 
-            CostTypeCatalog.modHelper.getAdditionalEntries += addVoidItemType;
+            CostTypeCatalog.modHelper.getAdditionalEntries += addVoidCostType;
             On.RoR2.CampDirector.SelectCard += VoidCampAddMonolith;
+            On.RoR2.PurchaseInteraction.GetDisplayName += MonolithName;
             //voidItemsList = new List<PickupIndex>();
             //voidItemsList.Union(Run.instance.availableVoidBossDropList).Union(Run.instance.availableVoidTier1DropList).Union(Run.instance.availableVoidTier2DropList).Union(Run.instance.availableVoidTier3DropList);
 
@@ -141,17 +142,18 @@ namespace vanillaVoid.Interactables
         //}
 
 
-        private void addVoidItemType(List<CostTypeDef> obj)
+        private void addVoidCostType(List<CostTypeDef> obj)
         {
             //CostTypeIndex voidItem = new CostTypeIndex();
             voidCostDef = new CostTypeDef();
-            voidCostDef.costStringFormatToken = "COST_VOIDITEM_FORMAT";
+            voidCostDef.costStringFormatToken = "VV_COST_VOIDITEM_FORMAT";
             voidCostDef.isAffordable = new CostTypeDef.IsAffordableDelegate(VoidItemCostTypeHelper.IsAffordable);
             voidCostDef.payCost = new CostTypeDef.PayCostDelegate(VoidItemCostTypeHelper.PayCost);
             voidCostDef.colorIndex = ColorCatalog.ColorIndex.VoidItem;
             voidCostDef.saturateWorldStyledCostString = true;
             voidCostDef.darkenWorldStyledCostString = false;
             voidCostTypeIndex = CostTypeCatalog.costTypeDefs.Length + obj.Count;
+            LanguageAPI.Add("VV_COST_VOIDITEM_FORMAT", "1 Item(s)");
             obj.Add(voidCostDef);
         }
 
@@ -252,8 +254,8 @@ namespace vanillaVoid.Interactables
             InteractableBodyModelPrefab.AddComponent<NetworkIdentity>();
 
             var purchaseInteraction = InteractableBodyModelPrefab.AddComponent<PurchaseInteraction>();
-            purchaseInteraction.displayNameToken = $"INTERACTABLE_{InteractableLangToken}_NAME";
-            purchaseInteraction.contextToken = $"INTERACTABLE_{InteractableLangToken}_CONTEXT";
+            purchaseInteraction.displayNameToken = $"VV_INTERACTABLE_{InteractableLangToken}_NAME";
+            purchaseInteraction.contextToken = $"VV_INTERACTABLE_{InteractableLangToken}_CONTEXT";
             purchaseInteraction.costType = (CostTypeIndex)voidCostTypeIndex;
             purchaseInteraction.automaticallyScaleCostWithDifficulty = false;
             purchaseInteraction.cost = 1;
@@ -289,7 +291,7 @@ namespace vanillaVoid.Interactables
             //networkStateMachine.stateMachines = new EntityStateMachine[] { entityStateMachine };
 
             var genericNameDisplay = InteractableBodyModelPrefab.AddComponent<GenericDisplayNameProvider>();
-            genericNameDisplay.displayToken = $"INTERACTABLE_{InteractableLangToken}_NAME";
+            genericNameDisplay.displayToken = $"VV_INTERACTABLE_{InteractableLangToken}_NAME";
 
             var interactionToken = InteractableBodyModelPrefab.AddComponent<PortalInteractableToken>();
             interactionToken.PurchaseInteraction = purchaseInteraction;
@@ -320,7 +322,7 @@ namespace vanillaVoid.Interactables
             modelLocator.autoUpdateModelTransform = true;
 
             var highlightController = InteractableBodyModelPrefab.GetComponent<Highlight>();
-            highlightController.targetRenderer = InteractableBodyModelPrefab.GetComponentsInChildren<MeshRenderer>().Where(x => x.gameObject.name.Contains("mdlVoidShrine")).First();
+            highlightController.targetRenderer = InteractableBodyModelPrefab.GetComponentsInChildren<MeshRenderer>().Where(x => x.gameObject.name.Contains("VoidShrine")).First();
             highlightController.strength = 1;
             highlightController.highlightColor = Highlight.HighlightColor.interactive;
 
@@ -369,17 +371,18 @@ namespace vanillaVoid.Interactables
             InteractableSpawnCard.nodeGraphType = RoR2.Navigation.MapNodeGroup.GraphType.Ground;
             InteractableSpawnCard.requiredFlags = RoR2.Navigation.NodeFlags.None;
             InteractableSpawnCard.forbiddenFlags = RoR2.Navigation.NodeFlags.NoShrineSpawn | RoR2.Navigation.NodeFlags.NoChestSpawn;
-            InteractableSpawnCard.directorCreditCost = 20;
+            InteractableSpawnCard.directorCreditCost = 15;
             InteractableSpawnCard.occupyPosition = true;
             InteractableSpawnCard.orientToFloor = false;
             InteractableSpawnCard.skipSpawnWhenSacrificeArtifactEnabled = false;
             InteractableSpawnCard.maxSpawnsPerStage = 1;
+            //InteractableSpawnCard.
 
             MonolithCard = new DirectorCard
             {
-                selectionWeight = 10,
+                selectionWeight = 6,
                 spawnCard = InteractableSpawnCard,
-                minimumStageCompletions = 0,
+                minimumStageCompletions = 1,
                 //allowAmbushSpawn = true, TODO removed i think?
             };
 
@@ -402,8 +405,7 @@ namespace vanillaVoid.Interactables
 
             DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.Custom, "FBLScene");
             DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.Custom, "drybasin");
-
-
+            DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.Custom, "slumberingsatellite");
             //DirectorAPI.DirectorCardHolder.
             //CampDirector.cardSelector.AddChoice(directorCard, 1f);
 
@@ -427,7 +429,6 @@ namespace vanillaVoid.Interactables
                 selectionWeight = 0,
                 spawnCard = VoidFieldsPortalCard,
                 minimumStageCompletions = 0,
-                //allowAmbushSpawn = true, TODO removed i think?
             };
             //DirectorAPI.DirectorCardHolder dirCardHolder2 = new DirectorAPI.DirectorCardHolder
             //{
@@ -439,6 +440,16 @@ namespace vanillaVoid.Interactables
 
         }
 
+        private string MonolithName(On.RoR2.PurchaseInteraction.orig_GetDisplayName orig, PurchaseInteraction self)
+        {
+            //Debug.Log("name: " + self.displayNameToken + " | cost: ");
+            if (self.displayNameToken == $"VV_INTERACTABLE_{InteractableLangToken}_NAME")
+            {
+                return InteractableName;
+            }
+            return orig(self);
+        }
+
         private DirectorCard VoidCampAddMonolith(On.RoR2.CampDirector.orig_SelectCard orig, CampDirector self, WeightedSelection<DirectorCard> deck, int maxCost)
         {
             hasAddedMonolith = false;
@@ -446,6 +457,7 @@ namespace vanillaVoid.Interactables
             {
                 for (int i = deck.Count - 1; i >= 0; i--)
                 {
+                    Debug.Log("name: " + deck.GetChoice(i).value.spawnCard.name + " | cost: " + deck.GetChoice(i).value.cost);
                     if (deck.GetChoice(i).value.spawnCard.name == "iscVoidPortalInteractable")
                     {
                         hasAddedMonolith = true;
@@ -653,7 +665,7 @@ namespace vanillaVoid.Interactables
         public class PortalInteractableToken : NetworkBehaviour
         {
             //public CharacterBody Owner;
-            //public CharacterBody LastActivator;
+            public CharacterBody LastActivator;
             //public Transform selfpos;
             public PurchaseInteraction PurchaseInteraction;
 
@@ -685,9 +697,10 @@ namespace vanillaVoid.Interactables
                         AttemptSpawnVoidPortal();
                         GameObject effectPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/VFX/ShrineUseEffect.prefab").WaitForCompletion();
                         EffectManager.SimpleImpactEffect(effectPrefab, this.transform.position, new Vector3(0, 0, 0), true);
-                        
+
                         //GameObject portal = UnityEngine.Object.Instantiate<GameObject>(ShatteredMonolith.voidFieldPortalObject, this.transform.position, new Quaternion(0, 70, 0, 0));
                         //NetworkServer.Spawn(portal);
+                        LastActivator = body;
                         PurchaseInteraction.SetAvailable(false);
 
                     }
