@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 3251029557
+CRC: 1205327620
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: bbfdc566ef0a64022e992a1e9b0c9904
+    Hash: ea6431470e55b75df9fd8bb5a7cc3c3b
   TypeTreeHash:
     serializedVersion: 2
     Hash: 6ba044ad33d408c04b562a940f2669ef
@@ -53,6 +53,7 @@ Assets:
 - Assets/Models/Prefabs/Item/CryoItem/mdlCryoPickup.prefab
 - Assets/Models/Prefabs/Item/CryoItem/meshCryoExplosion.mesh
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedEmptyDisplay.prefab
+- Assets/Models/Misc/matPurpleGrassyStone.mat
 - Assets/Models/Prefabs/Item/MessItem/mdlMessDisplay.prefab
 - Assets/Models/Prefabs/Item/CryoItem/texChargeShadow.png
 - Assets/Textures/Icons/Item/VialsItem/vialsIcon.png
@@ -73,6 +74,7 @@ Assets:
 - Assets/Models/Prefabs/Item/LotusItem/mdlLotusWorldObject.prefab
 - Assets/Models/Misc/fbxVoidArch.fbx
 - Assets/Models/Prefabs/Item/QuillItem/mdlQuillPickup.prefab
+- Assets/Models/Misc/Sprite/texShrineIconOutlined.png
 - Assets/Models/Prefabs/Item/QuillItem/mdlPotSoloDisplay.prefab
 - Assets/Textures/Icons/Item/ventItem/ventIcon.png
 - Assets/Textures/Icons/Item/LotusItem/texMagmaCloud.png
@@ -85,7 +87,6 @@ Assets:
 - Assets/Models/Prefabs/Item/ExtVent/ventOrb.prefab
 - Assets/Textures/Materials/Item/Mess/voidorb.mat
 - Assets/Textures/Materials/Item/AbyssalAdze/HeadMaterial.mat
-- Assets/Textures/Icons/Item/LotusItem/lotusSlowMaterial.mat
 - Assets/Models/Prefabs/Item/QuillItem/mdlQuillSoloDisplay.prefab
 - Assets/Models/Prefabs/Item/QuillItem/mdlQuillPickupReal.prefab
 - Assets/Textures/Icons/Item/AbyssalAdze/adzeIcon512.png
@@ -130,6 +131,7 @@ Assets:
 - Assets/Textures/Materials/Item/AbyssalAdze/orbTranspTexture.mat
 - Assets/Textures/Materials/Item/AbyssalAdze/HandleTexture.mat
 - Assets/Textures/Materials/Item/Mess/geartexture.mat
+- Assets/Models/Misc/mdlVoidShrine.prefab
 - Assets/Textures/Icons/Item/QuillItem/quillIcon512.png
 - Assets/Models/Prefabs/Item/AbyssalAdze/mdlAdzeDisplay.prefab
 - Assets/Textures/Icons/Item/LotusItem/texRampIce4.png

@@ -22,6 +22,7 @@ using MonoMod.Cil;
 using RoR2.Orbs;
 using UnityEngine.Networking;
 using RoR2.Projectile;
+using vanillaVoid.Interactables;
 using vanillaVoid.Misc;
 using EntityStates.TeleporterHealNovaController;
 //using static vanillaVoid.Utils.Components.MaterialControllerComponents;
@@ -36,7 +37,7 @@ namespace vanillaVoid
     [BepInDependency("com.bepis.r2api.language", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("com.bepis.r2api.prefab", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("com.bepis.r2api.recalculatestats", BepInDependency.DependencyFlags.HardDependency)]
-    [BepInDependency("com.bepis.r2api.networking", BepInDependency.DependencyFlags.HardDependency)]
+    //[BepInDependency("com.bepis.r2api.networking", BepInDependency.DependencyFlags.HardDependency)]
 
     //[BepInDependency("com.RumblingJOSEPH.VoidItemAPI", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency(VoidItemAPI.VoidItemAPI.MODGUID)]
@@ -53,7 +54,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.3.2";
+        public const string ModVer = "1.4.0";
 
         public static ExpansionDef sotvDLC;
 
@@ -62,6 +63,7 @@ namespace vanillaVoid
         //public List<ArtifactBase> Artifacts = new List<ArtifactBase>();
         public List<ItemBase> Items = new List<ItemBase>();
         public List<EquipmentBase> Equipments = new List<EquipmentBase>();
+        public List<InteractableBase> Interactables = new List<InteractableBase>();
         //public List<EliteEquipmentBase> EliteEquipments = new List<EliteEquipmentBase>();
 
         //Provides a direct access to this plugin's logger for use in any of your other classes.
@@ -111,6 +113,7 @@ namespace vanillaVoid
             LotusDuration = Config.Bind<float>("Item: " + lotusname, "Slow Duration", 30f, "Variant 0: Adjust how long the slow should last per pulse. A given slow is replaced by the next slow, so with enough lotuses, the full duration won't get used. However, increasing this also decreases the rate at which the slow fades.");
             LotusSlowPercent = Config.Bind<float>("Item: " + lotusname, "Slow Percent", 0.075f, "Variant 0: Adjust the strongest slow percent (between 0 and 1). Increasing this also makes it so the slow 'feels' shorter, as high values (near 1) feel very minor.");
 
+            
 
             ModLogger = Logger;
 
@@ -123,6 +126,8 @@ namespace vanillaVoid
             {
                 MainAssets = AssetBundle.LoadFromStream(stream);
             }
+
+            Swapallshaders(MainAssets);
 
             On.RoR2.CharacterBody.OnSkillActivated += ExtExhaustFireProjectile;
 
@@ -171,11 +176,11 @@ namespace vanillaVoid
             var tempSDP = platformObject.AddComponent<SurfaceDefProvider>();
             tempSDP.surfaceDef = Addressables.LoadAssetAsync<SurfaceDef>("RoR2/Base/Common/sdMetal.asset").WaitForCompletion();
 
-            string material = "RoR2/DLC1/Common/matVoidmetalTrim.mat"; //"RoR2/DLC1/voidstage/matVoidMetalTrimGrassyVertexColorsOnly.mat"; // what the game uses, but it looks bad for some reason :(
+            string platmat = "RoR2/DLC1/Common/matVoidmetalTrim.mat"; //"RoR2/DLC1/voidstage/matVoidMetalTrimGrassyVertexColorsOnly.mat"; // what the game uses, but it looks bad for some reason :(
             var pflower = platformObject.transform.Find("platformlower").GetComponent<MeshRenderer>();
             var pfupper = platformObject.transform.Find("platformupper").GetComponent<MeshRenderer>();
-            pflower.material = Addressables.LoadAssetAsync<Material>(material).WaitForCompletion();
-            pfupper.material = Addressables.LoadAssetAsync<Material>(material).WaitForCompletion();
+            pflower.material = Addressables.LoadAssetAsync<Material>(platmat).WaitForCompletion();
+            pfupper.material = Addressables.LoadAssetAsync<Material>(platmat).WaitForCompletion();
 
             portalObject = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/PortalArena/PortalArena.prefab").WaitForCompletion();
             var tempLight = portalObject.GetComponentInChildren<Light>();
@@ -218,12 +223,16 @@ namespace vanillaVoid
 
             CreateLotusBuff();
 
+            //var voidtier1def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier1);
+            //GameObject prefab = voidtier1def.highlightPrefab;
+
             //ExtraterrestrialExhaust.RocketProjectile.
             //R2API.ContentAddition.AddNetworkedObject(bladeObject);
             //R2API.ContentAddition.AddNetworkedObject(lotusObject);
 
             // Don't know how to create/use an asset bundle, or don't have a unity project set up?
             // Look here for info on how to set these up: https://github.com/KomradeSpectre/AetheriumMod/blob/rewrite-master/Tutorials/Item%20Mod%20Creation.md#unity-project
+
 
             //This section automatically scans the project for all artifacts
             //var ArtifactTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(ArtifactBase)));
@@ -236,6 +245,10 @@ namespace vanillaVoid
             //        artifact.Init(Config);
             //    }
             //}
+
+            //var voidtier1def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier1);
+            //GameObject prefab = voidtier1def.highlightPrefab;
+
 
             //This section automatically scans the project for all items
             var ItemTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(ItemBase)));
@@ -265,6 +278,21 @@ namespace vanillaVoid
                 if (ValidateEquipment(equipment, Equipments))
                 {
                     equipment.Init(Config);
+                }
+            }
+
+
+            var InteractableTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(InteractableBase)));
+
+            ModLogger.LogInfo("---INTERACTABLES---");
+
+            foreach (var interactableType in InteractableTypes)
+            {
+                InteractableBase interactable = (InteractableBase)System.Activator.CreateInstance(interactableType);
+                if (ValidateInteractable(interactable, Interactables))
+                {
+                    interactable.Init(Config);
+                    ModLogger.LogInfo("Interactable: " + interactable.InteractableName + " Initialized!");
                 }
             }
 
@@ -390,6 +418,19 @@ namespace vanillaVoid
         //    }
         //    return false;
         //}
+        public bool ValidateInteractable(InteractableBase interactable, List<InteractableBase> interactableList)
+        {
+            var enabled = Config.Bind<bool>("Interactable: " + interactable.InteractableName, "Enable Interactable?", true, "Should this interactable appear in runs?").Value;
+
+            //InteractableStatusDictionary.Add(interactable, enabled);
+
+            if (enabled)
+            {
+                interactableList.Add(interactable);
+                return true;
+            }
+            return false;
+        }
 
         private void ExtExhaustFireProjectile(On.RoR2.CharacterBody.orig_OnSkillActivated orig, RoR2.CharacterBody self, RoR2.GenericSkill skill)
         {
@@ -403,6 +444,11 @@ namespace vanillaVoid
                 int missleCount = (int)Math.Ceiling(skillCD / ItemBase<ExtraterrestrialExhaust>.instance.secondsPerRocket.Value);
                 //Debug.Log("rockets firing: " + missleCount);
                 //Debug.Log("lunar primary: " + skill.stock); 
+
+                //var voidtier1def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier1);
+                //GameObject prefab = voidtier1def.highlightPrefab;
+                //Instantiate(prefab, self.transform);
+
                 if (skill.skillDef.ToString().Contains("LunarPrimaryReplacement"))
                 {
                     //if (genericRng == null)
@@ -1501,6 +1547,7 @@ namespace vanillaVoid
         private void AddLocusStuff(Stage obj)
         {
             //Debug.Log("dlc enabled, obviously");
+            Debug.Log(obj.sceneDef + " " + obj.sceneDef.cachedName + " ");
             if(obj.sceneDef == SceneCatalog.GetSceneDefFromSceneName("voidstage") && locusExit.Value)
             {
                 //Debug.Log("attempting");
@@ -1657,6 +1704,43 @@ namespace vanillaVoid
         //    }
         //}
 
+        public void Swapallshaders(AssetBundle bundle)
+        {
+            Material[] allMaterials = bundle.LoadAllAssets<Material>();
+            foreach (Material mat in allMaterials)
+            {
+                switch (mat.shader.name)
+                {
+                    case "Stubbed Hopoo Games/Deferred/Standard":
+                        mat.shader = Resources.Load<Shader>("shaders/deferred/hgstandard");
+                        break;
+                    case "Stubbed Hopoo Games/Deferred/Snow Topped":
+                        mat.shader = Resources.Load<Shader>("shaders/deferred/hgsnowtopped");
+                        break;
+                    case "Stubbed Hopoo Games/FX/Cloud Remap":
+                        mat.shader = Resources.Load<Shader>("shaders/fx/hgcloudremap");
+                        break;
+                    case "Stubbed Hopoo Games/FX/Cloud Intersection Remap":
+                        mat.shader = Resources.Load<Shader>("shaders/fx/hgintersectioncloudremap");
+                        break;
+                    case "Stubbed Hopoo Games/FX/Opaque Cloud Remap":
+                        mat.shader = Resources.Load<Shader>("shaders/fx/hgopaquecloudremap");
+                        break;
+                    case "Stubbed Hopoo Games/FX/Distortion":
+                        mat.shader = Resources.Load<Shader>("shaders/fx/hgdistortion");
+                        break;
+                    case "Stubbed Hopoo Games/FX/Solid Parallax":
+                        mat.shader = Resources.Load<Shader>("shaders/fx/hgsolidparallax");
+                        break;
+                    case "Stubbed Hopoo Games/Environment/Distant Water":
+                        mat.shader = Resources.Load<Shader>("shaders/environment/hgdistantwater");
+                        break;
+                    default:
+                        break;
+                }
+
+            }
+        }
     }
 
 
