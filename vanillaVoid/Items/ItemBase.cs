@@ -72,9 +72,15 @@ namespace vanillaVoid.Items
             LanguageAPI.Add("VV_ITEM_" + ItemLangTokenName + "_PICKUP", ItemPickupDesc);
             LanguageAPI.Add("VV_ITEM_" + ItemLangTokenName + "_DESCRIPTION", ItemFullDescription);
             LanguageAPI.Add("VV_ITEM_" + ItemLangTokenName + "_LORE", ItemLore);
+
+            //LanguageAPI.Add("ITEM_" + ItemLangTokenName + "_NAME", ItemName);
+            //LanguageAPI.Add("ITEM_" + ItemLangTokenName + "_PICKUP", ItemPickupDesc);
+            //LanguageAPI.Add("ITEM_" + ItemLangTokenName + "_DESCRIPTION", ItemFullDescription);
+            //LanguageAPI.Add("ITEM_" + ItemLangTokenName + "_LORE", ItemLore);
         }
 
         public abstract ItemDisplayRuleDict CreateItemDisplayRules();
+
         protected void CreateItem()
         {
             
@@ -89,6 +95,13 @@ namespace vanillaVoid.Items
             ItemDef.pickupToken = "VV_ITEM_" + ItemLangTokenName + "_PICKUP";
             ItemDef.descriptionToken = "VV_ITEM_" + ItemLangTokenName + "_DESCRIPTION";
             ItemDef.loreToken = "VV_ITEM_" + ItemLangTokenName + "_LORE";
+
+            //ItemDef.name = "ITEM_" + ItemLangTokenName;
+            //ItemDef.nameToken = "ITEM_" + ItemLangTokenName + "_NAME";
+            //ItemDef.pickupToken = "ITEM_" + ItemLangTokenName + "_PICKUP";
+            //ItemDef.descriptionToken = "ITEM_" + ItemLangTokenName + "_DESCRIPTION";
+            //ItemDef.loreToken = "ITEM_" + ItemLangTokenName + "_LORE";
+
             ItemDef.pickupModelPrefab = ItemModel;
             ItemDef.pickupIconSprite = ItemIcon;
             ItemDef.hidden = false;

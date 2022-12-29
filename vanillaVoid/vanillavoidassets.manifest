@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 1466388719
+CRC: 844780604
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 5976503a227930ca17045cbf0a0dc849
+    Hash: f48e2bdb6dcbdc788b018043fa0398df
   TypeTreeHash:
     serializedVersion: 2
     Hash: 6ba044ad33d408c04b562a940f2669ef
@@ -47,6 +47,7 @@ Assets:
 - Assets/Textures/Icons/Buffs/preFreezeSlow.png
 - Assets/Textures/Icons/Item/LotusItem/lotusSlowMat2.mat
 - Assets/Textures/Icons/Item/LotusItem/crystalLotusIcon512.png
+- Assets/Sprites/texUICornerTier1.png
 - Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryPickup.prefab
 - Assets/Models/Prefabs/Item/ClockworkWatch/mdlClockworkPickup.prefab
 - Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryDisplay.prefab
@@ -64,6 +65,7 @@ Assets:
 - Assets/Models/Prefabs/Item/StaffItem/mdlStaffPickup.prefab
 - Assets/Models/Prefabs/Item/CryoItem/ChargeShadow.mat
 - Assets/Models/Misc/fbxVoidPlatform.fbx
+- Assets/Sprites/texUICornerTier4.png
 - Assets/Textures/Icons/Item/CryoItem/cryoIcon512.png
 - Assets/Textures/Icons/Item/BladeItem/bladeIcon512OLD.png
 - Assets/Models/Prefabs/Item/CryoItem/matDistortion.mat
@@ -71,15 +73,17 @@ Assets:
 - Assets/Textures/Materials/Item/AbyssalAdze/MiscMetalTexture.mat
 - Assets/Textures/Icons/Item/ClockworkWatch/watchIcon512.png
 - Assets/Models/Misc/VoidShrine.prefab
+- Assets/Sprites/texUICornerTier2.png
 - Assets/Models/Prefabs/Item/ExtVent/mdlVentPickup.prefab
 - Assets/Textures/Icons/Item/BladeItem/bladeIcon.png
 - Assets/Models/Prefabs/Item/LotusItem/mdlLotusWorldObject.prefab
 - Assets/Models/Misc/fbxVoidArch.fbx
 - Assets/Models/Prefabs/Item/QuillItem/mdlQuillPickup.prefab
-- Assets/Models/Misc/Sprite/texShrineIconOutlined.png
+- Assets/Sprites/texShrineIconOutlined.png
 - Assets/Models/Prefabs/Item/QuillItem/mdlPotSoloDisplay.prefab
 - Assets/Textures/Icons/Item/ventItem/ventIcon.png
 - Assets/Textures/Icons/Item/LotusItem/texMagmaCloud.png
+- Assets/Sprites/texUICornerTier3.png
 - Assets/Models/Prefabs/Item/StaffItem/mdlStaffDisplay.prefab
 - Assets/Textures/Icons/Item/AbyssalAdze/adzeIcon.png
 - Assets/Textures/Materials/Item/ClockworkWatch/pillarMat.mat

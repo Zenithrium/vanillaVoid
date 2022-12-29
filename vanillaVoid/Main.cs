@@ -54,7 +54,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.4.0";
+        public const string ModVer = "1.4.1";
 
         public static ExpansionDef sotvDLC;
 
@@ -99,6 +99,11 @@ namespace vanillaVoid
         //public float lotusDuration = 25f;
         AnimationCurve speedCurve;
 
+        GameObject tier1Clone;
+        GameObject tier2Clone;
+        GameObject tier3Clone;
+        GameObject tier4Clone;
+        bool hasAdjustedTiers;
         public static BuffDef lotusSlow { get; private set; }
 
         private void Awake()
@@ -223,8 +228,47 @@ namespace vanillaVoid
 
             CreateLotusBuff();
 
+            SetupVoidTierHighlights();
+
             //var voidtier1def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier1);
-            //GameObject prefab = voidtier1def.highlightPrefab;
+            //GameObject v1prefab = voidtier1def.highlightPrefab;
+            //
+            //var hgrect1 = v1prefab.GetComponent<RoR2.UI.HighlightRect>();
+            //if (hgrect1)
+            //{
+            //    hgrect1.highlightColor = ColorCatalog.GetColor(ColorCatalog.ColorIndex.VoidItem);
+            //    hgrect1.cornerImage = MainAssets.LoadAsset<Sprite>("texUICornerTier1");
+            //}
+            //
+            //var voidtier2def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier2);
+            //GameObject v2prefab = voidtier2def.highlightPrefab;
+            //
+            //var hgrect2 = v2prefab.GetComponent<RoR2.UI.HighlightRect>();
+            //if (hgrect2)
+            //{
+            //    hgrect2.highlightColor = ColorCatalog.GetColor(ColorCatalog.ColorIndex.VoidItem);
+            //    hgrect2.cornerImage = MainAssets.LoadAsset<Sprite>("texUICornerTier2");
+            //}
+            //
+            //var voidtier3def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier3);
+            //GameObject v3prefab = voidtier3def.highlightPrefab;
+            //
+            //var hgrect3 = v3prefab.GetComponent<RoR2.UI.HighlightRect>();
+            //if (hgrect3)
+            //{
+            //    hgrect3.highlightColor = ColorCatalog.GetColor(ColorCatalog.ColorIndex.VoidItem);
+            //    hgrect3.cornerImage = MainAssets.LoadAsset<Sprite>("texUICornerTier3");
+            //}
+            //
+            //var voidtier4def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidBoss);
+            //GameObject v4prefab = voidtier4def.highlightPrefab;
+            //
+            //var hgrect4 = v4prefab.GetComponent<RoR2.UI.HighlightRect>();
+            //if (hgrect4)
+            //{
+            //    hgrect4.highlightColor = ColorCatalog.GetColor(ColorCatalog.ColorIndex.VoidItem);
+            //    hgrect4.cornerImage = MainAssets.LoadAsset<Sprite>("texUICornerTier1");
+            //}
 
             //ExtraterrestrialExhaust.RocketProjectile.
             //R2API.ContentAddition.AddNetworkedObject(bladeObject);
@@ -1513,6 +1557,75 @@ namespace vanillaVoid
             }
         }
 
+        public void SetupVoidTierHighlights()
+        {
+            GameObject tier1prefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/HighlightTier1Item.prefab").WaitForCompletion();
+
+            tier1Clone = PrefabAPI.InstantiateClone(tier1prefab, "void1HighlightPrefab");
+            var rect1 = tier1Clone.GetComponent<RoR2.UI.HighlightRect>();
+            if (rect1)
+            {
+                rect1.highlightColor = ColorCatalog.GetColor(ColorCatalog.ColorIndex.VoidItem);
+                rect1.cornerImage = MainAssets.LoadAsset<Sprite>("texUICornerTier1");
+            }
+
+            //GameObject tier2prefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/HighlightTier1Item.prefab").WaitForCompletion();
+            tier2Clone = PrefabAPI.InstantiateClone(tier1prefab, "void2HighlightPrefab");
+            var rect2 = tier2Clone.GetComponent<RoR2.UI.HighlightRect>();
+            if (rect2)
+            {
+                rect2.highlightColor = ColorCatalog.GetColor(ColorCatalog.ColorIndex.VoidItem);
+                rect2.cornerImage = MainAssets.LoadAsset<Sprite>("texUICornerTier2");
+            }
+
+            tier3Clone = PrefabAPI.InstantiateClone(tier1prefab, "void3HighlightPrefab");
+            var rect3 = tier3Clone.GetComponent<RoR2.UI.HighlightRect>();
+            if (rect3)
+            {
+                rect3.highlightColor = ColorCatalog.GetColor(ColorCatalog.ColorIndex.VoidItem);
+                rect3.cornerImage = MainAssets.LoadAsset<Sprite>("texUICornerTier3");
+            }
+
+            tier4Clone = PrefabAPI.InstantiateClone(tier1prefab, "void4HighlightPrefab");
+            var rect4 = tier4Clone.GetComponent<RoR2.UI.HighlightRect>();
+            if (rect4)
+            {
+                rect4.highlightColor = ColorCatalog.GetColor(ColorCatalog.ColorIndex.VoidItem);
+                rect4.cornerImage = MainAssets.LoadAsset<Sprite>("texUICornerTier1");
+            }
+
+            hasAdjustedTiers = false;
+        }
+
+        public void ApplyTierHighlights()
+        {
+            if (!hasAdjustedTiers)
+            {
+                var voidtier1def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier1);
+                if (voidtier1def)
+                {
+                    voidtier1def.highlightPrefab = tier1Clone;
+                }
+                var voidtier2def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier2);
+                if (voidtier2def)
+                {
+                    voidtier2def.highlightPrefab = tier2Clone;
+                }
+                var voidtier3def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier3);
+                if (voidtier3def)
+                {
+                    voidtier3def.highlightPrefab = tier3Clone;
+                }
+                var voidtier4def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidBoss);
+                if (voidtier4def)
+                {
+                    voidtier4def.highlightPrefab = tier4Clone;
+                }
+
+                hasAdjustedTiers = true;
+            }
+        }
+
         public void CreateLotusBuff()
         {
             var buffColor = new Color(0.5215f, 0.3764f, 0.8549f);
@@ -1526,29 +1639,15 @@ namespace vanillaVoid
             ContentAddition.AddBuffDef(lotusSlow);
         }
 
-        //public class LotusColliderToken : MonoBehaviour
-        //{
-        //    public float tokenLotusTimer;
-        //    public GameObject colliderParent;
-        //
-        //    public void Begin()
-        //    {
-        //        tokenLotusTimer = 0;
-        //    }
-        //
-        //
-        //    private void FixedUpdate()
-        //    {
-        //
-        //        tokenLotusTimer += Time.fixedDeltaTime;
-        //    }
-        //}
-
         private void AddLocusStuff(Stage obj)
         {
             //Debug.Log("dlc enabled, obviously");
-            Debug.Log(obj.sceneDef + " " + obj.sceneDef.cachedName + " ");
-            if(obj.sceneDef == SceneCatalog.GetSceneDefFromSceneName("voidstage") && locusExit.Value)
+            //Debug.Log(obj.sceneDef + " " + obj.sceneDef.cachedName + " ");
+            //Debug.Log("item: " + ClockworkMechanism.instance.ItemLangTokenName);
+
+            ApplyTierHighlights();
+
+            if (obj.sceneDef == SceneCatalog.GetSceneDefFromSceneName("voidstage") && locusExit.Value)
             {
                 //Debug.Log("attempting");
             
@@ -1571,23 +1670,6 @@ namespace vanillaVoid
 
             }
         }
-
-        //public class LotusTeleporterToken : MonoBehaviour
-        //{
-        //    public CharacterBody self;
-        //    public float timer = 0;
-        //
-        //    private void Awake()
-        //    {
-        //
-        //    }
-        //
-        //    private void Update()
-        //    {
-        //        timer += Time.deltaTime;
-        //
-        //    }
-        //}
 
         //private void ClockworkItemDrops(On.RoR2.Stage.orig_RespawnCharacter orig, Stage self, CharacterMaster characterMaster)
         //{
@@ -1654,7 +1736,7 @@ namespace vanillaVoid
         //        }
         //    }
         //}
-        //
+
         //IEnumerator ClockworkDelayedItemDrops(int rewardCount, Vector3 playerPos)
         //{
         //    //int rewardCount = ItemBase<ClockworkMechanism>.instance.itemsPerStage.Value + (ItemBase<ClockworkMechanism>.instance.itemsPerStageStacking.Value * (itemCount - 1));

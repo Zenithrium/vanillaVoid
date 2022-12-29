@@ -453,7 +453,7 @@ namespace vanillaVoid.Items
                 timeToDie = false;
             }
 
-            private void Update()
+            private void FixedUpdate()
             {
                 if (timeToDie)
                 {

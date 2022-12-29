@@ -250,7 +250,7 @@ namespace vanillaVoid.Interactables
             {
                 for (int i = deck.Count - 1; i >= 0; i--)
                 {
-                    Debug.Log("name: " + deck.GetChoice(i).value.spawnCard.name + " | cost: " + deck.GetChoice(i).value.cost);
+                    //Debug.Log("name: " + deck.GetChoice(i).value.spawnCard.name + " | cost: " + deck.GetChoice(i).value.cost);
                     if (deck.GetChoice(i).value.spawnCard.name == "iscVoidPortalInteractable")
                     {
                         hasAddedMonolith = true;
