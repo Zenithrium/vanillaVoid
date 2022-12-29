@@ -599,15 +599,15 @@ namespace vanillaVoid.Items
         {
             if(itemVariant.Value == 0)
             {
-                if (sender && sender.inventory)
-                {
-                    //int orreryCount = sender.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
-                    int buffCount = sender.GetBuffCount(OrreryDamageBonus.buffIndex);
-                    if (buffCount > 0)
-                    {
-                        args.damageMultAdd += .5f * buffCount;
-                    }
-                }
+                //if (sender && sender.inventory)
+                //{
+                //    //int orreryCount = sender.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
+                //    int buffCount = sender.GetBuffCount(OrreryDamageBonus.buffIndex);
+                //    if (buffCount > 0)
+                //    {
+                //        args.damageMultAdd += .5f * buffCount;
+                //    }
+                //}
             }
             else
             {
@@ -681,6 +681,9 @@ namespace vanillaVoid.Items
                                     }
                                 }
                             }
+                            float mult = buffDamageBonus.Value * attackerBody.GetBuffCount(OrreryDamageBonus);
+                            //Debug.Log("mult: " + mult + " | bonus: " + damageInfo.damage * mult);
+                            damageInfo.damage += (damageInfo.damage * mult);
                         }
 
                     }
