@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 844780604
+CRC: 4263122153
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: f48e2bdb6dcbdc788b018043fa0398df
+    Hash: 0c5d6ebb255adf594039b703cd576d92
   TypeTreeHash:
     serializedVersion: 2
     Hash: 6ba044ad33d408c04b562a940f2669ef
@@ -61,6 +61,7 @@ Assets:
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedVialsPickup.prefab
 - Assets/raw/quill/realdiffuse.png
 - Assets/Models/Misc/matPurpleGrassyStonePink.mat
+- Assets/raw/whorl/WhorlShellMat.mat
 - Assets/Models/Misc/mdlPlatformSeparate.prefab
 - Assets/Models/Prefabs/Item/StaffItem/mdlStaffPickup.prefab
 - Assets/Models/Prefabs/Item/CryoItem/ChargeShadow.mat
@@ -122,6 +123,7 @@ Assets:
 - Assets/Textures/Materials/Item/ClockworkWatch/b/mainGrayMat.mat
 - Assets/Textures/Icons/Item/LotusItem/texRampIce2.png
 - Assets/Textures/Materials/Item/Mess/armtexture.mat
+- Assets/Models/Prefabs/Item/WhorlItem/mdlWhorlPickup.prefab
 - Assets/Textures/Icons/Item/LotusItem/ancientlotusIcon512.png
 - Assets/Textures/Materials/Item/ClockworkWatch/backMat.mat
 - Assets/Textures/Icons/Item/MessItem/brokenMessIcon512.png
@@ -129,6 +131,7 @@ Assets:
 - Assets/Textures/Icons/Item/LotusItem/texMagmaCloud2.png
 - Assets/Models/Prefabs/Item/CryoItem/CryoAOEExplosionEffect.prefab
 - Assets/Models/Prefabs/Item/CryoItem/texDistortionNormal.jpg
+- Assets/Models/Prefabs/Item/WhorlItem/mdlWhorlDisplay.prefab
 - Assets/raw/quill/quillsolo.fbx
 - Assets/Textures/Icons/Item/VialsItem/vialsIcon512.png
 - Assets/Textures/Materials/Item/AbyssalAdze/HandleLowerTexture.mat

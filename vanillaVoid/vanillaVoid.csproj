@@ -20,6 +20,7 @@
 		<Compile Remove="Equipment\ExampleEquipment.cs" />
 		<Compile Remove="Equipment\ExampleEquipWithTargeting.cs" />
 		<Compile Remove="Items\ExampleItem.cs" />
+		<Compile Remove="Items\RelentlessRounds.cs" />
 		<Compile Remove="Items\VoidCell.cs" />
 		<Compile Remove="Items\WickedStaff.cs" />
 	</ItemGroup>

@@ -15,7 +15,7 @@ using VoidItemAPI;
 
 namespace vanillaVoid.Items
 {
-    public class VoidCell : ItemBase<VoidCell>
+    public class RelentlessRounds : ItemBase<RelentlessRounds>
     {
         public ConfigEntry<float> baseDamageBuff;
 
@@ -23,22 +23,21 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<string> voidPair;
 
-        public override string ItemName => "Cell Item";
+        public override string ItemName => "Relentless Rounds";
 
-        public override string ItemLangTokenName => "CELL_ITEM";
+        public override string ItemLangTokenName => "RELROUNDS_ITEM";
 
-        public override string ItemPickupDesc => "<style=cIsVoid>Corrupts all Shipping Request Forms</style>.";
+        public override string ItemPickupDesc => "Bosses passively take damage over time. <style=cIsVoid>Corrupts all Armor-Piercing Rounds</style>.";
 
-        public override string ItemFullDescription => $"<style=cIsVoid>Corrupts all Shipping Request Forms</style>.";
+        public override string ItemFullDescription => $"Bosses passively take X% (+X% per stack) of their max health every Y seconds. <style=cIsVoid>Corrupts all Armor-Piercing Rounds</style>.";
 
-        public override string ItemLore => $"Cell Lore";
+        public override string ItemLore => $"Rounds Lore";
 
-        public override ItemTier Tier => ItemTier.VoidTier2;
+        public override ItemTier Tier => ItemTier.VoidTier1;
 
         public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlAdzePickup.prefab");
 
         public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("adzeIcon512.png");
-
 
         public static GameObject ItemBodyModelPrefab;
 
@@ -57,9 +56,9 @@ namespace vanillaVoid.Items
 
         public override void CreateConfig(ConfigFile config)
         {
-            baseDamageBuff = config.Bind<float>("Item: " + ItemName, "Percent Damage Increase", .4f, "Adjust the percent of extra damage dealt on the first stack.");
-            stackingBuff = config.Bind<float>("Item: " + ItemName, "Percent Damage Increase per Stack", .4f, "Adjust the percent of extra damage dealt per stack.");
-            voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "FreeChest", "Adjust which item this is the void pair of.");
+            baseDamageBuff = config.Bind<float>("Item: " + ItemName, "Base Percent Damage Increase", .3f, "Adjust the percent of extra damage dealt on the first stack.");
+            stackingBuff = config.Bind<float>("Item: " + ItemName, "Stacking Percent Damage Increase", .3f, "Adjust the percent of extra damage dealt per stack.");
+            voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "BossDamageBonus", "Adjust which item this is the void pair of.");
         }
 
         public override ItemDisplayRuleDict CreateItemDisplayRules()
@@ -403,39 +402,39 @@ namespace vanillaVoid.Items
             On.RoR2.HealthComponent.TakeDamage += AdzeDamageBonus;
         }
 
-        //private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
-        //    CharacterBody victimBody = self.body;
-        //    float initialDmg = damageInfo.damage;
-        //    if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
-        //    {
-        //        CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
-        //        if (attackerBody.inventory)
-        //        {
-        //            var stackCount = GetCount(attackerBody);
-        //
-        //            if (stackCount > 0)
-        //            {
-        //                //var healthPercentage = self.health / self.fullCombinedHealth;
-        //                var healthFraction = Mathf.Clamp((1 - self.combinedHealthFraction), 0f, 1f);
-        //                //Debug.Log("health fraction: " + healthFraction);
-        //                var mult = healthFraction * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
-        //                
-        //                damageInfo.damage = damageInfo.damage + (damageInfo.damage * mult);
-        //                float maxDamage = initialDmg + (initialDmg * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1))));
-        //                //Debug.Log("max damage: " + maxDamage + " | actual damage: " + damageInfo.damage + " | original damage: " + initialDmg);
-        //                //damageInfo.damage = damageInfo.damage * (1 + (victimBody.GetBuffCount(adzeDebuff) * dmgPerDebuff.Value));
-        //                //if(damageInfo.damage > maxDamage)
-        //                //{
-        //                //    //Debug.Log("damage was too high! oopsies!!!");
-        //                //    damageInfo.damage = maxDamage; // i don't know if this is a needed check, but i *think* i was noticing insanely high damage numbers with adze on the end score screen. maybe this'll fix that? or maybe it was another mod entirely
-        //                //}
-        //                damageInfo.damage = Mathf.Min(damageInfo.damage, maxDamage);
-        //            }
-        //        }
-        //    }
-        //    
-        //    orig(self, damageInfo);
-        //}
+        private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
+            //CharacterBody victimBody = self.body;
+            float initialDmg = damageInfo.damage;
+            if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
+            {
+                CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
+                if (attackerBody.inventory)
+                {
+                    var stackCount = GetCount(attackerBody);
+
+                    if (stackCount > 0)
+                    {
+                        //var healthPercentage = self.health / self.fullCombinedHealth;
+                        var healthFraction = Mathf.Clamp((1 - self.combinedHealthFraction), 0f, 1f);
+                        //Debug.Log("health fraction: " + healthFraction);
+                        var mult = healthFraction * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
+                        
+                        damageInfo.damage = damageInfo.damage + (damageInfo.damage * mult);
+                        float maxDamage = initialDmg + (initialDmg * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1))));
+                        //Debug.Log("max damage: " + maxDamage + " | actual damage: " + damageInfo.damage + " | original damage: " + initialDmg);
+                        //damageInfo.damage = damageInfo.damage * (1 + (victimBody.GetBuffCount(adzeDebuff) * dmgPerDebuff.Value));
+                        //if(damageInfo.damage > maxDamage)
+                        //{
+                        //    //Debug.Log("damage was too high! oopsies!!!");
+                        //    damageInfo.damage = maxDamage; // i don't know if this is a needed check, but i *think* i was noticing insanely high damage numbers with adze on the end score screen. maybe this'll fix that? or maybe it was another mod entirely
+                        //}
+                        damageInfo.damage = Mathf.Min(damageInfo.damage, maxDamage);
+                    }
+                }
+            }
+            
+            orig(self, damageInfo);
+        }
     }
 
 }

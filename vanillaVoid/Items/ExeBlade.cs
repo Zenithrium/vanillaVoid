@@ -19,7 +19,7 @@ namespace vanillaVoid.Items
 {
     public class ExeBlade : ItemBase<ExeBlade>
     {
-        public ConfigEntry<float> luckBonus;
+        //public ConfigEntry<float> luckBonus;
 
         public ConfigEntry<float> additionalProcs;
 
@@ -41,7 +41,7 @@ namespace vanillaVoid.Items
 
         public override string ItemPickupDesc => "Your 'On-Kill' effects occur an additional time upon killing an elite. Additionally causes a damaging AOE upon elite kill. <style=cIsVoid>Corrupts all Old Guillotines</style>.";
 
-        public override string ItemFullDescription => $"Your <style=cIsDamage>On-Kill</style> effects occur <style=cIsDamage>{additionalProcs.Value}</style> <style=cStack>(+{additionalProcs.Value} per stack)</style> additional times upon killing an elite. Killing blows on elites are rolled <style=cIsUtility>+{luckBonus.Value}</style> times for a <style=cIsUtility>favorable outcome</style>. Additionally causes a <style=cIsDamage>{aoeRangeBaseExe.Value}m</style> explosion, dealing <style=cIsDamage>{baseDamageAOEExe.Value * 100}%</style> base damage. <style=cIsVoid>Corrupts all Old Guillotines</style>.";
+        public override string ItemFullDescription => $"Your <style=cIsDamage>On-Kill</style> effects occur <style=cIsDamage>{additionalProcs.Value}</style> <style=cStack>(+{additionalProcs.Value} per stack)</style> additional times upon killing an elite. Additionally causes a <style=cIsDamage>{aoeRangeBaseExe.Value}m</style> explosion, dealing <style=cIsDamage>{baseDamageAOEExe.Value * 100}%</style> base damage. <style=cIsVoid>Corrupts all Old Guillotines</style>.";
 
         public override string ItemLore => $"<style=cMono>//-- AUTO-TRANSCRIPTION FROM CARGO BAY 14 OF UES [Redacted] --//</style>" +
             "\n\n\"Hey Joe, how are things g....what is all that. Why do you have so many swords.\"" +
@@ -77,7 +77,7 @@ namespace vanillaVoid.Items
         {
             string name = ItemName == "Executioner's Burden" ? "Executioners Burden" : ItemName;
 
-            luckBonus = config.Bind<float>("Item: " + name, "Luck Bonus", 1f, "Adjust the luck added to the hit that kills an elite.");
+            //luckBonus = config.Bind<float>("Item: " + name, "Luck Bonus", 1f, "Adjust the luck added to the hit that kills an elite.");
             additionalProcs = config.Bind<float>("Item: " + name, "Number of Addtional Procs", 1f, "Adjust the number of additional times on kill effects occur per stack.");
             deathDelay = config.Bind<float>("Item: " + name, "Time between Extra Procs", .3f, "Adjust the amount of time between each additional on-kill proc.");
             additionalDuration = config.Bind<float>("Item: " + name, "Additional Duration", 2.5f, "Adjust the amount of time the sword exists after the on-kill procs are finished.");
@@ -426,7 +426,7 @@ namespace vanillaVoid.Items
 
         public override void Hooks()
         {
-            On.RoR2.GlobalEventManager.OnHitEnemy += HitProcBonus;
+            //On.RoR2.GlobalEventManager.OnHitEnemy += HitProcBonus;
             On.RoR2.GlobalEventManager.OnCharacterDeath += DeathProcBonus;
         }
 
@@ -457,11 +457,11 @@ namespace vanillaVoid.Items
                 }
             }
 
-            if (attackerMaster && hasExeBlade && isKillingBlowElite) attackerMaster.luck += luckBonus.Value;
+            //if (attackerMaster && hasExeBlade && isKillingBlowElite) attackerMaster.luck += luckBonus.Value;
 
             orig(self, damageInfo, victim);
 
-            if (attackerMaster && hasExeBlade && isKillingBlowElite) attackerMaster.luck -= luckBonus.Value;
+            //if (attackerMaster && hasExeBlade && isKillingBlowElite) attackerMaster.luck -= luckBonus.Value;
         }
 
         private void DeathProcBonus(On.RoR2.GlobalEventManager.orig_OnCharacterDeath orig, GlobalEventManager self, DamageReport damageReport)
@@ -480,11 +480,11 @@ namespace vanillaVoid.Items
                 }
             }
 
-            if (attackerMaster && hasExeBlade && damageReport.victim.body.isElite) attackerMaster.luck += luckBonus.Value;
+            //if (attackerMaster && hasExeBlade && damageReport.victim.body.isElite) attackerMaster.luck += luckBonus.Value;
 
             orig(self, damageReport);
 
-            if (attackerMaster && hasExeBlade && damageReport.victim.body.isElite) attackerMaster.luck -= luckBonus.Value;
+            //if (attackerMaster && hasExeBlade && damageReport.victim.body.isElite) attackerMaster.luck -= luckBonus.Value;
         }
     }
 

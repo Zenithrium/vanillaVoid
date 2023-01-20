@@ -18,7 +18,9 @@ namespace vanillaVoid.Interactables
 {
     public class ShatteredMonolith : InteractableBase<ShatteredMonolith>
     {
-        public ConfigEntry<bool> EnableBuffCatalogSelection;
+        public ConfigEntry<float> voidSeedWeight;
+        public ConfigEntry<int> normalWeight;
+        public ConfigEntry<int> spawnCost;
 
         public override string InteractableName => "Shattered Monolith";
 
@@ -79,7 +81,9 @@ namespace vanillaVoid.Interactables
 
         private void CreateConfig(ConfigFile config)
         {
-
+            voidSeedWeight = config.Bind<float>("Interactable: " + InteractableName, "Void Seed Selection Weight", .125f, "How likely should this interactable be chosen to spawn in a void seed? (For reference - 1 = Void Coin Barrel, .5 = Void Cradle, .333 = Void Potential Chest)");
+            normalWeight = config.Bind<int>("Interactable: " + InteractableName, "Normal Stage Selection Weight", 3, "How likely should this be to spawn outside of void seeds? (For reference, 24 = Normal Chest, 8 = Multishop, 1 = Lunar Pod (depends on stage, but generally these are accurate))");
+            spawnCost = config.Bind<int>("Interactable: " + InteractableName, "Director Credit Cost", 15, "How likely should this be to spawn outside of void seeds? (For reference, 15 = Normal Chest, 20 = Multishop & Chance Shrine, 25 = Lunar Pod)");
         }
 
         public void CreateInteractable()
@@ -170,7 +174,7 @@ namespace vanillaVoid.Interactables
             InteractableSpawnCard.nodeGraphType = RoR2.Navigation.MapNodeGroup.GraphType.Ground;
             InteractableSpawnCard.requiredFlags = RoR2.Navigation.NodeFlags.None;
             InteractableSpawnCard.forbiddenFlags = RoR2.Navigation.NodeFlags.NoShrineSpawn | RoR2.Navigation.NodeFlags.NoChestSpawn;
-            InteractableSpawnCard.directorCreditCost = 15;
+            InteractableSpawnCard.directorCreditCost = spawnCost.Value;
             InteractableSpawnCard.occupyPosition = true;
             InteractableSpawnCard.orientToFloor = false;
             InteractableSpawnCard.skipSpawnWhenSacrificeArtifactEnabled = false;
@@ -178,7 +182,7 @@ namespace vanillaVoid.Interactables
 
             MonolithCard = new DirectorCard
             {
-                selectionWeight = 6,
+                selectionWeight = normalWeight.Value,
                 spawnCard = InteractableSpawnCard,
                 minimumStageCompletions = 1,
                 //allowAmbushSpawn = true, TODO removed i think?
@@ -262,7 +266,7 @@ namespace vanillaVoid.Interactables
                 //WeightedSelection<DirectorCard> ah = new WeightedSelection<DirectorCard>.ChoiceInfo()
                 if (!hasAddedMonolith)
                 {
-                    deck.AddChoice(MonolithCard, .2f);
+                    deck.AddChoice(MonolithCard, voidSeedWeight.Value);
                     //hasAddedMonolith = true;
                 }
             }

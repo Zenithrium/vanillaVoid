@@ -54,7 +54,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.4.1";
+        public const string ModVer = "1.4.2";
 
         public static ExpansionDef sotvDLC;
 
@@ -492,7 +492,7 @@ namespace vanillaVoid
                 //var voidtier1def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier1);
                 //GameObject prefab = voidtier1def.highlightPrefab;
                 //Instantiate(prefab, self.transform);
-
+                //Debug.Log("time: " + Time.time);
                 if (skill.skillDef.ToString().Contains("LunarPrimaryReplacement"))
                 {
                     //if (genericRng == null)
@@ -1560,7 +1560,7 @@ namespace vanillaVoid
         public void SetupVoidTierHighlights()
         {
             GameObject tier1prefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/UI/HighlightTier1Item.prefab").WaitForCompletion();
-
+            tier1prefab.AddComponent<NetworkIdentity>();
             tier1Clone = PrefabAPI.InstantiateClone(tier1prefab, "void1HighlightPrefab");
             var rect1 = tier1Clone.GetComponent<RoR2.UI.HighlightRect>();
             if (rect1)

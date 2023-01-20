@@ -62,7 +62,7 @@ namespace vanillaVoid.Items
 
         public override void CreateConfig(ConfigFile config)
         {
-            baseDamageBuff = config.Bind<float>("Item: " + ItemName, "Percent Damage Increase", .4f, "Adjust the percent of extra damage dealt on the first stack.");
+            baseDamageBuff = config.Bind<float>("Item: " + ItemName, "Base Percent Damage Increase", .3f, "Adjust the percent of extra damage dealt on the first stack.");
             stackingBuff = config.Bind<float>("Item: " + ItemName, "Stacking Percent Damage Increase", .3f, "Adjust the percent of extra damage dealt per stack.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "Crowbar", "Adjust which item this is the void pair of.");
         }
@@ -409,7 +409,7 @@ namespace vanillaVoid.Items
         }
 
         private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
-            CharacterBody victimBody = self.body;
+            //CharacterBody victimBody = self.body;
             float initialDmg = damageInfo.damage;
             if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
             {
