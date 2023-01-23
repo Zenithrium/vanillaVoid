@@ -22,6 +22,7 @@
 		<Compile Remove="Items\ExampleItem.cs" />
 		<Compile Remove="Items\RelentlessRounds.cs" />
 		<Compile Remove="Items\VoidCell.cs" />
+		<Compile Remove="Items\WhorlShell.cs" />
 		<Compile Remove="Items\WickedStaff.cs" />
 	</ItemGroup>
 

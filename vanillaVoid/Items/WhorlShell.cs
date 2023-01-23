@@ -19,7 +19,9 @@ namespace vanillaVoid.Items
     {
         public ConfigEntry<float> baseChance;
 
-        public ConfigEntry<float> healAmount;
+        public ConfigEntry<float> regenAmountBase;
+
+        public ConfigEntry<float> regenAmountStacking;
 
         public ConfigEntry<string> voidPair;
 
@@ -27,9 +29,9 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "CORNUCOPIA_ITEM";
 
-        public override string ItemPickupDesc => "Overkilling an enemy massively increases regen for a short time. <style=cIsVoid>Corrupts all Harvester's Scythe</style>.";
+        public override string ItemPickupDesc => "Overkilling an enemy massively increases regen for a short time. <style=cIsVoid>Corrupts all Harvester's Scythes</style>.";
 
-        public override string ItemFullDescription => $"Killing an enemy has a Z% chance to increase health regen by X (+X per stack) for Y seconds. Chance increases the more damage the killing blow dealt. <style=cIsVoid>Corrupts all Harvester's Scythe</style>.";
+        public override string ItemFullDescription => $"Killing an enemy has a Z% chance to increase health regen by X (+X per stack) for Y seconds. Chance increases the more damage the killing blow dealt. <style=cIsVoid>Corrupts all Harvester's Scythes</style>.";
 
         public override string ItemLore => $"Corn Lore";
 
@@ -44,6 +46,8 @@ namespace vanillaVoid.Items
 
         public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Healing };
 
+        public BuffDef WhorlBuff { get; private set; }
+        public static ProcChainMask ignoredProcs;
         public override void Init(ConfigFile config)
         {
             CreateConfig(config);
@@ -51,15 +55,27 @@ namespace vanillaVoid.Items
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
             VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
-
+            CreateBuff();
             Hooks(); 
         }
 
         public override void CreateConfig(ConfigFile config)
         {
             baseChance = config.Bind<float>("Item: " + ItemName, "Base Chance to Activate", .05f, "Adjust the base chance of the on death proc activating.");
-            healAmount = config.Bind<float>("Item: " + ItemName, "Heal Amount", .15f, "Healing.");
-            voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "HealOnCrit", "Adjust which item this is the void pair of.");
+            regenAmountBase = config.Bind<float>("Item: " + ItemName, "Heal Amount", 8f, "Healing.");
+            regenAmountStacking = config.Bind<float>("Item: " + ItemName, "Heal Amount Stacking", 4f, "Healing.");
+            voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "", "Adjust which item this is the void pair of.");
+        }
+
+        public void CreateBuff()
+        {
+            WhorlBuff = ScriptableObject.CreateInstance<BuffDef>();
+            WhorlBuff.buffColor = Color.white;
+            WhorlBuff.canStack = true;
+            WhorlBuff.isDebuff = false;
+            WhorlBuff.name = "ZnVV" + "WhorlBuff";
+            WhorlBuff.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("whorlRegenBuffIcon");
+            ContentAddition.AddBuffDef(WhorlBuff);
         }
 
         public override ItemDisplayRuleDict CreateItemDisplayRules()
@@ -396,8 +412,32 @@ namespace vanillaVoid.Items
 
         public override void Hooks()
         {
-            On.RoR2.HealthComponent.TakeDamage += WhorlOverkillBonusHit;
+            //On.RoR2.HealthComponent.TakeDamage += WhorlOverkillBonusHit;
             On.RoR2.GlobalEventManager.OnCharacterDeath += WhorlOverkillBonus;
+            RecalculateStatsAPI.GetStatCoefficients += CalculateStatsWhorlHook;
+        }
+
+        private void CalculateStatsWhorlHook(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
+        {
+            if (sender && sender.inventory)
+            {
+                int buffStacks = sender.GetBuffCount(WhorlBuff);
+                int count = sender.inventory.GetItemCount(ItemBase<WhorlShell>.instance.ItemDef);
+                if (sender.GetBuffCount(WhorlBuff) > 0)
+                {
+                    
+                    //float regenAmnt = regenAmountBase.Value;
+                    //if(count > 0)
+                    //{
+                    //    regenAmnt += regenAmountStacking.Value * (count - 1);
+                    //}
+
+                    //args.baseRegenAdd += (regenAmnt + ((regenAmnt / 5) * sender.level)) * buffStacks; //original code not taken from bitter root becasue i wasnt lazy x2
+
+                    args.baseHealthAdd += 25 * buffStacks;
+                    //args.baseRegenAdd += slowPercentage.Value;
+                }
+            }
         }
 
         private void WhorlOverkillBonusHit(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
@@ -410,8 +450,42 @@ namespace vanillaVoid.Items
         private void WhorlOverkillBonus(On.RoR2.GlobalEventManager.orig_OnCharacterDeath orig, GlobalEventManager self, DamageReport damageReport)
         {
             //damageReport.victim.health
+            Debug.Log(" health: " + damageReport.victim.health + " fullhealth: " + damageReport.victim.fullHealth + " low?:" + damageReport.victim.isHealthLow + " killtype: " + damageReport.victim.killingDamageType + " damageinfo: " + damageReport.damageInfo.damage + " damagetype" + damageReport.damageInfo.damageType);
             orig(self, damageReport);
+            CharacterBody attacker = damageReport.attackerBody;
+            if (attacker && damageReport.victim)
+            {
+                if (attacker.inventory)
+                {
+                    if (attacker.inventory.GetItemCount(ItemBase<WhorlShell>.instance.ItemDef) > 0)
+                    {
+                        //if (CalculateOverkill(damageReport))
+                        //{
+                        //    
+                        //    attacker.AddTimedBuffAuthority(WhorlRegen.buffIndex, 5);
+                        //}
+                        float overkillAmount = Mathf.Abs(damageReport.victim.health);
+                        attacker.healthComponent.Heal(.05f * overkillAmount, ignoredProcs, true);
+                        attacker.AddTimedBuffAuthority(WhorlBuff.buffIndex, 5);
+                    }
+                }
+            }
             
+        }
+
+        private bool CalculateOverkill(DamageReport damageReport)
+        {
+            if(damageReport.victim.killingDamageType == DamageType.VoidDeath)
+            {
+                return true;
+            }
+            HealthComponent victim = damageReport.victim;
+            float overkillAmount = Mathf.Abs(victim.health);
+            float maxHealth = victim.fullHealth;
+            float chance = (overkillAmount / (maxHealth / 2)) * 100; //overkill bonus guaranteed if final hit makes the enemy to -33% hp
+            Debug.Log("chance: " + chance);
+            return Util.CheckRoll(chance);
+            //return true;
         }
 
         //private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {

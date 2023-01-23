@@ -649,6 +649,7 @@ namespace vanillaVoid.Items
         //}
         private void OrreryOnDamage(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
         {
+            float initialDamage = damageInfo.damage;
             if(itemVariant.Value == 0)
             {
                 if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>() && NetworkServer.active)
@@ -867,6 +868,10 @@ namespace vanillaVoid.Items
                 }
             }
             orig(self, damageInfo);
+            if(itemVariant.Value == 0)
+            {
+                damageInfo.damage = initialDamage; 
+            }
         }
                     
 

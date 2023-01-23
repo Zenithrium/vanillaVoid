@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 4263122153
+CRC: 2100381932
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 0c5d6ebb255adf594039b703cd576d92
+    Hash: da80b2736ee93a7d21801088ab6e9507
   TypeTreeHash:
     serializedVersion: 2
     Hash: 6ba044ad33d408c04b562a940f2669ef
@@ -91,6 +91,7 @@ Assets:
 - Assets/Models/Prefabs/Item/MessItem/mdlMessPickup.prefab
 - Assets/Models/Misc/LotusTeleporterCollider.prefab
 - Assets/Textures/Icons/Item/MessItem/brokenMessIconLarge.png
+- Assets/Textures/Icons/Buffs/whorlRegenBuffIcon.png
 - Assets/Models/Prefabs/Item/ExtVent/ventOrb.prefab
 - Assets/Textures/Materials/Item/Mess/voidorb.mat
 - Assets/Textures/Materials/Item/AbyssalAdze/HeadMaterial.mat

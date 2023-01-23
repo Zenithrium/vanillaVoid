@@ -410,7 +410,10 @@ namespace vanillaVoid.Items
 
         private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
             //CharacterBody victimBody = self.body;
+
             float initialDmg = damageInfo.damage;
+            float mult = 0;
+            bool adjusted = false;
             if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
             {
                 CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -420,12 +423,10 @@ namespace vanillaVoid.Items
 
                     if (stackCount > 0)
                     {
-                        //var healthPercentage = self.health / self.fullCombinedHealth;
                         var healthFraction = Mathf.Clamp((1 - self.combinedHealthFraction), 0f, 1f);
-                        //Debug.Log("health fraction: " + healthFraction);
-                        var mult = healthFraction * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
-                        
-                        damageInfo.damage = damageInfo.damage + (damageInfo.damage * mult);
+                        mult = healthFraction * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
+
+                        damageInfo.damage *= (1 + mult);
                         float maxDamage = initialDmg + (initialDmg * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1))));
                         //Debug.Log("max damage: " + maxDamage + " | actual damage: " + damageInfo.damage + " | original damage: " + initialDmg);
                         //damageInfo.damage = damageInfo.damage * (1 + (victimBody.GetBuffCount(adzeDebuff) * dmgPerDebuff.Value));
@@ -435,11 +436,19 @@ namespace vanillaVoid.Items
                         //    damageInfo.damage = maxDamage; // i don't know if this is a needed check, but i *think* i was noticing insanely high damage numbers with adze on the end score screen. maybe this'll fix that? or maybe it was another mod entirely
                         //}
                         damageInfo.damage = Mathf.Min(damageInfo.damage, maxDamage);
+                        adjusted = true;
                     }
                 }
             }
             
             orig(self, damageInfo);
+            
+            if (adjusted)
+            {
+                damageInfo.damage /= (1 + mult);
+                //damageInfo.damage = initialDmg; //this also works
+            }
+            
         }
     }
 
