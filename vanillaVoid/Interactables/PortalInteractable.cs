@@ -157,8 +157,9 @@ namespace vanillaVoid.Interactables
             //ContentAddition.AddEntityState<MyEntityStates.BuffBrazier.BuffBrazierPurchased>(out _);
             PrefabAPI.RegisterNetworkPrefab(InteractableBodyModelPrefab);
 
-            voidFieldPortalObject = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/PortalArena/PortalArena.prefab").WaitForCompletion();
-
+            GameObject portalObjectTemp = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/PortalArena/PortalArena.prefab").WaitForCompletion();
+            //voidFieldPortalObject = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/PortalArena/PortalArena.prefab").WaitForCompletion();
+            voidFieldPortalObject = PrefabAPI.InstantiateClone(portalObjectTemp, "VoidShrineVoidPortal");
             var exitctr = voidFieldPortalObject.GetComponent<SceneExitController>();
             exitctr.useRunNextStageScene = false;
 

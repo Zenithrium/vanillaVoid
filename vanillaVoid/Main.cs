@@ -54,7 +54,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.4.3";
+        public const string ModVer = "1.4.4";
 
         public static ExpansionDef sotvDLC;
 
@@ -187,7 +187,8 @@ namespace vanillaVoid
             pflower.material = Addressables.LoadAssetAsync<Material>(platmat).WaitForCompletion();
             pfupper.material = Addressables.LoadAssetAsync<Material>(platmat).WaitForCompletion();
 
-            portalObject = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/PortalArena/PortalArena.prefab").WaitForCompletion();
+            GameObject portalObjectTemp = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/PortalArena/PortalArena.prefab").WaitForCompletion();
+            portalObject = PrefabAPI.InstantiateClone(portalObjectTemp, "LocusVoidPortal");
             var tempLight = portalObject.GetComponentInChildren<Light>();
             if (tempLight)
             {
