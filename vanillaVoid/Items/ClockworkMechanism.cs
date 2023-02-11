@@ -145,8 +145,8 @@ namespace vanillaVoid.Items
                     break;
 
                 default:
-                    tempItemPickupDesc = "Invalid item Variant in config. Please enter a 1 or a 2.";
-                    tempItemFullDescription = $"Invalid item Variant in config. Please enter a 1 or a 2";
+                    tempItemPickupDesc = "Invalid item Variant in config. Please enter a 0, 1, or 2.";
+                    tempItemFullDescription = $"Invalid item Variant in config. Please enter a 0, 1, or 2.";
                     break;
             }
             CreateLang();
@@ -161,23 +161,24 @@ namespace vanillaVoid.Items
         {
             itemVariant = config.Bind<int>("Item: " + ItemName, "Variant of Item", 0, "Adjust which version of " + ItemName + " you'd prefer to use. Variant 0 gives you items at the start of each stage, and breaks a random item at low health. Variant 1 slightly increases interactables per stage, and breaks a random item at low health, while Variant 2 breaks itself at the start of the next stage, but greatly increases the number of interactables.");
 
-            itemsPerStage = config.Bind<int>("Item: " + ItemName, "Items per Stage", 3, "Adjust the number of items you get upon entering a new stage with this item.");
-            itemsPerStageStacking = config.Bind<int>("Item: " + ItemName, "Extra Items per Stack", 1, "Adjust the additional number of items you get for each subsequent stack.");
+            itemsPerStage = config.Bind<int>("Item: " + ItemName, "Items per Stage", 3, "Variant 0: Adjust the number of items you get upon entering a new stage with this item.");
+            itemsPerStageStacking = config.Bind<int>("Item: " + ItemName, "Extra Items per Stack", 1, "Variant 0: Adjust the additional number of items you get for each subsequent stack.");
+
+            breakCooldown = config.Bind<float>("Item: " + ItemName, "Breaking Cooldown", 3.0f, "Variant 0 and 1: Adjust how long the cooldown is between the item breaking other items.");
+            alwaysHappen = config.Bind<bool>("Item: " + ItemName, "Function in Special Stages", false, "Variant 0 and 1: Adjust whether or not should function in stages where the director doesn't get any credits (ex Gilded Coast, Commencement, Bazaar).");
+            scrapInstead = config.Bind<bool>("Item: " + ItemName, "Scrap Instead", false, "Variant 0 and 1: Adjust whether the items are scrapped or destroyed.");
+            destroySelf = config.Bind<bool>("Item: " + ItemName, "Destroy Self Instead", false, "Variant 0 and 1: Adjust if the item should destroy itself, rather than other items. Destroys half of the current stack. Overrides the config option below (tier priority).");
+            proritizeLowTier = config.Bind<bool>("Item: " + ItemName, "Prioritize Lower Tier", true, "Variant 0 and 1: Adjust the item's preference for lower tier items. False means no prefrence, true means a general preference (unlikely, but possible to destroy higher tiers).");
+
             //breaksPerStageCap = config.Bind<int>("Item: " + ItemName, "Breaks per Stage", -1, "Cap the number of items this item can break per stage at this number. -1 means there is no cap.");
 
-            directorBuff = config.Bind<float>("Item: " + ItemName, "Credit Bonus", 22.5f, "Adjust how many credits the first stack gives the director. 15 credits is one chest. Only for Variant 1.");
-            stackingBuff = config.Bind<float>("Item: " + ItemName, "Credit Bonus per Stack", 22.5f, "Adjust the increase gained per stack. Only for Variant 1."); //22.5f is 1.5 chests
-            breakCooldown = config.Bind<float>("Item: " + ItemName, "Breaking Cooldown", 3.0f, "Adjust how long the cooldown is between the item breaking other items. Only for Variant 1.");            
-            scrapInstead = config.Bind<bool>("Item: " + ItemName, "Scrap Instead", false, "Adjust whether the items are scrapped or destroyed. Only for Variant 1.");
-            destroySelf = config.Bind<bool>("Item: " + ItemName, "Destroy Self Instead", false, "Adjust if the item should destroy itself, rather than other items. Destroys half of the current stack. Overrides the config option below (tier priority). Only for Variant 1.");
-            proritizeLowTier = config.Bind<bool>("Item: " + ItemName, "Prioritize Lower Tier", true, "Adjust the item's preference for lower tier items. False means no prefrence, true means a general preference (unlikely, but possible to destroy higher tiers). Only for Variant 1.");
-            alwaysHappen = config.Bind<bool>("Item: " + ItemName, "Function in Special Stages", false, "Adjust whether or not the item should increase the number of credits in stages where the director doesn't get any credits (ex Gilded Coast, Commencement). Only for Variant 1.");
-
-            directorMultiplier = config.Bind<float>("Item: " + ItemName, "Director Multiplier", 1.75f, "Adjust the multiplier to the number of credits the director gets. Only for Variant 2.");
-            directorMultiplierStacking = config.Bind<float>("Item: " + ItemName, "Director Multiplier Stacking", 1f, "Adjust the multiplier bonus provided by every stack except the first (This means that in multiplayer, if two players have the item, the base multiplier will still only be applied once, and this one applied for every other stack). Only for Variant 2.");
-            variantBreakAmount = config.Bind<int>("Item: " + ItemName, "Variant 2 Breaks per Stage", -1, "Adjust how many items in the stack Variant 2 breaks when stage-transitioning. The number of items broken times the multiplier is how much the director credits will be increased by (thus breaking only one means the muliplier will only apply once, per player). A negative number means it will break the entire stack. Only for Variant 2.");
+            directorBuff = config.Bind<float>("Item: " + ItemName, "Credit Bonus", 22.5f, "Variant 1: Adjust how many credits the first stack gives the director. 15 credits is one chest.");
+            stackingBuff = config.Bind<float>("Item: " + ItemName, "Credit Bonus per Stack", 22.5f, "Variant 1: Adjust the increase gained per stack."); //22.5f is 1.5 chests
             
-
+            directorMultiplier = config.Bind<float>("Item: " + ItemName, "Director Multiplier", 1.75f, "Variant 2: Adjust the multiplier to the number of credits the director gets.");
+            directorMultiplierStacking = config.Bind<float>("Item: " + ItemName, "Director Multiplier Stacking", 1f, "Variant 2: Adjust the multiplier bonus provided by every stack except the first (This means that in multiplayer, if two players have the item, the base multiplier will still only be applied once, and this one applied for every other stack).");
+            variantBreakAmount = config.Bind<int>("Item: " + ItemName, "Variant 2 Breaks per Stage", -1, "Variant 2: Adjust how many items in the stack Variant 2 breaks when stage-transitioning. The number of items broken times the multiplier is how much the director credits will be increased by (thus breaking only one means the muliplier will only apply once, per player). A negative number means it will break the entire stack.");
+            
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "FragileDamageBonus", "Adjust which item this is the void pair of.");
         }
 
@@ -500,7 +501,30 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.0005f, 0.0005f, 0.0005f)
                 }
             });
-
+            rules.Add("mdlDeputy", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "ForeArmL",
+                    localPos = new Vector3(-0.01949072f, 0.207683f, 0.0484807f),
+                    localAngles = new Vector3(74.97482f, 16.09941f, 0.4198857f),
+                    localScale = new Vector3(.05f, .05f, .05f)
+                }
+            });
+            rules.Add("mdlPathfinder", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "LowerArmL",
+                    localPos = new Vector3(0.008442232f, 0.2362802f, -0.04167819f),
+                    localAngles = new Vector3(272.091f, 270.4824f, 61.01729f),
+                    localScale = new Vector3(.05f, .05f, .05f)
+                }
+            });
             return rules;
 
         }
@@ -516,11 +540,7 @@ namespace vanillaVoid.Items
             RoR2.SceneDirector.onPrePopulateSceneServer += HelpDirector;
             //On.RoR2.Stage.RespawnCharacter += StageRewards;
         }
-        public class WatchToken : MonoBehaviour
-        {
-            //prevents hilarity from happening
-        }
-
+        
         //private void AddWatchTokenOnPickup(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self)
         //{
         //    if (WatchToken)
@@ -535,7 +555,7 @@ namespace vanillaVoid.Items
         private void HelpDirector(SceneDirector obj)
         {
             //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
-            if((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariant.Value == 0)
+            if((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariant.Value == 0) //var 0
             {
                 //int itemCount = 0;
                 foreach (var player in PlayerCharacterMasterController.instances)
@@ -551,7 +571,6 @@ namespace vanillaVoid.Items
                                 watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
                             }
 
-                            //ItemIndex itemResult = ItemIndex.None;
                             PickupIndex pickupResult;// = PickupIndex.none;
                             int randInt = watchVoidRng.RangeInt(1, 100); // 1-79 white // 80-99 green // 100 red
                             if (randInt < 80)
@@ -560,14 +579,13 @@ namespace vanillaVoid.Items
                                 Util.ShuffleList(whiteList, watchVoidRng);
                                 //itemResult = whiteList[0].itemIndex;
                                 pickupResult = whiteList[0];
-                                //Debug.Log("selected a white");
-                            }else if(randInt < 99)
+                            }
+                            else if(randInt < 99)
                             {
                                 List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier2DropList);
                                 Util.ShuffleList(greenList, watchVoidRng);
                                 //itemResult = greenList[0].itemIndex;
                                 pickupResult = greenList[0];
-                                //Debug.Log("selected a green");
                             }
                             else
                             {
@@ -575,12 +593,10 @@ namespace vanillaVoid.Items
                                 Util.ShuffleList(redList, watchVoidRng);
                                 //itemResult = redList[0].itemIndex;
                                 pickupResult = redList[0];
-                                //Debug.Log("selected a red");
                             }
-                            //if (Util.CheckRoll(.f))
 
-                                //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
-                                float num = 360f / (float)rewardCount;
+                            //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+                            float num = 360f / (float)rewardCount;
                             Vector3 a = Quaternion.AngleAxis(num * (float)i, Vector3.up) * Vector3.forward;
                             Vector3 position = player.gameObject.transform.position + a * 8f + Vector3.up * 8f;
                              
@@ -599,8 +615,9 @@ namespace vanillaVoid.Items
                         }
                     }
                 }
+
             }
-            else if ((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariant.Value == 1) {
+            else if((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariant.Value == 1) { //var 1
                 int itemCount = 0;
                 foreach (var player in PlayerCharacterMasterController.instances)
                 {
@@ -608,7 +625,7 @@ namespace vanillaVoid.Items
                 }
                 obj.interactableCredit += (int)(directorBuff.Value + (stackingBuff.Value * (itemCount - 1)));
             }
-            else if(obj.interactableCredit != 0 && itemVariant.Value == 2)
+            else if(obj.interactableCredit != 0 && itemVariant.Value == 2) //var 2
             {
                 int itemCount = 0;
                 int tempItemCount = 0;
@@ -704,7 +721,7 @@ namespace vanillaVoid.Items
                                 //Debug.Log("attempted to scrap scrap! continuing");
                                 continue;
                             }
-                            if (proritizeLowTier.Value)
+                            if (proritizeLowTier.Value) //what the fuck is this i don't remember 
                             {
                                 //itemIndex = item;
                                 //Debug.Log("iten chosen: " + item + " and: " + allowHigherTier);

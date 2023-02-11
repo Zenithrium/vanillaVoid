@@ -72,7 +72,7 @@ namespace vanillaVoid.Items
 
                 default:
                     tempItemPickupDesc = "Periodically release slowing pulses during the Teleporter event and 'Holdout Zones' such as the Void Fields. <style=cIsVoid>Corrupts all Lepton Daisies</style>.";
-                    tempItemFullDescription = $"Release a <style=cIsUtility>slowing pulse</style> during the Teleporter event, <style=cIsUtility>slowing enemies and projectiles</style> by up to <style=cIsUtility>{1 - LotusSlowPercent.Value * 100}%</style> for {LotusDuration.Value} seconds. Occurs <style=cIsHealing>{pulseCountStacking.Value}</style> <style=cStack>(+{pulseCountStacking.Value} per stack)</style> times. <style=cIsVoid>Corrupts all Lepton Daisies</style>.";
+                    tempItemFullDescription = $"Release a <style=cIsUtility>slowing pulse</style> during the Teleporter event, <style=cIsUtility>slowing enemies and projectiles</style> by up to <style=cIsUtility>{(1 - LotusSlowPercent.Value) * 100}%</style> for {LotusDuration.Value} seconds. Occurs <style=cIsHealing>{pulseCountStacking.Value}</style> <style=cStack>(+{pulseCountStacking.Value} per stack)</style> times. <style=cIsVoid>Corrupts all Lepton Daisies</style>.";
                     tempLore = $"\"I've been holed up here for... god knows how long now. I thought... I thought these plants would be... valuable, that..that it would be fine if I went and just... grabbed one - nature wouldn't mind... right? But ever since I grabbed it...I just feel.. so sluggish.. What...did I do wrong?\"\n\n- Lost Recording, Recovered from Petrichor V";
 
                     break;                
@@ -418,7 +418,30 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.00125f, 0.00125f, 0.00125f)
                 }
             });
-
+            rules.Add("mdlDeputy", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Hat",
+                    localPos = new Vector3(0.08793373f, 0.06446167f, 0.08365246f),
+                    localAngles = new Vector3(13.14883f, 34.15833f, 351.6671f),
+                    localScale = new Vector3(.1f, .1f, .1f)
+                }
+            });
+            rules.Add("mdlPathfinder", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "HeadBone",
+                    localPos = new Vector3(0.08075233f, 0.1990717f, 0.1121317f),
+                    localAngles = new Vector3(353.3702f, 28.81539f, .0000001074402f),
+                    localScale = new Vector3(.1f, .1f, .1f)
+                }
+            });
             return rules;
         }
 

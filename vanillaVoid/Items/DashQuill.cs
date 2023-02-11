@@ -398,7 +398,30 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.00035f, 0.00035f, 0.00035f)
                 }
             });
-
+            rules.Add("mdlDeputy", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Hat",
+                    localPos = new Vector3(0.1047899f, -0.002434582f, 0.090097f),
+                    localAngles = new Vector3(313.9162f, 343.7477f, 309.0277f),
+                    localScale = new Vector3(.05f, .05f, .05f)
+                }
+            });
+            rules.Add("mdlPathfinder", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "HeadBone",
+                    localPos = new Vector3(-0.06921848f, 0.2019767f, 0.0779769f),
+                    localAngles = new Vector3(6.506618f, 124.3292f, 304.0726f),
+                    localScale = new Vector3(.04f, .04f, .04f)
+                }
+            });
             return rules;
         }
 
@@ -445,6 +468,8 @@ namespace vanillaVoid.Items
             public bool timeToDie;
             public CharacterBody body; //the player it's attached to
 
+            
+
             void Awake()
             {
                 timer = 0f;
@@ -465,7 +490,15 @@ namespace vanillaVoid.Items
                     dashCurrent = dashMax;
                     count = 0;
                 }
-                
+                if (!body.inputBank.jump.justPressed)
+                {
+                    if(body.characterMotor.jumpCount != previousCount)
+                    {
+                        count++;
+                        previousCount = body.characterMotor.jumpCount;
+                    }
+                }
+                Debug.Log("jumpcount: " + body.characterMotor.jumpCount); //count >= body.maxJumpCount
                 if (body.inputBank.jump.justPressed && body.characterMotor.jumpCount == body.maxJumpCount && count >= body.maxJumpCount && dashCurrent != 0 && !body.HasBuff(RoR2Content.Buffs.Nullified) && !body.HasBuff(RoR2Content.Buffs.Entangle))
                 {
                     Vector3 dir = body.inputBank.moveVector;
@@ -501,6 +534,9 @@ namespace vanillaVoid.Items
                 {
                     count++;
                 }
+
+                previousCount = body.characterMotor.jumpCount;
+
             }
 
             public void detonateToken()

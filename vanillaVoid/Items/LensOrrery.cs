@@ -163,7 +163,7 @@ namespace vanillaVoid.Items
             OrreryDamageBonus.canStack = true;
             OrreryDamageBonus.isDebuff = false;
             OrreryDamageBonus.name = "ZnVV" + "OrreryDamage";
-            OrreryDamageBonus.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("OrreryDamage");
+            OrreryDamageBonus.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("OrreryDamageNew");
             ContentAddition.AddBuffDef(OrreryDamageBonus);
         }
 
@@ -538,6 +538,31 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.016f, 0.016f, 0.016f)
                 }
             });
+            rules.Add("mdlDeputy", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(0.000009037786f, 0.4524148f, -0.01999655f),
+                    localAngles = new Vector3(0, 34.94798f, 0),
+                    localScale = new Vector3(.99f, .99f, .99f)
+                }
+            });
+            rules.Add("mdlPathfinder", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(0.12126f, 0.1541458f, 0.07348464f),
+                    localAngles = new Vector3(0.1746431f, 341.2355f, 276.2693f),
+                    localScale = new Vector3(1.5f, 1.5f, 1.5f)
+                }
+            });
+
 
             return rules;
 

@@ -45,6 +45,7 @@ namespace vanillaVoid.Interactables
 
         public bool hasAddedMonolith;
         public static DirectorCard MonolithCard;
+        //public Transform symbolTransform;
 
         public override void Init(ConfigFile config)
         {
@@ -55,6 +56,9 @@ namespace vanillaVoid.Interactables
             CostTypeCatalog.modHelper.getAdditionalEntries += addVoidCostType;
             On.RoR2.CampDirector.SelectCard += VoidCampAddMonolith;
             On.RoR2.PurchaseInteraction.GetDisplayName += MonolithName;
+
+            //Stage.onServerStageBegin += HopefullyFixIncompat;
+            //On.RoR2.SceneDirector.Start += Test;
             //voidItemsList = new List<PickupIndex>();
             //voidItemsList.Union(Run.instance.availableVoidBossDropList).Union(Run.instance.availableVoidTier1DropList).Union(Run.instance.availableVoidTier2DropList).Union(Run.instance.availableVoidTier3DropList);
 
@@ -82,7 +86,7 @@ namespace vanillaVoid.Interactables
         private void CreateConfig(ConfigFile config)
         {
             voidSeedWeight = config.Bind<float>("Interactable: " + InteractableName, "Void Seed Selection Weight", .125f, "How likely should this interactable be chosen to spawn in a void seed? (For reference - 1 = Void Coin Barrel, .5 = Void Cradle, .333 = Void Potential Chest)");
-            normalWeight = config.Bind<int>("Interactable: " + InteractableName, "Normal Stage Selection Weight", 3, "How likely should this be to spawn outside of void seeds? (For reference, 24 = Normal Chest, 8 = Multishop, 1 = Lunar Pod (depends on stage, but generally these are accurate))");
+            normalWeight = config.Bind<int>("Interactable: " + InteractableName, "Regular Stage Selection Weight", 1, "How likely should this be to spawn outside of void seeds? (For reference, 24 = Normal Chest, 8 = Multishop, 1 = Lunar Pod (depends on stage, but generally these are accurate))");
             spawnCost = config.Bind<int>("Interactable: " + InteractableName, "Director Credit Cost", 15, "How likely should this be to spawn outside of void seeds? (For reference, 15 = Normal Chest, 20 = Multishop & Chance Shrine, 25 = Lunar Pod)");
         }
 
@@ -118,10 +122,17 @@ namespace vanillaVoid.Interactables
             var genericNameDisplay = InteractableBodyModelPrefab.AddComponent<GenericDisplayNameProvider>();
             genericNameDisplay.displayToken = $"VV_INTERACTABLE_{InteractableLangToken}_NAME";
 
+            var symbolTransform = InteractableBodyModelPrefab.transform.Find("Symbol");  //0.39607r maybe?
+            symbolTransform.gameObject.AddComponent<Billboard>();
+
+            //var parent = transform.parent.gameObject;
+            //Debug.Log("parent: " + parent + " | " + parent.name);
+            //var symbolTransform = parent.transform.Find("Symbol");
+
             var interactionToken = InteractableBodyModelPrefab.AddComponent<PortalInteractableToken>();
             interactionToken.PurchaseInteraction = purchaseInteraction;
+            interactionToken.symbolTransform = symbolTransform;
 
-            
             var entityLocator = InteractableBodyModelPrefab.GetComponentInChildren<MeshCollider>().gameObject.AddComponent<EntityLocator>();
             entityLocator.entity = InteractableBodyModelPrefab;
 
@@ -140,6 +151,10 @@ namespace vanillaVoid.Interactables
             hologramController.hologramPivot = InteractableBodyModelPrefab.transform.Find("HologramPivot");
             hologramController.displayDistance = 10;
             hologramController.disableHologramRotation = true;
+
+            //var dithmodel = InteractableBodyModelPrefab.AddComponent<DitherModel>();
+            //dithmodel.bounds = InteractableBodyModelPrefab.GetComponentInChildren<MeshCollider>();
+
 
             var childLocator = InteractableBodyModelPrefab.AddComponent<ChildLocator>(); //matMSObelisk
             childLocator.transformPairs = new ChildLocator.NameTransformPair[]
@@ -221,7 +236,7 @@ namespace vanillaVoid.Interactables
             VoidFieldsPortalCard.nodeGraphType = RoR2.Navigation.MapNodeGroup.GraphType.Ground;
             VoidFieldsPortalCard.requiredFlags = RoR2.Navigation.NodeFlags.None;
             VoidFieldsPortalCard.forbiddenFlags = RoR2.Navigation.NodeFlags.None;
-            VoidFieldsPortalCard.directorCreditCost = 0;
+            VoidFieldsPortalCard.directorCreditCost = 999999;
             VoidFieldsPortalCard.occupyPosition = true;
             VoidFieldsPortalCard.orientToFloor = false;
             VoidFieldsPortalCard.skipSpawnWhenSacrificeArtifactEnabled = false;
@@ -231,10 +246,11 @@ namespace vanillaVoid.Interactables
             {
                 selectionWeight = 0,
                 spawnCard = VoidFieldsPortalCard,
-                minimumStageCompletions = 0,
+                minimumStageCompletions = 999999,
             };
+            //DirectorAPI.Helpers.AddNewInteractableToStage(directorCard2, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.Bazaar);
 
-            DirectorAPI.Helpers.AddNewInteractable(directorCard2, DirectorAPI.InteractableCategory.VoidStuff);
+            //DirectorAPI.Helpers.AddNewInteractable(directorCard2, DirectorAPI.InteractableCategory.VoidStuff);
 
         }
 
@@ -248,9 +264,31 @@ namespace vanillaVoid.Interactables
             return orig(self);
         }
 
+        //private void HopefullyFixIncompat(Stage obj)
+        //{
+        //    Debug.Log("begin fix - " + obj.sceneDef.cachedName + " | " + obj.sceneDef.nameToken + " | ");
+        //    if(obj.sceneDef.cachedName == "forgottenhaven")
+        //    {
+        //
+        //    }
+        //    
+        //}
+
+        //private void Test(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
+        //{
+        //    Debug.Log("begin test - " + self.name);
+        //    foreach (Transform g in self.transform.GetComponentsInChildren<Transform>())
+        //    {
+        //        Debug.Log(g.name);
+        //    }
+        //    orig(self);
+        //}
+
         private DirectorCard VoidCampAddMonolith(On.RoR2.CampDirector.orig_SelectCard orig, CampDirector self, WeightedSelection<DirectorCard> deck, int maxCost)
         {
+            //Debug.Log("Beginning director card shit");
             hasAddedMonolith = false;
+            
             if (self.name == "Camp 1 - Void Monsters & Interactables")
             {
                 for (int i = deck.Count - 1; i >= 0; i--)
@@ -273,6 +311,8 @@ namespace vanillaVoid.Interactables
             }
             return orig(self, deck, maxCost);
         }
+
+
 
         private static class VoidItemCostTypeHelper
         {
@@ -347,6 +387,7 @@ namespace vanillaVoid.Interactables
             public CharacterBody LastActivator;
             //public Transform selfpos;
             public PurchaseInteraction PurchaseInteraction;
+            public Transform symbolTransform;
 
             public void Start()
             {
@@ -356,7 +397,8 @@ namespace vanillaVoid.Interactables
                 }
                 PurchaseInteraction.costType = (CostTypeIndex)voidCostTypeIndex;
                 PurchaseInteraction.onPurchase.AddListener(PortalPurchaseAttempt);
-                
+
+                //InteractableBodyModelPrefab.transform.Find("Symbol");
                 //BuffBrazierStateMachine = EntityStateMachine.FindByCustomName(gameObject, "Body");
 
                 //ConstructFlameChoice();
@@ -380,7 +422,10 @@ namespace vanillaVoid.Interactables
                         //GameObject portal = UnityEngine.Object.Instantiate<GameObject>(ShatteredMonolith.voidFieldPortalObject, this.transform.position, new Quaternion(0, 70, 0, 0));
                         //NetworkServer.Spawn(portal);
                         LastActivator = body;
+                        
+                        symbolTransform.gameObject.SetActive(false);
                         PurchaseInteraction.SetAvailable(false);
+
 
                     }
                 }

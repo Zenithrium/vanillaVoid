@@ -54,7 +54,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.4.4";
+        public const string ModVer = "1.4.5";
 
         public static ExpansionDef sotvDLC;
 
@@ -132,6 +132,8 @@ namespace vanillaVoid
                 MainAssets = AssetBundle.LoadFromStream(stream);
             }
 
+            //SwapShadersFromMaterials(MainAssets);
+            //Debug.Log("beginning test");
             Swapallshaders(MainAssets);
 
             On.RoR2.CharacterBody.OnSkillActivated += ExtExhaustFireProjectile;
@@ -153,6 +155,11 @@ namespace vanillaVoid
             //n.RoR2.CharacterModel.UpdateOverlays += AddLotusMaterial;
             On.RoR2.CharacterBody.FixedUpdate += LastTry;
 
+            //Texture tex = MainAssets.LoadAsset<Texture>("texRampIce4.png");
+            //var symbolmat = MainAssets.LoadAsset<Material>("interactablePortalSymbol");
+            //symbolmat.
+            //var material = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/matSlow80Debuff.mat").WaitForCompletion();
+            //foreach(var in material)
 
             bladeObject = MainAssets.LoadAsset<GameObject>("mdlBladeWorldObject.prefab");
             bladeObject.AddComponent<TeamFilter>();
@@ -1789,9 +1796,11 @@ namespace vanillaVoid
 
         public void Swapallshaders(AssetBundle bundle)
         {
+            //Debug.Log("beginning test");
             Material[] allMaterials = bundle.LoadAllAssets<Material>();
             foreach (Material mat in allMaterials)
             {
+                Debug.Log("material: " + mat.name + " | with shader: " + mat.shader.name);
                 switch (mat.shader.name)
                 {
                     case "Stubbed Hopoo Games/Deferred/Standard":
@@ -1801,6 +1810,7 @@ namespace vanillaVoid
                         mat.shader = Resources.Load<Shader>("shaders/deferred/hgsnowtopped");
                         break;
                     case "Stubbed Hopoo Games/FX/Cloud Remap":
+                        //Debug.Log("Switching material: " + mat.name);
                         mat.shader = Resources.Load<Shader>("shaders/fx/hgcloudremap");
                         break;
                     case "Stubbed Hopoo Games/FX/Cloud Intersection Remap":
@@ -1818,12 +1828,40 @@ namespace vanillaVoid
                     case "Stubbed Hopoo Games/Environment/Distant Water":
                         mat.shader = Resources.Load<Shader>("shaders/environment/hgdistantwater");
                         break;
+                    case "StubbedRoR2/Base/Shaders/HGCloudRemap":
+                        //Debug.Log("Switching material: " + mat.name);
+                        mat.shader = Resources.Load<Shader>("shaders/fx/hgcloudremap");
+                        break;
                     default:
                         break;
                 }
 
             }
         }
+
+        //static List<Material> materialsWithSwappedShaders;
+        //private void SwapShadersFromMaterials(AssetBundle assetBundle)
+        //{
+        //    var materials = assetBundle.LoadAllAssets<Material>().Where(mat => mat.shader.name.StartsWith("StubbedShader"));
+        //    foreach (Material material in materials)
+        //    {
+        //        try
+        //        {
+        //            SwapShader(material);
+        //        }
+        //        catch (Exception e) { Debug.LogError(e); }
+        //    }
+        //}
+        //private async void SwapShader(Material material)
+        //{
+        //    var shaderName = material.shader.name.Substring("Stubbed".Length);
+        //    var adressablePath = $"{shaderName}.shader";
+        //    var asyncOp = Addressables.LoadAssetAsync<Shader>(adressablePath);
+        //    var shaderTask = asyncOp.Task;
+        //    var shader = await shaderTask;
+        //    material.shader = shader;
+        //    materialsWithSwappedShaders.Add(material);
+        //}
     }
 
 

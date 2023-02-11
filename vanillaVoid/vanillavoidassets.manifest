@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 2100381932
+CRC: 3626250979
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: da80b2736ee93a7d21801088ab6e9507
+    Hash: e6c41acfa4464a90b679089de446b852
   TypeTreeHash:
     serializedVersion: 2
     Hash: 6ba044ad33d408c04b562a940f2669ef
@@ -42,6 +42,7 @@ Assets:
 - Assets/Textures/Icons/Buffs/lotusSlow.png
 - Assets/Models/Prefabs/Item/CryoItem/mdlCryoDisplay.prefab
 - Assets/Textures/Materials/Item/Mess/gooptexture.mat
+- Assets/Textures/Materials/Item/OrreryItem/miscGray.mat
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladeDisplay.prefab
 - Assets/Textures/Materials/Item/Mess/pottexture.mat
 - Assets/Textures/Icons/Buffs/preFreezeSlow.png
@@ -49,22 +50,31 @@ Assets:
 - Assets/Textures/Icons/Item/LotusItem/crystalLotusIcon512.png
 - Assets/Sprites/texUICornerTier1.png
 - Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryPickup.prefab
+- Assets/raw/orrery/newOrreryMaterial.mat
+- Assets/raw/cryo/cryoMat.mat
+- Assets/Textures/Materials/Item/OrreryItem/ringsMedium.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/mdlClockworkPickup.prefab
 - Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryDisplay.prefab
+- Assets/raw/adze/adzeMat.mat
 - Assets/Models/Prefabs/Item/CryoItem/mdlCryoPickup.prefab
 - Assets/Models/Prefabs/Item/CryoItem/meshCryoExplosion.mesh
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedEmptyDisplay.prefab
+- Assets/Textures/Materials/Item/OrreryItem/ringsTiny.mat
 - Assets/Models/Misc/matPurpleGrassyStone.mat
 - Assets/Models/Prefabs/Item/MessItem/mdlMessDisplay.prefab
 - Assets/Models/Prefabs/Item/CryoItem/texChargeShadow.png
+- Assets/Textures/Materials/Item/OrreryItem/orreryMat.mat
 - Assets/Textures/Icons/Item/VialsItem/vialsIcon.png
+- Assets/raw/lotus/lotusmaterial.mat
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedVialsPickup.prefab
 - Assets/raw/quill/realdiffuse.png
 - Assets/Models/Misc/matPurpleGrassyStonePink.mat
 - Assets/raw/whorl/WhorlShellMat.mat
 - Assets/Models/Misc/mdlPlatformSeparate.prefab
+- Assets/raw/lotus/finalLotusMat.mat
 - Assets/Models/Prefabs/Item/StaffItem/mdlStaffPickup.prefab
 - Assets/Models/Prefabs/Item/CryoItem/ChargeShadow.mat
+- Assets/Textures/Icons/Interactables/texCloudIce.png
 - Assets/Models/Misc/fbxVoidPlatform.fbx
 - Assets/Sprites/texUICornerTier4.png
 - Assets/Textures/Icons/Item/CryoItem/cryoIcon512.png
@@ -74,16 +84,20 @@ Assets:
 - Assets/Textures/Materials/Item/AbyssalAdze/MiscMetalTexture.mat
 - Assets/Textures/Icons/Item/ClockworkWatch/watchIcon512.png
 - Assets/Models/Misc/VoidShrine.prefab
+- Assets/Textures/Icons/Interactables/interactablePortalSymbol.mat
 - Assets/Sprites/texUICornerTier2.png
 - Assets/Models/Prefabs/Item/ExtVent/mdlVentPickup.prefab
+- Assets/Textures/Materials/Item/AbyssalAdze/orbCoreTexture.mat
 - Assets/Textures/Icons/Item/BladeItem/bladeIcon.png
 - Assets/Models/Prefabs/Item/LotusItem/mdlLotusWorldObject.prefab
 - Assets/Models/Misc/fbxVoidArch.fbx
 - Assets/Models/Prefabs/Item/QuillItem/mdlQuillPickup.prefab
 - Assets/Sprites/texShrineIconOutlined.png
+- Assets/Textures/Materials/Item/OrreryItem/planets.mat
 - Assets/Models/Prefabs/Item/QuillItem/mdlPotSoloDisplay.prefab
 - Assets/Textures/Icons/Item/ventItem/ventIcon.png
 - Assets/Textures/Icons/Item/LotusItem/texMagmaCloud.png
+- Assets/Textures/Materials/Item/ExtVent/ventMat.mat
 - Assets/Sprites/texUICornerTier3.png
 - Assets/Models/Prefabs/Item/StaffItem/mdlStaffDisplay.prefab
 - Assets/Textures/Icons/Item/AbyssalAdze/adzeIcon.png
@@ -92,9 +106,13 @@ Assets:
 - Assets/Models/Misc/LotusTeleporterCollider.prefab
 - Assets/Textures/Icons/Item/MessItem/brokenMessIconLarge.png
 - Assets/Textures/Icons/Buffs/whorlRegenBuffIcon.png
+- Assets/raw/lotus/betterLotusMaterial.mat
 - Assets/Models/Prefabs/Item/ExtVent/ventOrb.prefab
 - Assets/Textures/Materials/Item/Mess/voidorb.mat
+- Assets/Textures/Materials/Item/ClockworkWatch/casingMat.mat
+- Assets/Textures/Materials/Item/OrreryItem/cup.mat
 - Assets/Textures/Materials/Item/AbyssalAdze/HeadMaterial.mat
+- Assets/Textures/Icons/Interactables/texRampCrowbar.png
 - Assets/Models/Prefabs/Item/QuillItem/mdlQuillSoloDisplay.prefab
 - Assets/Models/Prefabs/Item/QuillItem/mdlQuillPickupReal.prefab
 - Assets/Textures/Icons/Item/AbyssalAdze/adzeIcon512.png
@@ -108,6 +126,8 @@ Assets:
 - Assets/Textures/Icons/Item/MessItem/brokenMessIcon.png
 - Assets/Models/Prefabs/Item/ExtVent/mdlVentDisplay.prefab
 - Assets/Textures/Icons/Item/BladeItem/bladeIcon512.png
+- Assets/Textures/Materials/Item/OrreryItem/ringsLarge.mat
+- Assets/Textures/Materials/Item/Blade/bladeMateria.mat
 - Assets/Textures/Materials/Item/ClockworkWatch/whiteMat.mat
 - Assets/Textures/Icons/Item/VialsEmptyItem/emptyVialsIcon.png
 - Assets/Textures/Icons/Item/VialsEmptyItem/emptyVialsIcon512.png
@@ -118,11 +138,15 @@ Assets:
 - Assets/Models/Misc/mdlVoidPlatform.prefab
 - Assets/Textures/Materials/Item/ClockworkWatch/valveMat.mat
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedVialsDisplay.prefab
+- Assets/Textures/Icons/Interactables/portalInteractableSymbol.png
 - Assets/Textures/Icons/Item/OrbItem/OrbIcon.png
 - Assets/Textures/Materials/Item/ClockworkWatch/gearMat.mat
 - Assets/Textures/Icons/Item/LotusItem/texCloudDifferenceBW1.png
+- Assets/Textures/Materials/Item/VialsItem/vialMat.mat
+- Assets/raw/extVent/extVentMat.mat
 - Assets/Textures/Materials/Item/ClockworkWatch/b/mainGrayMat.mat
 - Assets/Textures/Icons/Item/LotusItem/texRampIce2.png
+- Assets/Textures/Icons/Buffs/orreryDamageNew.png
 - Assets/Textures/Materials/Item/Mess/armtexture.mat
 - Assets/Models/Prefabs/Item/WhorlItem/mdlWhorlPickup.prefab
 - Assets/Textures/Icons/Item/LotusItem/ancientlotusIcon512.png
@@ -136,6 +160,7 @@ Assets:
 - Assets/raw/quill/quillsolo.fbx
 - Assets/Textures/Icons/Item/VialsItem/vialsIcon512.png
 - Assets/Textures/Materials/Item/AbyssalAdze/HandleLowerTexture.mat
+- Assets/raw/vials/Materials/vialTextureBrighter.mat
 - Assets/Textures/Icons/Item/LotusItem/lotusIcon512.png
 - Assets/Models/Prefabs/Item/LotusItem/mdlFinalLotusDisplay.prefab
 - Assets/Textures/Materials/Item/AbyssalAdze/orbTranspTexture.mat
@@ -145,6 +170,7 @@ Assets:
 - Assets/Textures/Icons/Item/QuillItem/quillIcon512.png
 - Assets/Models/Prefabs/Item/AbyssalAdze/mdlAdzeDisplay.prefab
 - Assets/Textures/Icons/Item/LotusItem/texRampIce4.png
+- Assets/Textures/Materials/Item/OrreryItem/pillar.mat
 - Assets/raw/quill/normalbetter.png
 - Assets/Textures/Icons/Buffs/shatterStatus.png
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladeWorldObject.prefab
