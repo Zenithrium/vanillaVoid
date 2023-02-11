@@ -38,6 +38,7 @@ namespace vanillaVoid.Items
         public ConfigEntry<bool> proritizeLowTier;
 
         public ConfigEntry<bool> alwaysHappen;
+        public ConfigEntry<bool> bazaarHappen;
 
         public ConfigEntry<float> directorMultiplier;
 
@@ -74,7 +75,9 @@ namespace vanillaVoid.Items
         string tempItemPickupDesc;
         string tempItemFullDescription;
         string tempLore;
-        
+
+        bool isBazaarStage;
+
         public override void Init(ConfigFile config)
         {
             CreateConfig(config);
@@ -163,15 +166,16 @@ namespace vanillaVoid.Items
 
             itemsPerStage = config.Bind<int>("Item: " + ItemName, "Items per Stage", 3, "Variant 0: Adjust the number of items you get upon entering a new stage with this item.");
             itemsPerStageStacking = config.Bind<int>("Item: " + ItemName, "Extra Items per Stack", 1, "Variant 0: Adjust the additional number of items you get for each subsequent stack.");
+            bazaarHappen = config.Bind<bool>("Item: " + ItemName, "Function in Bazaar", false, "Variant 0: Adjust whether or not should function in the bazaar. This additionally causes the item to no longer break items in the bazaar.");
 
             breakCooldown = config.Bind<float>("Item: " + ItemName, "Breaking Cooldown", 3.0f, "Variant 0 and 1: Adjust how long the cooldown is between the item breaking other items.");
-            alwaysHappen = config.Bind<bool>("Item: " + ItemName, "Function in Special Stages", false, "Variant 0 and 1: Adjust whether or not should function in stages where the director doesn't get any credits (ex Gilded Coast, Commencement, Bazaar).");
+
             scrapInstead = config.Bind<bool>("Item: " + ItemName, "Scrap Instead", false, "Variant 0 and 1: Adjust whether the items are scrapped or destroyed.");
             destroySelf = config.Bind<bool>("Item: " + ItemName, "Destroy Self Instead", false, "Variant 0 and 1: Adjust if the item should destroy itself, rather than other items. Destroys half of the current stack. Overrides the config option below (tier priority).");
             proritizeLowTier = config.Bind<bool>("Item: " + ItemName, "Prioritize Lower Tier", true, "Variant 0 and 1: Adjust the item's preference for lower tier items. False means no prefrence, true means a general preference (unlikely, but possible to destroy higher tiers).");
 
             //breaksPerStageCap = config.Bind<int>("Item: " + ItemName, "Breaks per Stage", -1, "Cap the number of items this item can break per stage at this number. -1 means there is no cap.");
-
+            alwaysHappen = config.Bind<bool>("Item: " + ItemName, "Function in Special Stages", false, "Variant 1: Adjust whether or not should function in stages where the director doesn't get any credits (ex Gilded Coast, Commencement, Bazaar).");
             directorBuff = config.Bind<float>("Item: " + ItemName, "Credit Bonus", 22.5f, "Variant 1: Adjust how many credits the first stack gives the director. 15 credits is one chest.");
             stackingBuff = config.Bind<float>("Item: " + ItemName, "Credit Bonus per Stack", 22.5f, "Variant 1: Adjust the increase gained per stack."); //22.5f is 1.5 chests
             
@@ -535,12 +539,15 @@ namespace vanillaVoid.Items
             if (itemVariant.Value == 0 || itemVariant.Value == 1)
             {
                 On.RoR2.HealthComponent.UpdateLastHitTime += BreakItem;
-                
+                if(itemVariant.Value == 0)
+                {
+                    Stage.onServerStageBegin += DetermineStage;
+                }
             }
             RoR2.SceneDirector.onPrePopulateSceneServer += HelpDirector;
             //On.RoR2.Stage.RespawnCharacter += StageRewards;
         }
-        
+
         //private void AddWatchTokenOnPickup(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self)
         //{
         //    if (WatchToken)
@@ -551,11 +558,83 @@ namespace vanillaVoid.Items
         //    CharacterBody victimBody = dmgReport.victimBody;
         //    self.gameObject.AddComponent<ExeToken>();
         //}
-        
+        private void DetermineStage(Stage obj)
+        {
+            isBazaarStage = false;
+            if (obj.sceneDef == SceneCatalog.GetSceneDefFromSceneName("bazaar"))
+            {
+                Debug.Log("it's the bazaar");
+                isBazaarStage = true;
+            }
+            if ((bazaarHappen.Value || !isBazaarStage) && itemVariant.Value == 0) //var 0
+            {
+                //int itemCount = 0;
+                foreach (var player in PlayerCharacterMasterController.instances)
+                {
+                    int itemCount = player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+                    if (itemCount > 0)
+                    {
+                        int rewardCount = itemsPerStage.Value + (itemsPerStageStacking.Value * (itemCount - 1));
+                        for (int i = 0; i < rewardCount; i++)
+                        {
+                            if (watchVoidRng == null)
+                            {
+                                watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
+                            }
+
+                            PickupIndex pickupResult;// = PickupIndex.none;
+                            int randInt = watchVoidRng.RangeInt(1, 100); // 1-79 white // 80-99 green // 100 red
+                            if (randInt < 80)
+                            {
+                                List<PickupIndex> whiteList = new List<PickupIndex>(Run.instance.availableTier1DropList);
+                                Util.ShuffleList(whiteList, watchVoidRng);
+                                //itemResult = whiteList[0].itemIndex;
+                                pickupResult = whiteList[0];
+                            }
+                            else if (randInt < 99)
+                            {
+                                List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier2DropList);
+                                Util.ShuffleList(greenList, watchVoidRng);
+                                //itemResult = greenList[0].itemIndex;
+                                pickupResult = greenList[0];
+                            }
+                            else
+                            {
+                                List<PickupIndex> redList = new List<PickupIndex>(Run.instance.availableTier3DropList);
+                                Util.ShuffleList(redList, watchVoidRng);
+                                //itemResult = redList[0].itemIndex;
+                                pickupResult = redList[0];
+                            }
+
+                            //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+                            float num = 360f / (float)rewardCount;
+                            Vector3 a = Quaternion.AngleAxis(num * (float)i, Vector3.up) * Vector3.forward;
+                            Vector3 position = player.gameObject.transform.position + a * 8f + Vector3.up * 8f;
+
+                            //PickupDropletController.CreatePickupDroplet(pickupResult, position, Vector3.zero); // <- this sort of worked? work on it later
+                            //EffectManager.SpawnEffect(Singularity.effectPrefab, new EffectData
+                            //{
+                            //    origin = position,
+                            //    scale = 2f
+                            //}, true);
+                            //this.itemDropCount++;
+
+                            player.master.inventory.GiveItem(pickupResult.itemIndex, 1);
+                            GenericPickupController.SendPickupMessage(player.master, pickupResult);
+                            //CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, itemResult, CharacterMasterNotificationQueue.TransformationType.Default);
+
+                        }
+                    }
+                }
+
+            }
+        }
+
         private void HelpDirector(SceneDirector obj)
         {
+            
             //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
-            if((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariant.Value == 0) //var 0
+            if((bazaarHappen.Value || !isBazaarStage) && itemVariant.Value == 0 && false) //var 0
             {
                 //int itemCount = 0;
                 foreach (var player in PlayerCharacterMasterController.instances)
@@ -677,7 +756,7 @@ namespace vanillaVoid.Items
         {
             orig.Invoke(self, damageValue, damagePosition, damageIsSilent, attacker);
             //Debug.Log("attacker: " + attacker);
-            if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<ClockworkMechanism>.instance.GetCount(self.body) > 0 && self.isHealthLow && !(self.GetComponent<CharacterBody>().GetBuffCount(recentBreak) > 0) && attacker)
+            if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<ClockworkMechanism>.instance.GetCount(self.body) > 0 && self.isHealthLow && !(self.GetComponent<CharacterBody>().GetBuffCount(recentBreak) > 0) && attacker && (bazaarHappen.Value || !isBazaarStage))
             {
                 var cb = self.GetComponent<CharacterBody>();
                 for(int i = 1; i <= Mathf.Ceil(breakCooldown.Value); i++)
