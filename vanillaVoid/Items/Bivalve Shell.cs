@@ -32,7 +32,7 @@ namespace vanillaVoid.Items
 
         public override string ItemPickupDesc => "Increases attack speed while your Secondary skill is on cooldown <style=cIsVoid>Corrupts all Backup Magazines</style>.";
 
-        public override string ItemFullDescription => $"Increase attack speed by {bivalveAttackSpeed.Value}% <style=cStack>(+{bivalveAttackSpeed.Value}% per stack)</style> while your Secondary Skill is on cooldown. <style=cIsVoid>Corrupts all Backup Magazines</style>.";
+        public override string ItemFullDescription => $"Increase <style=cIsDamage>attack speed</style> by <style=cIsDamage>{bivalveAttackSpeed.Value}%</style> <style=cStack>(+{bivalveAttackSpeed.Value}% per stack)</style> while your <style=cIsUtility>Secondary skill</style> is on cooldown. <style=cIsVoid>Corrupts all Backup Magazines</style>.";
 
         public override string ItemLore => "working on it";
 

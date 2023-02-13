@@ -32,7 +32,7 @@ namespace vanillaVoid.Items
 
         public override string ItemPickupDesc => "Increase strafe speed. <style=cIsVoid>Corrupts all Paul's Goat Hooves</style>.";
 
-        public override string ItemFullDescription => $"Increases sideways movement speed by {moveSpeedIncrease.Value * 100}% <style=cStack>(+{moveSpeedIncrease.Value * 100}% per stack)</style>. <style=cIsVoid>Corrupts all Paul's Goat Hooves</style>.";
+        public override string ItemFullDescription => $"Increases <style=cIsUtility>sideways movement speed</style> by <style=cIsUtility>{moveSpeedIncrease.Value * 100}%</style> <style=cStack>(+{moveSpeedIncrease.Value * 100}% per stack)</style>. <style=cIsVoid>Corrupts all Paul's Goat Hooves</style>.";
 
         public override string ItemLore => "working on it"; 
 

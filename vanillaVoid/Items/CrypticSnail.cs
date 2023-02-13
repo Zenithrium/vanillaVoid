@@ -32,7 +32,7 @@ namespace vanillaVoid.Items
 
         public override string ItemPickupDesc => "Gain barrier while evading nearby enemies <style=cIsVoid>Corrupts all Cautious Slugs</style>.";
 
-        public override string ItemFullDescription => $"Gain up to {barrierGainAmount.Value * 2} <style=cStack>(+{barrierGainAmount.Value * 2} per stack)</style> temporary barrier per second the more enemies are within {enemyMinRange.Value} meters of you. Taking damage halts the effect until you are out of danger. <style=cIsVoid>Corrupts all Cautious Slugs</style>.";
+        public override string ItemFullDescription => $"Gain up to <style=cIsHealing>{barrierGainAmount.Value * 2}</style> <style=cStack>(+{barrierGainAmount.Value * 2} per stack)</style> <style=cIsHealing>temporary barrier</style> per second the more enemies are within <style=cIsUtility>{enemyMinRange.Value}m</style> of you. Taking damage halts the effect until you are out of danger. <style=cIsVoid>Corrupts all Cautious Slugs</style>.";
 
         public override string ItemLore => "working on it";
 
