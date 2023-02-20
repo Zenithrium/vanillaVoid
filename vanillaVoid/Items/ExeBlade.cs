@@ -33,15 +33,13 @@ namespace vanillaVoid.Items
 
         //public ConfigEntry<float> aoeRangeStackingExe;
 
-        public ConfigEntry<string> voidPair;
-
         public override string ItemName => "Executioner's Burden";
 
         public override string ItemLangTokenName => "EXEBLADE_ITEM";
 
-        public override string ItemPickupDesc => "Your 'On-Kill' effects occur an additional time upon killing an elite. Additionally causes a damaging AOE upon elite kill. <style=cIsVoid>Corrupts all Old Guillotines</style>.";
+        public override string ItemPickupDesc => $"Your 'On-Kill' effects occur an additional time upon killing an elite. Additionally causes a damaging AOE upon elite kill. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemFullDescription => $"Your <style=cIsDamage>On-Kill</style> effects occur <style=cIsDamage>{additionalProcs.Value}</style> <style=cStack>(+{additionalProcs.Value} per stack)</style> additional times upon killing an elite. Additionally causes a <style=cIsDamage>{aoeRangeBaseExe.Value}m</style> explosion, dealing <style=cIsDamage>{baseDamageAOEExe.Value * 100}%</style> base damage. <style=cIsVoid>Corrupts all Old Guillotines</style>.";
+        public override string ItemFullDescription => $"Your <style=cIsDamage>On-Kill</style> effects occur <style=cIsDamage>{additionalProcs.Value}</style> <style=cStack>(+{additionalProcs.Value} per stack)</style> additional times upon killing an elite. Additionally causes a <style=cIsDamage>{aoeRangeBaseExe.Value}m</style> explosion, dealing <style=cIsDamage>{baseDamageAOEExe.Value * 100}%</style> base damage. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemLore => $"<style=cMono>//-- AUTO-TRANSCRIPTION FROM CARGO BAY 14 OF UES [Redacted] --//</style>" +
             "\n\n\"Hey Joe, how are things g....what is all that. Why do you have so many swords.\"" +

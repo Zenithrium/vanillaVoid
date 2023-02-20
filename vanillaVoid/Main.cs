@@ -15,16 +15,12 @@ using vanillaVoid.Equipment;
 using vanillaVoid.Items;
 using RoR2;
 using HarmonyLib;
-using VoidItemAPI;
 using UnityEngine.AddressableAssets;
-using Mono.Cecil.Cil;
-using MonoMod.Cil;
-using RoR2.Orbs;
 using UnityEngine.Networking;
 using RoR2.Projectile;
 using vanillaVoid.Interactables;
 using vanillaVoid.Misc;
-using EntityStates.TeleporterHealNovaController;
+using vanillaVoid.Utils;
 //using static vanillaVoid.Utils.Components.MaterialControllerComponents;
 
 namespace vanillaVoid
@@ -154,6 +150,16 @@ namespace vanillaVoid
             //On.RoR2.CharacterBody.FixedUpdate += LotusSlowVisuals;
             //n.RoR2.CharacterModel.UpdateOverlays += AddLotusMaterial;
             On.RoR2.CharacterBody.FixedUpdate += LastTry;
+
+            On.RoR2.Language.GetLocalizedStringByToken += (orig, self, token) =>
+            {
+                if (ItemBase.TokenToVoidPair.ContainsKey(token))
+                {
+                    ItemIndex idx = ItemCatalog.FindItemIndex(ItemBase.TokenToVoidPair[token]);
+                    if (idx != ItemIndex.None) return orig(self, token).Replace("{CORRUPTION}", MiscUtils.GetPlural(orig(self, ItemCatalog.GetItemDef(idx).nameToken)));
+                }
+                return orig(self, token);
+            };
 
             //Texture tex = MainAssets.LoadAsset<Texture>("texRampIce4.png");
             //var symbolmat = MainAssets.LoadAsset<Material>("interactablePortalSymbol");

@@ -32,6 +32,9 @@ namespace vanillaVoid.Items
         public abstract string ItemFullDescription { get; }
         public abstract string ItemLore { get; }
 
+        public static Dictionary<string, string> TokenToVoidPair = new Dictionary<string, string>();
+        public ConfigEntry<string> voidPair = null;
+
         public abstract ItemTier Tier { get; }
         public virtual ItemTag[] ItemTags { get; set; } = new ItemTag[] { };
 
@@ -71,6 +74,11 @@ namespace vanillaVoid.Items
             LanguageAPI.Add("VV_ITEM_" + ItemLangTokenName + "_NAME", ItemName);
             LanguageAPI.Add("VV_ITEM_" + ItemLangTokenName + "_PICKUP", ItemPickupDesc);
             LanguageAPI.Add("VV_ITEM_" + ItemLangTokenName + "_DESCRIPTION", ItemFullDescription);
+            if (voidPair != null)
+            {
+                TokenToVoidPair.Add("VV_ITEM_" + ItemLangTokenName + "_PICKUP", voidPair.Value);
+                TokenToVoidPair.Add("VV_ITEM_" + ItemLangTokenName + "_DESCRIPTION", voidPair.Value);
+            }
             LanguageAPI.Add("VV_ITEM_" + ItemLangTokenName + "_LORE", ItemLore);
 
             //LanguageAPI.Add("ITEM_" + ItemLangTokenName + "_NAME", ItemName);

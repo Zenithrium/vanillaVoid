@@ -46,8 +46,6 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<int> variantBreakAmount;
 
-        public ConfigEntry<string> voidPair;
-
         public Xoroshiro128Plus watchVoidRng;
         public override string ItemName => "Clockwork Mechanism";
 
@@ -87,12 +85,12 @@ namespace vanillaVoid.Items
                 case 0:
                     if (destroySelf.Value)
                     {
-                        tempItemPickupDesc = "Gain items at the start of the next stage. Breaks half of the current stack at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                        tempItemPickupDesc = $"Gain items at the start of the next stage. Breaks half of the current stack at low health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                         tempItemFullDescription = $"Gain <style=cIsUtility>{itemsPerStage.Value}</style> <style=cStack>(+{itemsPerStageStacking.Value} per stack)</style> items at the start of the next stage. Taking damage to below <style=cIsHealth>25% health</style> breaks half of the current stack, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
                     }
                     else
                     {
-                        tempItemPickupDesc = "Gain items at the start of the next stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                        tempItemPickupDesc = $"Gain items at the start of the next stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                         tempItemFullDescription = $"Gain <style=cIsUtility>{itemsPerStage.Value}</style> <style=cStack>(+{itemsPerStageStacking.Value} per stack)</style> items at the start of the next stage. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
 
                     }
@@ -105,43 +103,43 @@ namespace vanillaVoid.Items
                 case 1:
                     if (destroySelf.Value)
                     {
-                        tempItemPickupDesc = "Increase the number of interactables per stage. Breaks half of the current stack at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
-                        tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks half of the current stack, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                        tempItemPickupDesc = $"Increase the number of interactables per stage. Breaks half of the current stack at low health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                        tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks half of the current stack, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     }
                     else
                     {
-                        tempItemPickupDesc = "Increase the number of interactables per stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
-                        tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                        tempItemPickupDesc = $"Increase the number of interactables per stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                        tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     
                     }
                     //if (scrapInstead.Value)
                     //{
-                    //    tempItemPickupDesc = "Increase the number of interactables per stage. Scraps a random item at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
-                    //    tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> scraps <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    //    tempItemPickupDesc = "Increase the number of interactables per stage. Scraps a random item at low health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                    //    tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> scraps <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     //}
 
-                    //tempItemPickupDesc = "Increase the number of interactables per stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
-                    //tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    //tempItemPickupDesc = $"Increase the number of interactables per stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                    //tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     tempLore = $"\"The clock is always ticking. The hands of time move independently of your desire for them to still - the sands flow eternally and will never pause. Use what little time you have efficiently - once you've lost that time, it's quite hard to find more.\"" +
             "\n\n- Lost Journal, recovered from Petrichor V";
                     CreateBuff();
                     break;
 
                 case 2:
-                    tempItemPickupDesc = "Greatly increase the number of interactables in the next stage. Breaks after use. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                    tempItemPickupDesc = $"Greatly increase the number of interactables in the next stage. Breaks after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     tempItemFullDescription = "";
                     tempLore = $"\"May your greed know no bounds. Take what you have, and destroy it, for something better. It will have been worth it. \nI guarantee it.\"\n\n- Lost Journal, recovered from Petrichor V";
                     if (variantBreakAmount.Value < 0)
                     {
-                        tempItemFullDescription = $"Multiply the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>all</style> stacks after use. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                        tempItemFullDescription = $"Multiply the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>all</style> stacks after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     }
                     else if (variantBreakAmount.Value == 1)
                     {
-                        tempItemFullDescription = $"Multiply the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stack after use. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                        tempItemFullDescription = $"Multiply the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stack after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     }
                     else
                     {
-                        tempItemFullDescription = $"Multiply the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stacks after use. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                        tempItemFullDescription = $"Multiply the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stacks after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     }
                     tempItemPickupDesc.Replace("Breaks", "Scraps");
                     tempItemFullDescription.Replace("Breaks", "Scraps");

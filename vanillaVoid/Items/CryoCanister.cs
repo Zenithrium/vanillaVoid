@@ -35,16 +35,13 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<float> slowPercentage;
 
-
-        public ConfigEntry<string> voidPair;
-
         public override string ItemName => "Supercritical Coolant";
 
         public override string ItemLangTokenName => "CRYOCANISTER_ITEM";
 
-        public override string ItemPickupDesc => "Killing an enemy slows and eventually freezes other nearby enemies. <style=cIsVoid>Corrupts all Gasolines</style>.";
+        public override string ItemPickupDesc => $"Killing an enemy slows and eventually freezes other nearby enemies. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemFullDescription => $"Killing an enemy <style=cIsUtility>slows</style> all enemies within <style=cIsDamage>{aoeRangeBase.Value}m</style> <style=cStack>(+{aoeRangeStacking.Value}m per stack)</style> for <style=cIsDamage>{baseDamageAOE.Value * 100}%</style> <style=cStack>(+{stackingDamageAOE.Value * 100}% per stack)</style> base damage, which lasts for <style=cIsUtility>{slowDuration.Value}</style> <style=cStack>(+{slowDuration.Value * .5} per stack)</style> seconds. Upon applying <style=cIsUtility>{requiredStacksForFreeze.Value} stacks</style> of <style=cIsUtility>slow</style> to an enemy, they are <style=cIsDamage>frozen</style>. Freezing is less effective on bosses. <style=cIsVoid>Corrupts all Gasolines</style>.";
+        public override string ItemFullDescription => $"Killing an enemy <style=cIsUtility>slows</style> all enemies within <style=cIsDamage>{aoeRangeBase.Value}m</style> <style=cStack>(+{aoeRangeStacking.Value}m per stack)</style> for <style=cIsDamage>{baseDamageAOE.Value * 100}%</style> <style=cStack>(+{stackingDamageAOE.Value * 100}% per stack)</style> base damage, which lasts for <style=cIsUtility>{slowDuration.Value}</style> <style=cStack>(+{slowDuration.Value * .5} per stack)</style> seconds. Upon applying <style=cIsUtility>{requiredStacksForFreeze.Value} stacks</style> of <style=cIsUtility>slow</style> to an enemy, they are <style=cIsDamage>frozen</style>. Freezing is less effective on bosses. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemLore => $"<style=cSub>Order: Supercritical Coolant \nTracking Number: 03691215 \nEstimated Delivery: 25/10/2112 \nShipping Method: High Priority/Fragile \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" +
             "Originally we studied Void occurrences from afar, observing and cataloguing the distribution of galaxies and refining cosmological evolution models. We are in a new age of cosmic exploration. Advancements in space travel partnered with determined curiosity have brought us closer to our object of study, and with it, revelation.";

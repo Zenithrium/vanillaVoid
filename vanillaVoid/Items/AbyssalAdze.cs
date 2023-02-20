@@ -21,15 +21,13 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<float> stackingBuff;
 
-        public ConfigEntry<string> voidPair;
-
         public override string ItemName => "Abyss-Touched Adze";
 
         public override string ItemLangTokenName => "ADZE_ITEM";
 
-        public override string ItemPickupDesc => "Deal more damage to enemies with lower health. <style=cIsVoid>Corrupts all Crowbars</style>.";
+        public override string ItemPickupDesc => $"Deal more damage to enemies with lower health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemFullDescription => $"Deal up to <style=cIsDamage>+{baseDamageBuff.Value * 100}%</style> <style=cStack>(+{stackingBuff.Value * 100}% per stack)</style> damage to enemies with lower health. <style=cIsVoid>Corrupts all Crowbars</style>.";
+        public override string ItemFullDescription => $"Deal up to <style=cIsDamage>+{baseDamageBuff.Value * 100}%</style> <style=cStack>(+{stackingBuff.Value * 100}% per stack)</style> damage to enemies with lower health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemLore => $"<style=cMono>//-- AUTO-TRANSCRIPTION FROM CARGO BAY 6 OF UES [Redacted] --//</style>" + 
             "\n\n\"So you're saying you destroyed-\" \n\n\"Traded!\"" +
