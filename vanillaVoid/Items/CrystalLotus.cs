@@ -27,8 +27,6 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<float> pulseCountStacking;
 
-        public ConfigEntry<string> voidPair;
-
         public override string ItemName => "Crystalline Lotus";
 
         public override string ItemLangTokenName => "BARRIERLOTUS_ITEM";
@@ -64,15 +62,15 @@ namespace vanillaVoid.Items
             { 
 
                 case 1:
-                    tempItemPickupDesc = "Periodically release a barrier nova during the Teleporter event and 'Holdout Zones' such as the Void Fields. <style=cIsVoid>Corrupts all Lepton Daisies</style>.";
-                    tempItemFullDescription = $"Release a <style=cIsHealing>barrier nova</style> during the Teleporter event, <style=cIsHealing>providing a barrier</style> to all nearby allies for <style=cIsHealing>{barrierAmount.Value * 100}%</style> of their max health. Occurs <style=cIsHealing>{pulseCountStacking.Value}</style> <style=cStack>(+{pulseCountStacking.Value} per stack)</style> times. <style=cIsVoid>Corrupts all Lepton Daisies</style>.";
+                    tempItemPickupDesc = $"Periodically release a barrier nova during the Teleporter event and 'Holdout Zones' such as the Void Fields. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                    tempItemFullDescription = $"Release a <style=cIsHealing>barrier nova</style> during the Teleporter event, <style=cIsHealing>providing a barrier</style> to all nearby allies for <style=cIsHealing>{barrierAmount.Value * 100}%</style> of their max health. Occurs <style=cIsHealing>{pulseCountStacking.Value}</style> <style=cStack>(+{pulseCountStacking.Value} per stack)</style> times. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     tempLore = $"\"I've located an...interesting specimen. You know those inane myths and theories people have about healing crystals, magical herbs, all that nonsense? You'll never believe me, but uh...I found something that roughly matches those descriptions. There's no doubt it's a coincidence... but it makes me wonder. What if some of these objects...these.. discoveries... aren't so new?\"\n\n- Lost Journal, Recovered from Petrichor V";
 
                     break;
 
                 default:
-                    tempItemPickupDesc = "Periodically release slowing pulses during the Teleporter event and 'Holdout Zones' such as the Void Fields. <style=cIsVoid>Corrupts all Lepton Daisies</style>.";
-                    tempItemFullDescription = $"Release a <style=cIsUtility>slowing pulse</style> during the Teleporter event, <style=cIsUtility>slowing enemies and projectiles</style> by up to <style=cIsUtility>{(1 - LotusSlowPercent.Value) * 100}%</style> for {LotusDuration.Value} seconds. Occurs <style=cIsHealing>{pulseCountStacking.Value}</style> <style=cStack>(+{pulseCountStacking.Value} per stack)</style> times. <style=cIsVoid>Corrupts all Lepton Daisies</style>.";
+                    tempItemPickupDesc = $"Periodically release slowing pulses during the Teleporter event and 'Holdout Zones' such as the Void Fields. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                    tempItemFullDescription = $"Release a <style=cIsUtility>slowing pulse</style> during the Teleporter event, <style=cIsUtility>slowing enemies and projectiles</style> by up to <style=cIsUtility>{(1 - LotusSlowPercent.Value) * 100}%</style> for {LotusDuration.Value} seconds. Occurs <style=cIsHealing>{pulseCountStacking.Value}</style> <style=cStack>(+{pulseCountStacking.Value} per stack)</style> times. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     tempLore = $"\"I've been holed up here for... god knows how long now. I thought... I thought these plants would be... valuable, that..that it would be fine if I went and just... grabbed one - nature wouldn't mind... right? But ever since I grabbed it...I just feel.. so sluggish.. What...did I do wrong?\"\n\n- Lost Recording, Recovered from Petrichor V";
 
                     break;                

@@ -24,15 +24,13 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<int> dashesPerStack;
 
-        public ConfigEntry<string> voidPair;
-
         public override string ItemName => "Quasitemporal Quill";
 
         public override string ItemLangTokenName => "DASHQUILL_ITEM";
 
-        public override string ItemPickupDesc => "Gain an airdash. <style=cIsVoid>Corrupts all Hopoo Feathers</style>.";
+        public override string ItemPickupDesc => $"Gain an airdash. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemFullDescription => $"Jumping while midair performs an <style=cIsUtility>airdash</style>. Gain <style=cIsUtility>{dashesPerStack.Value}</style> <style=cStack>(+{dashesPerStack.Value} per stack)</style> maximum <style=cIsUtility>airdashes</style>. <style=cIsVoid>Corrupts all Hopoo Feathers</style>.";
+        public override string ItemFullDescription => $"Jumping while midair performs an <style=cIsUtility>airdash</style>. Gain <style=cIsUtility>{dashesPerStack.Value}</style> <style=cStack>(+{dashesPerStack.Value} per stack)</style> maximum <style=cIsUtility>airdashes</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemLore => $"<style=cSub>Order: Normal Ink and Quill \nTracking Number: 0372******* \nEstimated Delivery: 1/2/2056 \nShipping Method: High Priority/Fragile/Confidential \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" + 
             "Hey - hopefully a quick summary should do, since I don't have much time to set this up - first off, don't touch the ink. Keep it at a distance from yourself or have several layers of protection - corporate and HR demand it, and because of that, we still don't know what'll happen if someone touches it. However, we know what it does to inanimate objects, and as much as those corporate leeches can get on my nerves I think they've got a point here - it rapidly, yet briefly, ages the object it touches. The process can be altered a bit - it takes as long as the ink takes to dry into the substance. We say ink around here, though we're not sure where exactly it comes from nor its exact composition - and despite the name I wouldn't recommend trying to write with it. It'll rot right through the page and start gnawing at the table after. \n\nAnd remember - this is a secret. Almost no one else should know about this, but I need someone on the outside to do some quick and dirty research for me - I need a precident for this to work. Remember to stay safe. Oh, and sure - this isn't the most secure way to tell you all this, but don't worry, no one reads these anyways.";

@@ -40,18 +40,16 @@ namespace vanillaVoid.Items
 
         public static ConfigEntry<float> baseCrit;
 
-        public ConfigEntry<string> voidPair;
-
         public override string ItemName => "Lens-Maker's Orrery";
 
         public override string ItemLangTokenName => "ORRERY_ITEM";
 
-        //public override string ItemPickupDesc => "Gain a stacking damage bonus upon not critting, which is lost upon landing a crit. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+        //public override string ItemPickupDesc => $"Gain a stacking damage bonus upon not critting, which is lost upon landing a crit. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
         public override string ItemPickupDesc => tempItemPickupDesc;
 
-        //public override string ItemFullDescription => $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses and Lost Seer's Lenses are <style=cIsUtility>{lensBonus.Value * 100}%</style> <style=cStack>(+{stackingLensBonus.Value * 100}% per stack)</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can dip <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+        //public override string ItemFullDescription => $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses and Lost Seer's Lenses are <style=cIsUtility>{lensBonus.Value * 100}%</style> <style=cStack>(+{stackingLensBonus.Value * 100}% per stack)</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can dip <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
         public override string ItemFullDescription => tempItemFullDescription;
-        //public override string ItemFullDescription => $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses and Lost Seer's Lenses are <style=cIsUtility>{newLensBonus.Value * 100}%</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can occur <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times, with each additional occurance having <style=cIsDamage>{critModifier.Value * 100}%</style> <style=cStack>(+{critModifierStacking.Value * 100}% per stack)</style> of the crit chance of the previous crit. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+        //public override string ItemFullDescription => $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses and Lost Seer's Lenses are <style=cIsUtility>{newLensBonus.Value * 100}%</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can occur <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times, with each additional occurance having <style=cIsDamage>{critModifier.Value * 100}%</style> <style=cStack>(+{critModifierStacking.Value * 100}% per stack)</style> of the crit chance of the previous crit. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemLore => tempLore;
 
@@ -86,8 +84,8 @@ namespace vanillaVoid.Items
             CreateConfig(config);
             if (itemVariant.Value == 0)
             {
-                tempItemFullDescription = $"<style=cIsDamage>Non-critical hits</style> grant a stacking buff that increases <style=cIsDamage>damage</style> by <style=cIsDamage>{buffDamageBonus.Value * 100}%</style>, that is <style=cDeath>cleared upon landing a critical hit</style>. Stacks up to <style=cIsDamage>{buffStacksPerCount.Value}</style> <style=cStack>(+{buffStacksPerCount.Value} per stack)</style> times. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
-                tempItemPickupDesc = "Non-critical hits grant a stacking damage bonus that is lost upon critting. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+                tempItemFullDescription = $"<style=cIsDamage>Non-critical hits</style> grant a stacking buff that increases <style=cIsDamage>damage</style> by <style=cIsDamage>{buffDamageBonus.Value * 100}%</style>, that is <style=cDeath>cleared upon landing a critical hit</style>. Stacks up to <style=cIsDamage>{buffStacksPerCount.Value}</style> <style=cStack>(+{buffStacksPerCount.Value} per stack)</style> times. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                tempItemPickupDesc = $"Non-critical hits grant a stacking damage bonus that is lost upon critting. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                 tempLore = $"<style=cSub>Order: Lens-Maker's Orrery \nTracking Number: ******** \nEstimated Delivery: 1/13/2072 \nShipping Method: High Priority/Fragile/Confidiential \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" +
             "The Lens-Maker, as mysterious as they are influential. From my research I have surmised that she has been appointed to \"Final Verdict\", the most prestigious role of leadership in the House Beyond. Our team managed to locate a workshop of hers where she was supposedly working on some never-before concieved tech - but something was off. " +
             "Looking through her schematics and trinkets I found something odd - something unlike what I was anticipating. A simple orrery, clearly her design, but without her classic red, replaced with a peculiar purple. I suppose everyone gets tired of something after long enough... as this piece had no grounds in her previous work. At first I worried that when she learned of our arrival, when she left in a rush, that we had ruined some of her masterpieces...but maybe it's best we interrupted her. " +
@@ -95,19 +93,19 @@ namespace vanillaVoid.Items
             }
             else
             {
-                tempItemPickupDesc = "The Lens-Maker's work is more effective. Critical Strikes can occur an additional time, with half the chance of the previous one. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+                tempItemPickupDesc = $"The Lens-Maker's work is more effective. Critical Strikes can occur an additional time, with half the chance of the previous one. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                 tempLore = $"<style=cSub>Order: Lens-Maker's Orrery \nTracking Number: ******** \nEstimated Delivery: 1/13/2072 \nShipping Method: High Priority/Fragile/Confidiential \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" +
             "The Lens-Maker, as mysterious as they are influential. From my research I have surmised that she has been appointed to \"Final Verdict\", the most prestigious role of leadership in the House Beyond. Our team managed to locate a workshop of hers where she was supposedly working on some never-before concieved tech - but something was off. " +
             "Looking through her schematics and trinkets I found something odd - something unlike what I was anticipating. A simple orrery, clearly her design, but without her classic red, replaced with a peculiar purple. At first I worried that when she learned of our arrival, when she left in a rush, that we had ruined some of her masterpieces...but maybe it's best we interrupted her. " +
             "\n\nGiven that this is one of a kind, and quite a special work of hers at that; I expect much more than just currency in payment.";
                 if (newStackingLensBonus.Value == 0)
                 {
-                    tempItemFullDescription = $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses are <style=cIsUtility>{newLensBonus.Value * 100}%</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can occur <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times, with each additional occurance having <style=cIsDamage>{critModifier.Value * 100}%</style> <style=cStack>(+{critModifierStacking.Value * 100}% per stack)</style> of the crit chance of the previous crit. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+                    tempItemFullDescription = $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses are <style=cIsUtility>{newLensBonus.Value * 100}%</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can occur <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times, with each additional occurance having <style=cIsDamage>{critModifier.Value * 100}%</style> <style=cStack>(+{critModifierStacking.Value * 100}% per stack)</style> of the crit chance of the previous crit. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                 
                 }
                 else
                 {
-                    tempItemFullDescription = $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses are <style=cIsUtility>{newLensBonus.Value * 100}%</style> <style=cStack>(+{newStackingLensBonus.Value * 100} per stack)</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can occur <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times, with each additional occurance having <style=cIsDamage>{critModifier.Value * 100}%</style> <style=cStack>(+{critModifierStacking.Value * 100}% per stack)</style> of the crit chance of the previous crit. <style=cIsVoid>Corrupts all Laser Scopes</style>.";
+                    tempItemFullDescription = $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses are <style=cIsUtility>{newLensBonus.Value * 100}%</style> <style=cStack>(+{newStackingLensBonus.Value * 100} per stack)</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can occur <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times, with each additional occurance having <style=cIsDamage>{critModifier.Value * 100}%</style> <style=cStack>(+{critModifierStacking.Value * 100}% per stack)</style> of the crit chance of the previous crit. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                 }
 
             }
