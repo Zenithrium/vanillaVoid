@@ -293,8 +293,8 @@ namespace vanillaVoid.Utils
             if (metarule.Success) return GetPlural(metarule.Groups[1].Value);
             foreach (var k in rules.Keys)
             {
-                string res = Regex.Replace(str, k, rules[k], RegexOptions.IgnoreCase);
-                if (res != str) return res;
+                if (Regex.Match(str, k, RegexOptions.IgnoreCase).Success) 
+                    return Regex.Replace(str, k, rules[k], RegexOptions.IgnoreCase);
             }
             return str;
         }
