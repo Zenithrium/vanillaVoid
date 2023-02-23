@@ -561,7 +561,7 @@ namespace vanillaVoid.Items
             isBazaarStage = false;
             if (obj.sceneDef == SceneCatalog.GetSceneDefFromSceneName("bazaar"))
             {
-                Debug.Log("it's the bazaar");
+                //Debug.Log("it's the bazaar");
                 isBazaarStage = true;
             }
             if ((bazaarHappen.Value || !isBazaarStage) && itemVariant.Value == 0) //var 0
