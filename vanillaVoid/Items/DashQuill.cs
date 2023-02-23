@@ -496,7 +496,7 @@ namespace vanillaVoid.Items
                         previousCount = body.characterMotor.jumpCount;
                     }
                 }
-                Debug.Log("jumpcount: " + body.characterMotor.jumpCount); //count >= body.maxJumpCount
+                //Debug.Log("jumpcount: " + body.characterMotor.jumpCount); //count >= body.maxJumpCount
                 if (body.inputBank.jump.justPressed && body.characterMotor.jumpCount == body.maxJumpCount && count >= body.maxJumpCount && dashCurrent != 0 && !body.HasBuff(RoR2Content.Buffs.Nullified) && !body.HasBuff(RoR2Content.Buffs.Entangle))
                 {
                     Vector3 dir = body.inputBank.moveVector;

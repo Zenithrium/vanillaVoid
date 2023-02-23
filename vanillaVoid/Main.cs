@@ -50,7 +50,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.4.6";
+        public const string ModVer = "1.4.7";
 
         public static ExpansionDef sotvDLC;
 
