@@ -50,7 +50,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.4.7";
+        public const string ModVer = "1.4.8";
 
         public static ExpansionDef sotvDLC;
 
@@ -727,40 +727,45 @@ namespace vanillaVoid
                     effectDataPulse.SetNetworkedObjectReference(bladeObject);
                     //var bisonEffect = EntityStates.Bison.SpawnState.spawnEffectPrefab;
 
-                    EffectManager.SpawnEffect(HealthComponent.AssetReferences.executeEffectPrefab, effectDataPulse, true);
+                    //EffectManager.SpawnEffect(HealthComponent.AssetReferences.executeEffectPrefab, effectDataPulse, true);
                     //EntityStates.BeetleGuardMonster.GroundSlam.slamEffectPrefab
-                    float AOEDamage = dmgReport.attackerBody.damage * AOEDamageMult;
-                    Vector3 corePosition = bladeObject.transform.position;
 
-                    exeBladeSphereSearch.origin = corePosition;
-                    exeBladeSphereSearch.mask = LayerIndex.entityPrecise.mask;
-                    exeBladeSphereSearch.radius = effectiveRadius;
-                    exeBladeSphereSearch.RefreshCandidates();
-                    exeBladeSphereSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetUnprotectedTeams(dmgReport.attackerBody.teamComponent.teamIndex));
-                    exeBladeSphereSearch.FilterCandidatesByDistinctHurtBoxEntities();
-                    exeBladeSphereSearch.OrderCandidatesByDistance();
-                    exeBladeSphereSearch.GetHurtBoxes(exeBladeHurtBoxBuffer);
-                    exeBladeSphereSearch.ClearCandidates();
-
-                    for (int j = 0; j < exeBladeHurtBoxBuffer.Count; j++)
+                    if (ItemBase<ExeBlade>.instance.enableOnDeathDamage.Value)
                     {
-                        HurtBox hurtBox = exeBladeHurtBoxBuffer[j];
-                        if (hurtBox.healthComponent && hurtBox.healthComponent.body && hurtBox.healthComponent != bladeObjHPC)
+                        EffectManager.SpawnEffect(HealthComponent.AssetReferences.executeEffectPrefab, effectDataPulse, true);
+                        float AOEDamage = dmgReport.attackerBody.damage * AOEDamageMult;
+                        Vector3 corePosition = bladeObject.transform.position;
+
+                        exeBladeSphereSearch.origin = corePosition;
+                        exeBladeSphereSearch.mask = LayerIndex.entityPrecise.mask;
+                        exeBladeSphereSearch.radius = effectiveRadius;
+                        exeBladeSphereSearch.RefreshCandidates();
+                        exeBladeSphereSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetUnprotectedTeams(dmgReport.attackerBody.teamComponent.teamIndex));
+                        exeBladeSphereSearch.FilterCandidatesByDistinctHurtBoxEntities();
+                        exeBladeSphereSearch.OrderCandidatesByDistance();
+                        exeBladeSphereSearch.GetHurtBoxes(exeBladeHurtBoxBuffer);
+                        exeBladeSphereSearch.ClearCandidates();
+
+                        for (int j = 0; j < exeBladeHurtBoxBuffer.Count; j++)
                         {
-                            DamageInfo damageInfoAOE = new DamageInfo
+                            HurtBox hurtBox = exeBladeHurtBoxBuffer[j];
+                            if (hurtBox.healthComponent && hurtBox.healthComponent.body && hurtBox.healthComponent != bladeObjHPC)
                             {
-                                attacker = attackerBody.gameObject,
-                                crit = attackerBody.RollCrit(),
-                                damage = AOEDamage,
-                                position = corePosition,
-                                procCoefficient = 1,
-                                damageType = DamageType.AOE,
-                                damageColorIndex = DamageColorIndex.Item,
-                            };
-                            hurtBox.healthComponent.TakeDamage(damageInfoAOE);
+                                DamageInfo damageInfoAOE = new DamageInfo
+                                {
+                                    attacker = attackerBody.gameObject,
+                                    crit = attackerBody.RollCrit(),
+                                    damage = AOEDamage,
+                                    position = corePosition,
+                                    procCoefficient = 1,
+                                    damageType = DamageType.AOE,
+                                    damageColorIndex = DamageColorIndex.Item,
+                                };
+                                hurtBox.healthComponent.TakeDamage(damageInfoAOE);
+                            }
                         }
+                        exeBladeHurtBoxBuffer.Clear();
                     }
-                    exeBladeHurtBoxBuffer.Clear();
                 }
             }
 

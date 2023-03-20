@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 3626250979
+CRC: 45458720
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: e6c41acfa4464a90b679089de446b852
+    Hash: b00c2ee34d66291fa93e4e3fa029b1f6
   TypeTreeHash:
     serializedVersion: 2
     Hash: 6ba044ad33d408c04b562a940f2669ef
@@ -64,6 +64,7 @@ Assets:
 - Assets/Models/Prefabs/Item/MessItem/mdlMessDisplay.prefab
 - Assets/Models/Prefabs/Item/CryoItem/texChargeShadow.png
 - Assets/Textures/Materials/Item/OrreryItem/orreryMat.mat
+- Assets/Models/Prefabs/Item/VialsItem/vialsTwo/mdlVialsFinalPickup.prefab
 - Assets/Textures/Icons/Item/VialsItem/vialsIcon.png
 - Assets/raw/lotus/lotusmaterial.mat
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedVialsPickup.prefab
@@ -131,6 +132,7 @@ Assets:
 - Assets/Textures/Materials/Item/ClockworkWatch/whiteMat.mat
 - Assets/Textures/Icons/Item/VialsEmptyItem/emptyVialsIcon.png
 - Assets/Textures/Icons/Item/VialsEmptyItem/emptyVialsIcon512.png
+- Assets/Models/Prefabs/Item/VialsItem/vialsTwo/mdlVialsFinalDisplay.prefab
 - Assets/Models/Prefabs/Item/ClockworkWatch/mdlClockworkDisplay.prefab
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladePickup.prefab
 - Assets/raw/quill/quillMat.mat

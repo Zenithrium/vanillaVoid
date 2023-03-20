@@ -31,15 +31,17 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<float> aoeRangeBaseExe;
 
+        public ConfigEntry<bool> enableOnDeathDamage;
+
         //public ConfigEntry<float> aoeRangeStackingExe;
 
         public override string ItemName => "Executioner's Burden";
 
         public override string ItemLangTokenName => "EXEBLADE_ITEM";
 
-        public override string ItemPickupDesc => $"Your 'On-Kill' effects occur an additional time upon killing an elite. Additionally causes a damaging AOE upon elite kill. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+        public override string ItemPickupDesc => tempItemPickupDesc;
 
-        public override string ItemFullDescription => $"Your <style=cIsDamage>On-Kill</style> effects occur <style=cIsDamage>{additionalProcs.Value}</style> <style=cStack>(+{additionalProcs.Value} per stack)</style> additional times upon killing an elite. Additionally causes a <style=cIsDamage>{aoeRangeBaseExe.Value}m</style> explosion, dealing <style=cIsDamage>{baseDamageAOEExe.Value * 100}%</style> base damage. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+        public override string ItemFullDescription => tempItemFullDescription;
 
         public override string ItemLore => $"<style=cMono>//-- AUTO-TRANSCRIPTION FROM CARGO BAY 14 OF UES [Redacted] --//</style>" +
             "\n\n\"Hey Joe, how are things g....what is all that. Why do you have so many swords.\"" +
@@ -58,11 +60,26 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
+        string tempItemPickupDesc;
+        string tempItemFullDescription;
+
         public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
 
         public override void Init(ConfigFile config)
         {
             CreateConfig(config);
+            if (enableOnDeathDamage.Value)
+            {
+                tempItemPickupDesc = $"Your 'On-Kill' effects occur an additional time upon killing an elite. Additionally causes a damaging AOE upon elite kill. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                tempItemFullDescription = $"Your <style=cIsDamage>On-Kill</style> effects occur <style=cIsDamage>{additionalProcs.Value}</style> <style=cStack>(+{additionalProcs.Value} per stack)</style> additional times upon killing an elite. Additionally causes a <style=cIsDamage>{aoeRangeBaseExe.Value}m</style> explosion, dealing <style=cIsDamage>{baseDamageAOEExe.Value * 100}%</style> base damage. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+
+            }
+            else
+            {
+                tempItemPickupDesc = $"Your 'On-Kill' effects occur an additional time upon killing an elite. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                tempItemFullDescription = $"Your <style=cIsDamage>On-Kill</style> effects occur <style=cIsDamage>{additionalProcs.Value}</style> <style=cStack>(+{additionalProcs.Value} per stack)</style> additional times upon killing an elite. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+
+            }
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
@@ -80,6 +97,7 @@ namespace vanillaVoid.Items
             deathDelay = config.Bind<float>("Item: " + name, "Time between Extra Procs", .3f, "Adjust the amount of time between each additional on-kill proc.");
             additionalDuration = config.Bind<float>("Item: " + name, "Additional Duration", 2.5f, "Adjust the amount of time the sword exists after the on-kill procs are finished.");
 
+            enableOnDeathDamage = config.Bind<bool>("Item: " + name, "Enable Damage AOE", true, "Enable or disable the additional AOE without having to set the next two configs to zero. ");
             baseDamageAOEExe = config.Bind<float>("Item: " + name, "Percent Base Damage", 1f, "Adjust the percent base damage the AOE does.");
             aoeRangeBaseExe = config.Bind<float>("Item: " + name, "Range of AOE", 12f, "Adjust the range of the damaging AOE on the first stack.");
             voidPair = config.Bind<string>("Item: " + name, "Item to Corrupt", "ExecuteLowHealthElite", "Adjust which item this is the void pair of.");
