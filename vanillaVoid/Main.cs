@@ -33,6 +33,7 @@ namespace vanillaVoid
     [BepInDependency("com.bepis.r2api.language", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("com.bepis.r2api.prefab", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("com.bepis.r2api.recalculatestats", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("com.bepis.r2api.director", BepInDependency.DependencyFlags.HardDependency)]
     //[BepInDependency("com.bepis.r2api.networking", BepInDependency.DependencyFlags.HardDependency)]
 
     //[BepInDependency("com.RumblingJOSEPH.VoidItemAPI", BepInDependency.DependencyFlags.HardDependency)]

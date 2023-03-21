@@ -32,7 +32,7 @@ namespace vanillaVoid.Interactables
 
         public static GameObject InteractableBodyModelPrefab;
 
-        public static InteractableSpawnCard InteractableSpawnCard;
+        public static InteractableSpawnCard interactableSpawnCard;
 
         public static InteractableSpawnCard VoidFieldsPortalCard;
 
@@ -56,7 +56,7 @@ namespace vanillaVoid.Interactables
             CostTypeCatalog.modHelper.getAdditionalEntries += addVoidCostType;
             On.RoR2.CampDirector.SelectCard += VoidCampAddMonolith;
             On.RoR2.PurchaseInteraction.GetDisplayName += MonolithName;
-
+            //On.RoR2.CampDirector.SelectCard
             //Stage.onServerStageBegin += HopefullyFixIncompat;
             //On.RoR2.SceneDirector.Start += Test;
             //voidItemsList = new List<PickupIndex>();
@@ -87,7 +87,7 @@ namespace vanillaVoid.Interactables
         {
             voidSeedWeight = config.Bind<float>("Interactable: " + InteractableName, "Void Seed Selection Weight", .125f, "How likely should this interactable be chosen to spawn in a void seed? (For reference - 1 = Void Coin Barrel, .5 = Void Cradle, .333 = Void Potential Chest)");
             normalWeight = config.Bind<int>("Interactable: " + InteractableName, "Regular Stage Selection Weight", 1, "How likely should this be to spawn outside of void seeds? (For reference, 24 = Normal Chest, 8 = Multishop, 1 = Lunar Pod (depends on stage, but generally these are accurate))");
-            spawnCost = config.Bind<int>("Interactable: " + InteractableName, "Director Credit Cost", 15, "How likely should this be to spawn outside of void seeds? (For reference, 15 = Normal Chest, 20 = Multishop & Chance Shrine, 25 = Lunar Pod)");
+            spawnCost = config.Bind<int>("Interactable: " + InteractableName, "Credit Cost", 10, "How expensive should this interactable be? (For reference, 15 = Normal Chest, 20 = Multishop & Chance Shrine, 25 = Lunar Pod)");
         }
 
         public void CreateInteractable()
@@ -182,25 +182,28 @@ namespace vanillaVoid.Interactables
 
         public void CreateInteractableSpawnCard()
         {
-            InteractableSpawnCard = ScriptableObject.CreateInstance<InteractableSpawnCard>();
-            InteractableSpawnCard.name = "iscVoidPortalInteractable";
-            InteractableSpawnCard.prefab = InteractableBodyModelPrefab;
-            InteractableSpawnCard.sendOverNetwork = true;
-            InteractableSpawnCard.hullSize = HullClassification.Golem;
-            InteractableSpawnCard.nodeGraphType = RoR2.Navigation.MapNodeGroup.GraphType.Ground;
-            InteractableSpawnCard.requiredFlags = RoR2.Navigation.NodeFlags.None;
-            InteractableSpawnCard.forbiddenFlags = RoR2.Navigation.NodeFlags.NoShrineSpawn | RoR2.Navigation.NodeFlags.NoChestSpawn;
-            InteractableSpawnCard.directorCreditCost = spawnCost.Value;
-            InteractableSpawnCard.occupyPosition = true;
-            InteractableSpawnCard.orientToFloor = false;
-            InteractableSpawnCard.skipSpawnWhenSacrificeArtifactEnabled = false;
-            InteractableSpawnCard.maxSpawnsPerStage = 1;
+            interactableSpawnCard = ScriptableObject.CreateInstance<InteractableSpawnCard>();
+            interactableSpawnCard.name = "iscVoidPortalInteractable";
+            interactableSpawnCard.prefab = InteractableBodyModelPrefab;
+            interactableSpawnCard.sendOverNetwork = true;
+            interactableSpawnCard.hullSize = HullClassification.Golem;
+            interactableSpawnCard.nodeGraphType = RoR2.Navigation.MapNodeGroup.GraphType.Ground;
+            interactableSpawnCard.requiredFlags = RoR2.Navigation.NodeFlags.None;
+            interactableSpawnCard.forbiddenFlags = RoR2.Navigation.NodeFlags.NoShrineSpawn | RoR2.Navigation.NodeFlags.NoChestSpawn;
+
+            interactableSpawnCard.directorCreditCost = spawnCost.Value;
+            
+            interactableSpawnCard.occupyPosition = true;
+            interactableSpawnCard.orientToFloor = false;
+            interactableSpawnCard.skipSpawnWhenSacrificeArtifactEnabled = false;
+            interactableSpawnCard.maxSpawnsPerStage = 1;
 
             MonolithCard = new DirectorCard
             {
                 selectionWeight = normalWeight.Value,
-                spawnCard = InteractableSpawnCard,
+                spawnCard = interactableSpawnCard,
                 minimumStageCompletions = 1,
+                
                 //allowAmbushSpawn = true, TODO removed i think?
             };
 
@@ -242,12 +245,12 @@ namespace vanillaVoid.Interactables
             VoidFieldsPortalCard.skipSpawnWhenSacrificeArtifactEnabled = false;
             VoidFieldsPortalCard.maxSpawnsPerStage = 0;
 
-            DirectorCard directorCard2 = new DirectorCard
-            {
-                selectionWeight = 0,
-                spawnCard = VoidFieldsPortalCard,
-                minimumStageCompletions = 999999,
-            };
+            //DirectorCard directorCard2 = new DirectorCard
+            //{
+            //    selectionWeight = 0,
+            //    spawnCard = VoidFieldsPortalCard,
+            //    minimumStageCompletions = 999999,
+            //};
             //DirectorAPI.Helpers.AddNewInteractableToStage(directorCard2, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.Bazaar);
 
             //DirectorAPI.Helpers.AddNewInteractable(directorCard2, DirectorAPI.InteractableCategory.VoidStuff);
@@ -286,7 +289,6 @@ namespace vanillaVoid.Interactables
 
         private DirectorCard VoidCampAddMonolith(On.RoR2.CampDirector.orig_SelectCard orig, CampDirector self, WeightedSelection<DirectorCard> deck, int maxCost)
         {
-            //Debug.Log("Beginning director card shit");
             hasAddedMonolith = false;
             
             if (self.name == "Camp 1 - Void Monsters & Interactables")
@@ -302,12 +304,26 @@ namespace vanillaVoid.Interactables
                     //Debug.Log("card name: " + deck.GetChoice(i).value.spawnCard.name + " | weight: " + deck.GetChoice(i).weight);
                 }
                 //Debug.Log("name: " + self.name + " | elite: " + self.eliteDef);
-                //WeightedSelection<DirectorCard> ah = new WeightedSelection<DirectorCard>.ChoiceInfo()
-                if (!hasAddedMonolith)
+                //WeightedSelection<DirectorCard> ah = new WeightedSelection<DirectorCard>.ChoiceInfo()-
+                if(MonolithCard == null)
+                {
+                    Debug.Log("MonolithCard was not available.");
+                    CreateInteractableSpawnCard();
+                }
+                
+                if (MonolithCard != null && !hasAddedMonolith)
                 {
                     deck.AddChoice(MonolithCard, voidSeedWeight.Value);
                     //hasAddedMonolith = true;
                 }
+                else if(MonolithCard == null){
+                    Debug.Log("MonolithCard was STILL not available?");
+                }
+                //else if (!MonolithCard.IsAvailable())
+                //{
+                //    Debug.Log("MonolithCard was not available.");
+                //    //CreateInteractableSpawnCard();
+                //}
             }
             return orig(self, deck, maxCost);
         }
