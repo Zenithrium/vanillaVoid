@@ -30,7 +30,8 @@ namespace vanillaVoid.Items
 
         public override string ItemPickupDesc => $"Gain an airdash. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemFullDescription => $"Jumping while midair performs an <style=cIsUtility>airdash</style>. Gain <style=cIsUtility>{dashesPerStack.Value}</style> <style=cStack>(+{dashesPerStack.Value} per stack)</style> maximum <style=cIsUtility>airdashes</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+        public override string ItemFullDescription => $"Jumping while midair performs an <style=cIsUtility>airdash</style>. Gain <style=cIsUtility>{dashesPerStack.Value}</style>" +
+            (dashesPerStack.Value != 0 ? $" <style=cStack>(+{dashesPerStack.Value} per stack)</style>" : "") + $" maximum <style=cIsUtility>airdashes</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemLore => $"<style=cSub>Order: Normal Ink and Quill \nTracking Number: 0372******* \nEstimated Delivery: 1/2/2056 \nShipping Method: High Priority/Fragile/Confidential \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" + 
             "Hey - hopefully a quick summary should do, since I don't have much time to set this up - first off, don't touch the ink. Keep it at a distance from yourself or have several layers of protection - corporate and HR demand it, and because of that, we still don't know what'll happen if someone touches it. However, we know what it does to inanimate objects, and as much as those corporate leeches can get on my nerves I think they've got a point here - it rapidly, yet briefly, ages the object it touches. The process can be altered a bit - it takes as long as the ink takes to dry into the substance. We say ink around here, though we're not sure where exactly it comes from nor its exact composition - and despite the name I wouldn't recommend trying to write with it. It'll rot right through the page and start gnawing at the table after. \n\nAnd remember - this is a secret. Almost no one else should know about this, but I need someone on the outside to do some quick and dirty research for me - I need a precident for this to work. Remember to stay safe. Oh, and sure - this isn't the most secure way to tell you all this, but don't worry, no one reads these anyways.";
@@ -312,16 +313,16 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.09f, 0.09f, 0.09f)
                 }
             });
-            //rules.Add("mdlChef", new RoR2.ItemDisplayRule[]
+            //rules.Add("mdlCHEF", new RoR2.ItemDisplayRule[]
             //{
             //    new RoR2.ItemDisplayRule
             //    {
             //        ruleType = ItemDisplayRuleType.ParentedPrefab,
             //        followerPrefab = ItemBodyModelPrefab,
-            //        childName = "Door",
-            //        localPos = new Vector3(0f, 0f, 0f),
-            //        localAngles = new Vector3(0f, 0f, 0f),
-            //        localScale = new Vector3(1f, 1f, 1f)
+            //        childName = "UpperArmL",
+            //        localPos = new Vector3(-0.1969064f, 1.490476f, -0.02562607f),
+            //        localAngles = new Vector3(333.3414f, 314.0881f, 163.2901f),
+            //        localScale = new Vector3(.25f, .25f, .25f)
             //    }
             //});
             rules.Add("mdlMiner", new RoR2.ItemDisplayRule[]
@@ -336,18 +337,18 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.001f, 0.001f, 0.001f)
                 }
             });
-            //rules.Add("mdlSniper", new RoR2.ItemDisplayRule[]
-            //{
-            //    new RoR2.ItemDisplayRule
-            //    {
-            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
-            //        followerPrefab = ItemBodyModelPrefab,
-            //        childName = "Body",
-            //        localPos = new Vector3(0f, 0f, 0f),
-            //        localAngles = new Vector3(0f, 0f, 0f),
-            //        localScale = new Vector3(1f, 1f, 1f)
-            //    }
-            //});
+            rules.Add("mdlSniper", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "ShoulderL",
+                    localPos = new Vector3(0.001916702f, 0.01813163f, -0.06753733f),
+                    localAngles = new Vector3(8.360161f, 280.2353f, 160.2873f),
+                    localScale = new Vector3(.07f, .07f, .07f)
+                }
+            });
             rules.Add("DancerBody", new RoR2.ItemDisplayRule[]
             {
                 new RoR2.ItemDisplayRule
@@ -420,6 +421,51 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(.04f, .04f, .04f)
                 }
             });
+            rules.Add("mdlHANDOverclocked", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "UpperArmL",
+                    localPos = new Vector3(-0.1969064f, 1.490476f, -0.02562607f),
+                    localAngles = new Vector3(333.3414f, 314.0881f, 163.2901f),
+                    localScale = new Vector3(.25f, .25f, .25f)
+                }
+            });
+            rules.Add("mdlRocket", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "upper_arm.L",
+                    localPos = new Vector3(-0.009546908f, -0.02718405f, 0.09519506f),
+                    localAngles = new Vector3(14.12056f, 213.3121f, 189.9561f),
+                    localScale = new Vector3(.05f, .05f, .05f)
+                },
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "upper_arm.L",
+                    localPos = new Vector3(0.04588289f, -0.02155789f, 0.07704344f),
+                    localAngles = new Vector3(11.2434f, 243.5329f, 187.7565f),
+                    localScale = new Vector3(.05f, .05f, .05f)
+                }
+            });
+            //rules.Add("mdlDaredevil", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "Pelvis",
+            //        localPos = new Vector3(0, 0, 0),
+            //        localAngles = new Vector3(0, 0, 0),
+            //        localScale = new Vector3(1, 1, 1)
+            //    }
+            //});
             return rules;
         }
 
@@ -481,6 +527,15 @@ namespace vanillaVoid.Items
                 if (timeToDie)
                 {
                     Destroy(this);
+                }
+
+                if (!body)
+                {
+                    return;
+                }
+                if (!body.characterMotor)
+                {
+                    return;
                 }
 
                 if (body.characterMotor.isGrounded)

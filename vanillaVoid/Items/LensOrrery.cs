@@ -84,7 +84,8 @@ namespace vanillaVoid.Items
             CreateConfig(config);
             if (itemVariant.Value == 0)
             {
-                tempItemFullDescription = $"<style=cIsDamage>Non-critical hits</style> grant a stacking buff that increases <style=cIsDamage>damage</style> by <style=cIsDamage>{buffDamageBonus.Value * 100}%</style>, that is <style=cDeath>cleared upon landing a critical hit</style>. Stacks up to <style=cIsDamage>{buffStacksPerCount.Value}</style> <style=cStack>(+{buffStacksPerCount.Value} per stack)</style> times. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                tempItemFullDescription = $"<style=cIsDamage>Non-critical hits</style> grant a stacking buff that increases <style=cIsDamage>damage</style> by <style=cIsDamage>{buffDamageBonus.Value * 100}%</style>, that is <style=cDeath>cleared upon landing a critical hit</style>. Stacks up to <style=cIsDamage>{buffStacksPerCount.Value}</style>" +
+                    (buffStacksPerCount.Value != 0 ? $" <style=cStack>(+{buffStacksPerCount.Value} per stack)</style>" : "") + $" times. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                 tempItemPickupDesc = $"Non-critical hits grant a stacking damage bonus that is lost upon critting. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                 tempLore = $"<style=cSub>Order: Lens-Maker's Orrery \nTracking Number: ******** \nEstimated Delivery: 1/13/2072 \nShipping Method: High Priority/Fragile/Confidiential \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" +
             "The Lens-Maker, as mysterious as they are influential. From my research I have surmised that she has been appointed to \"Final Verdict\", the most prestigious role of leadership in the House Beyond. Our team managed to locate a workshop of hers where she was supposedly working on some never-before concieved tech - but something was off. " +
@@ -100,12 +101,17 @@ namespace vanillaVoid.Items
             "\n\nGiven that this is one of a kind, and quite a special work of hers at that; I expect much more than just currency in payment.";
                 if (newStackingLensBonus.Value == 0)
                 {
-                    tempItemFullDescription = $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses are <style=cIsUtility>{newLensBonus.Value * 100}%</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can occur <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times, with each additional occurance having <style=cIsDamage>{critModifier.Value * 100}%</style> <style=cStack>(+{critModifierStacking.Value * 100}% per stack)</style> of the crit chance of the previous crit. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                    tempItemFullDescription = $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses are <style=cIsUtility>{newLensBonus.Value * 100}%</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can occur <style=cIsDamage>{additionalCritLevels.Value}</style>" +
+                        (additionalCritLevels.Value != 0 ? $" <style=cStack>(+{additionalCritLevels.Value} per stack)</style>" : "") + $" additional times, with each additional occurance having <style=cIsDamage>{critModifier.Value * 100}%</style>" +
+                        (critModifierStacking.Value != 0 ? $" <style=cStack>(+{critModifierStacking.Value * 100}% per stack)</style>" : "") + $" of the crit chance of the previous crit. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                 
                 }
                 else
                 {
-                    tempItemFullDescription = $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses are <style=cIsUtility>{newLensBonus.Value * 100}%</style> <style=cStack>(+{newStackingLensBonus.Value * 100} per stack)</style> <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can occur <style=cIsDamage>{additionalCritLevels.Value}</style> <style=cStack>(+{additionalCritLevels.Value} per stack)</style> additional times, with each additional occurance having <style=cIsDamage>{critModifier.Value * 100}%</style> <style=cStack>(+{critModifierStacking.Value * 100}% per stack)</style> of the crit chance of the previous crit. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                    tempItemFullDescription = $"Gain <style=cIsDamage>{baseCrit.Value}% critical chance</style>. Lens-Maker's Glasses are <style=cIsUtility>{newLensBonus.Value * 100}%</style>" +
+                        (newStackingLensBonus.Value != 0 ? $" <style=cStack>(+{newStackingLensBonus.Value * 100} per stack)</style>" : "") + $" <style=cIsUtility>more effective</style>. <style=cIsDamage>Critical strikes</style> can occur <style=cIsDamage>{additionalCritLevels.Value}</style>" +
+                        (additionalCritLevels.Value != 0 ? $" <style=cStack>(+{additionalCritLevels.Value} per stack)</style>" : "") + $" additional times, with each additional occurance having <style=cIsDamage>{critModifier.Value * 100}%</style>" +
+                        (critModifierStacking.Value != 0 ? $" <style=cStack>(+{critModifierStacking.Value * 100}% per stack)</style>" : "") + $" of the crit chance of the previous crit. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                 }
 
             }
@@ -443,7 +449,7 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0f, 0f, 0f)
                 }
             });
-            //rules.Add("mdlChef", new RoR2.ItemDisplayRule[]
+            //rules.Add("mdlCHEF", new RoR2.ItemDisplayRule[]
             //{
             //    new RoR2.ItemDisplayRule
             //    {
@@ -476,18 +482,18 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(.025f, .025f, .025f)
                 }
             });
-            //rules.Add("mdlSniper", new RoR2.ItemDisplayRule[]
-            //{
-            //    new RoR2.ItemDisplayRule
-            //    {
-            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
-            //        followerPrefab = ItemBodyModelPrefab,
-            //        childName = "Body",
-            //        localPos = new Vector3(0f, 0f, 0f),
-            //        localAngles = new Vector3(0f, 0f, 0f),
-            //        localScale = new Vector3(0f, 0f, 0f)
-            //    }
-            //});
+            rules.Add("mdlSniper", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "GunBarrel",
+                    localPos = new Vector3(-0.001375414f, 0.1265176f, -0.4494621f),
+                    localAngles = new Vector3(0f, 0f, 0f),
+                    localScale = new Vector3(2.5f, 2.5f, 2.5f)
+                }
+            });
             rules.Add("DancerBody", new RoR2.ItemDisplayRule[] 
             {
                 new RoR2.ItemDisplayRule
@@ -560,8 +566,42 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(1.5f, 1.5f, 1.5f)
                 }
             });
-
-
+            rules.Add("mdlHANDOverclocked", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    localPos = new Vector3(-1.71002f, 0.4313179f, 0.07270309f),
+                    localAngles = new Vector3(0.000003914863f, -0.000007629538f, 90f),
+                    localScale = new Vector3(17, 17, 17)
+                }
+            });
+            rules.Add("mdlRocket", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "BlackBox",
+                    localPos = new Vector3(-0.05417345f, 0.7676561f, 0.2303796f),
+                    localAngles = new Vector3(90, 0, 0),
+                    localScale = new Vector3(4.25f, 4.25f, 4.25f)
+                }
+            });
+            //rules.Add("mdlDaredevil", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "Pelvis",
+            //        localPos = new Vector3(0, 0, 0),
+            //        localAngles = new Vector3(0, 0, 0),
+            //        localScale = new Vector3(1, 1, 1)
+            //    }
+            //});
             return rules;
 
         }

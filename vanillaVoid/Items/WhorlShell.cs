@@ -410,11 +410,14 @@ namespace vanillaVoid.Items
             return rules;
         }
 
+        
         public override void Hooks()
         {
             //On.RoR2.HealthComponent.TakeDamage += WhorlOverkillBonusHit;
             On.RoR2.GlobalEventManager.OnCharacterDeath += WhorlOverkillBonus;
             RecalculateStatsAPI.GetStatCoefficients += CalculateStatsWhorlHook;
+
+
         }
 
         private void CalculateStatsWhorlHook(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)

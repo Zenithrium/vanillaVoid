@@ -35,13 +35,20 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<float> slowPercentage;
 
+        public ConfigEntry<bool> displaySlowAmount;
+
         public override string ItemName => "Supercritical Coolant";
 
         public override string ItemLangTokenName => "CRYOCANISTER_ITEM";
 
         public override string ItemPickupDesc => $"Killing an enemy slows and eventually freezes other nearby enemies. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemFullDescription => $"Killing an enemy <style=cIsUtility>slows</style> all enemies within <style=cIsDamage>{aoeRangeBase.Value}m</style> <style=cStack>(+{aoeRangeStacking.Value}m per stack)</style> for <style=cIsDamage>{baseDamageAOE.Value * 100}%</style> <style=cStack>(+{stackingDamageAOE.Value * 100}% per stack)</style> base damage, which lasts for <style=cIsUtility>{slowDuration.Value}</style> <style=cStack>(+{slowDuration.Value * .5} per stack)</style> seconds. Upon applying <style=cIsUtility>{requiredStacksForFreeze.Value} stacks</style> of <style=cIsUtility>slow</style> to an enemy, they are <style=cIsDamage>frozen</style>. Freezing is less effective on bosses. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+        public override string ItemFullDescription => $"Killing an enemy <style=cIsUtility>slows</style> all enemies" +
+            (displaySlowAmount.Value ? $" by up to <style=cIsUtility>{slowPercentage.Value}%</style>" : "" ) + $" within <style=cIsDamage>{aoeRangeBase.Value}m</style>" + 
+            (aoeRangeStacking.Value != 0 ? $" <style=cStack>(+{aoeRangeStacking.Value}m per stack)</style>" : "") + $" for <style=cIsDamage>{baseDamageAOE.Value * 100}%</style>" + 
+            (stackingDamageAOE.Value != 0 ? $" <style=cStack>(+{stackingDamageAOE.Value * 100}% per stack)</style>" : "") + $" base damage, which lasts for <style=cIsUtility>{slowDuration.Value}</style>" +
+            (slowDurationStacking.Value != 0 ? $" <style=cStack>(+{slowDurationStacking.Value} per stack)</style>" : "") + $" seconds. Upon applying <style=cIsUtility>{requiredStacksForFreeze.Value} stacks</style> of <style=cIsUtility>slow</style> to an enemy, they are <style=cIsDamage>frozen</style>. " +
+            (requiredStacksForBossFreeze.Value >= 0 ? $"Freezing is less effective on bosses." : "Cannot freeze bosses.") + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemLore => $"<style=cSub>Order: Supercritical Coolant \nTracking Number: 03691215 \nEstimated Delivery: 25/10/2112 \nShipping Method: High Priority/Fragile \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" +
             "Originally we studied Void occurrences from afar, observing and cataloguing the distribution of galaxies and refining cosmological evolution models. We are in a new age of cosmic exploration. Advancements in space travel partnered with determined curiosity have brought us closer to our object of study, and with it, revelation.";
@@ -127,15 +134,16 @@ namespace vanillaVoid.Items
 
         public override void CreateConfig(ConfigFile config)
         {
-            baseDamageAOE = config.Bind<float>("Item: " + ItemName, "Base Damage Percent", .15f, "Adjust the percent base damage the AOE does.");
-            stackingDamageAOE = config.Bind<float>("Item: " + ItemName, "Base Damage Percent Stacking", .15f, "Adjust the percent base damage the AOE gains per stack.");
-            aoeRangeBase = config.Bind<float>("Item: " + ItemName, "Range of AOE", 10f, "Adjust the range of the slow AOE on the first stack.");
-            aoeRangeStacking = config.Bind<float>("Item: " + ItemName, "Range Increase per Stack", 2.5f, "Adjust the range the slow AOE gains per stack.");
+            baseDamageAOE = config.Bind<float>("Item: " + ItemName, "Base Damage Percent", .15f, "Adjust the percent base damage the AOE does. (1 = 100% base damage)");
+            stackingDamageAOE = config.Bind<float>("Item: " + ItemName, "Base Damage Percent Stacking", .15f, "Adjust the percent base damage the AOE gains per stack. (1 = 100% base damage)");
+            aoeRangeBase = config.Bind<float>("Item: " + ItemName, "Range of AOE", 10f, "Adjust the range of the slow AOE on the first stack. (1 = 1m range)");
+            aoeRangeStacking = config.Bind<float>("Item: " + ItemName, "Range Increase per Stack", 2.5f, "Adjust the range the slow AOE gains per stack. (1 = 1m range)");
             requiredStacksForFreeze = config.Bind<int>("Item: " + ItemName, "Debuff Stacks Required for Freeze", 3, "Adjust the number of stacks needed to freeze an enemy.");
-            requiredStacksForBossFreeze = config.Bind<int>("Item: " + ItemName, "Buff Stacks Required for Boss Freeze", 10, "Adjust the number of stacks needed to freeze a boss.");
-            slowPercentage = config.Bind<float>("Item: " + ItemName, "Percent Slow", 5f, "Adjust the percentage slow the buff causes.");
+            requiredStacksForBossFreeze = config.Bind<int>("Item: " + ItemName, "Buff Stacks Required for Boss Freeze", 10, "Adjust the number of stacks needed to freeze a boss. Set to 0 or less to remove this.");
+            slowPercentage = config.Bind<float>("Item: " + ItemName, "Max Percent Slow", .5f, "Adjust the percentage slow the buff causes. (1 = 100% slow)");
             slowDuration = config.Bind<float>("Item: " + ItemName, "Duration of Slow Debuff", 4, "Adjust the duration the slow lasts, in seconds.");
             slowDurationStacking = config.Bind<float>("Item: " + ItemName, "Duration of Slow Debuff per Stack", 2, "Adjust the duration the slow gains per stack.");
+            displaySlowAmount = config.Bind<bool>("Item: " + ItemName, "Display Slow Percent in Item Description", false, "Adjust whether the the slow percentage is displayed in the logbook description.");
 
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "IgniteOnKill", "Adjust which item this is the void pair of.");
         }
@@ -379,7 +387,7 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.09f, 0.09f, 0.09f)
                 }
             });
-            //rules.Add("mdlChef", new RoR2.ItemDisplayRule[]
+            //rules.Add("mdlCHEF", new RoR2.ItemDisplayRule[]
             //{
             //    new RoR2.ItemDisplayRule
             //    {
@@ -403,18 +411,18 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.001f, 0.001f, 0.001f)
                 }
             });
-            //rules.Add("mdlSniper", new RoR2.ItemDisplayRule[]
-            //{
-            //    new RoR2.ItemDisplayRule
-            //    {
-            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
-            //        followerPrefab = ItemBodyModelPrefab,
-            //        childName = "Body",
-            //        localPos = new Vector3(0F, 0.00347F, -0.00126F),
-            //        localAngles = new Vector3(0F, 90F, 0F),
-            //        localScale = new Vector3(0.01241F, 0.01241F, 0.01241F)
-            //    }
-            //});
+            rules.Add("mdlSniper", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "ThighL",
+                    localPos = new Vector3(0.09503975f, 0.1687267f, 0.05470692f),
+                    localAngles = new Vector3(298.8525f, 357.139f, 61.08296f),
+                    localScale = new Vector3(0.05f, 0.05f, 0.05f)
+                }
+            });
             rules.Add("DancerBody", new RoR2.ItemDisplayRule[]
             {
                 new RoR2.ItemDisplayRule
@@ -487,6 +495,42 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(.06f, .06f, .06f)
                 }
             });
+            rules.Add("mdlHANDOverclocked", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "ThighR",
+                    localPos = new Vector3(-0.02344499f, -0.736992f, -0.7769091f),
+                    localAngles = new Vector3(315.0295f, 220.1065f, 134.9871f),
+                    localScale = new Vector3(.17f, .17f, .17f)
+                }
+            });
+            rules.Add("mdlRocket", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "thigh.R",
+                    localPos = new Vector3(-0.01114797f, 0.2202085f, 0.1858894f),
+                    localAngles = new Vector3(299.1791f, 264.4482f, 47.60094f),
+                    localScale = new Vector3(.06f, .06f, .06f)
+                }
+            });
+            //rules.Add("mdlDaredevil", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "Pelvis",
+            //        localPos = new Vector3(0, 0, 0),
+            //        localAngles = new Vector3(0, 0, 0),
+            //        localScale = new Vector3(1, 1, 1)
+            //    }
+            //});
             return rules;
         }
 
@@ -515,9 +559,18 @@ namespace vanillaVoid.Items
         {
             if (sender)
             {
-                if (sender.GetBuffCount(preFreezeSlow) > 0)
+                int buffCount = sender.GetBuffCount(preFreezeSlow);
+                if (buffCount > 0)
                 {
-                    args.moveSpeedReductionMultAdd += slowPercentage.Value;
+                    //float a = slowPercentage.Value * 2;
+                    //int b = requiredStacksForFreeze.Value - buffCount;
+                    //if(b < 1)
+                    //{
+                    //    b = 1;
+                    //}
+                    float slowProportion = -(slowPercentage.Value / (slowPercentage.Value - 1f)); //converts an input of .5 -> 50% to 1 which if added as a reductionmultadd you get 50% slow
+                    float distFromMax = slowProportion / (requiredStacksForFreeze.Value - buffCount - 1); //converts the max slow into a proportion based on missing stacks
+                    args.moveSpeedReductionMultAdd += distFromMax;
                 }
             }
         }

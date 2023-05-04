@@ -40,6 +40,8 @@ namespace vanillaVoid.Items
         public ConfigEntry<bool> alwaysHappen;
         public ConfigEntry<bool> bazaarHappen;
 
+        public ConfigEntry<bool> var2Mult;
+
         public ConfigEntry<float> directorMultiplier;
 
         public ConfigEntry<float> directorMultiplierStacking;
@@ -86,12 +88,14 @@ namespace vanillaVoid.Items
                     if (destroySelf.Value)
                     {
                         tempItemPickupDesc = $"Gain items at the start of the next stage. Breaks half of the current stack at low health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
-                        tempItemFullDescription = $"Gain <style=cIsUtility>{itemsPerStage.Value}</style> <style=cStack>(+{itemsPerStageStacking.Value} per stack)</style> items at the start of the next stage. Taking damage to below <style=cIsHealth>25% health</style> breaks half of the current stack, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                        tempItemFullDescription = $"Gain <style=cIsUtility>{itemsPerStage.Value}</style>" +
+                            (itemsPerStageStacking.Value != 0 ? $" <style=cStack>(+{itemsPerStageStacking.Value} per stack)</style>" : "") + $" items at the start of the next stage. Taking damage to below <style=cIsHealth>25% health</style> breaks half of the current stack, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
                     }
                     else
                     {
                         tempItemPickupDesc = $"Gain items at the start of the next stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
-                        tempItemFullDescription = $"Gain <style=cIsUtility>{itemsPerStage.Value}</style> <style=cStack>(+{itemsPerStageStacking.Value} per stack)</style> items at the start of the next stage. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                        tempItemFullDescription = $"Gain <style=cIsUtility>{itemsPerStage.Value}</style>" +
+                            (itemsPerStageStacking.Value != 0 ? $" <style=cStack>(+{itemsPerStageStacking.Value} per stack)</style>" : "") + $" items at the start of the next stage. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
 
                     }
                     tempLore = $"\"The clock is always ticking. The hands of time move independently of your desire for them to still - the sands flow eternally and will never pause. Use what little time you have efficiently - once you've lost that time, it's quite hard to find more.\"" +
@@ -101,15 +105,17 @@ namespace vanillaVoid.Items
                     break;
 
                 case 1:
-                    if (destroySelf.Value)
+                    if (destroySelf.Value) //this needs to be COMPLETELY redone but i'm not fucking doing that right now
                     {
                         tempItemPickupDesc = $"Increase the number of interactables per stage. Breaks half of the current stack at low health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
-                        tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks half of the current stack, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                        tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style>" +
+                            (stackingBuff.Value != 0 ? $" <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style>" : "") + $" chests. Taking damage to below <style=cIsHealth>25% health</style> breaks half of the current stack, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     }
                     else
                     {
                         tempItemPickupDesc = $"Increase the number of interactables per stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
-                        tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style> <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style> chests. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                        tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style>" +
+                            (stackingBuff.Value != 0 ? $" <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style>" : "") + $" chests. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     
                     }
                     //if (scrapInstead.Value)
@@ -131,20 +137,20 @@ namespace vanillaVoid.Items
                     tempLore = $"\"May your greed know no bounds. Take what you have, and destroy it, for something better. It will have been worth it. \nI guarantee it.\"\n\n- Lost Journal, recovered from Petrichor V";
                     if (variantBreakAmount.Value < 0)
                     {
-                        tempItemFullDescription = $"Multiply the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>all</style> stacks after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                        tempItemFullDescription = (var2Mult.Value ? "Multiply " : "Increase ") + $"the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>all</style> stacks after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     }
                     else if (variantBreakAmount.Value == 1)
                     {
-                        tempItemFullDescription = $"Multiply the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stack after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                        tempItemFullDescription = (var2Mult.Value ? "Multiply " : "Increase ") + $"the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stack after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     }
                     else
                     {
-                        tempItemFullDescription = $"Multiply the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stacks after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                        tempItemFullDescription = (var2Mult.Value ? "Multiply " : "Increase ") + $"the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stacks after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     }
                     tempItemPickupDesc.Replace("Breaks", "Scraps");
                     tempItemFullDescription.Replace("Breaks", "Scraps");
                     break;
-
+                    
                 default:
                     tempItemPickupDesc = "Invalid item Variant in config. Please enter a 0, 1, or 2.";
                     tempItemFullDescription = $"Invalid item Variant in config. Please enter a 0, 1, or 2.";
@@ -176,7 +182,8 @@ namespace vanillaVoid.Items
             alwaysHappen = config.Bind<bool>("Item: " + ItemName, "Function in Special Stages", false, "Variant 1: Adjust whether or not should function in stages where the director doesn't get any credits (ex Gilded Coast, Commencement, Bazaar).");
             directorBuff = config.Bind<float>("Item: " + ItemName, "Credit Bonus", 22.5f, "Variant 1: Adjust how many credits the first stack gives the director. 15 credits is one chest.");
             stackingBuff = config.Bind<float>("Item: " + ItemName, "Credit Bonus per Stack", 22.5f, "Variant 1: Adjust the increase gained per stack."); //22.5f is 1.5 chests
-            
+
+            var2Mult = config.Bind<bool>("Item: " + ItemName, "Multiply Credits", true, "Variant 2: Adjust whether the variant should multiply credits or add credits to the director. Multipling is true, adding is false.");
             directorMultiplier = config.Bind<float>("Item: " + ItemName, "Director Multiplier", 1.75f, "Variant 2: Adjust the multiplier to the number of credits the director gets.");
             directorMultiplierStacking = config.Bind<float>("Item: " + ItemName, "Director Multiplier Stacking", 1f, "Variant 2: Adjust the multiplier bonus provided by every stack except the first (This means that in multiplayer, if two players have the item, the base multiplier will still only be applied once, and this one applied for every other stack).");
             variantBreakAmount = config.Bind<int>("Item: " + ItemName, "Variant 2 Breaks per Stage", -1, "Variant 2: Adjust how many items in the stack Variant 2 breaks when stage-transitioning. The number of items broken times the multiplier is how much the director credits will be increased by (thus breaking only one means the muliplier will only apply once, per player). A negative number means it will break the entire stack.");
@@ -419,7 +426,7 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.075f, 0.075f, 0.075f)
                 }
             });
-            //rules.Add("mdlChef", new RoR2.ItemDisplayRule[]
+            //rules.Add("mdlCHEF", new RoR2.ItemDisplayRule[]
             //{
             //    new RoR2.ItemDisplayRule
             //    {
@@ -443,18 +450,18 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.0005f, 0.0005f, 0.0005f)
                 }
             });
-            //rules.Add("mdlSniper", new RoR2.ItemDisplayRule[]
-            //{
-            //    new RoR2.ItemDisplayRule
-            //    {
-            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
-            //        followerPrefab = ItemBodyModelPrefab,
-            //        childName = "Body",
-            //        localPos = new Vector3(0F, 0.00347F, -0.00126F),
-            //        localAngles = new Vector3(0F, 90F, 0F),
-            //        localScale = new Vector3(0.01241F, 0.01241F, 0.01241F)
-            //    }
-            //});
+            rules.Add("mdlSniper", new RoR2.ItemDisplayRule[] //delicate watch doesn't have a display?
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "LowerArmR",
+                    localPos = new Vector3(-0.04290858f, 0.0918955f, -0.03801716f),
+                    localAngles = new Vector3(274.6219f, 252.0854f, 131.9637f),
+                    localScale = new Vector3(.03f, .03f, .03f)
+                }
+            });
             rules.Add("DancerBody", new RoR2.ItemDisplayRule[] //dancer doesn't have a watch display so hopefully this is okay
             {
                 new RoR2.ItemDisplayRule
@@ -527,6 +534,42 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(.05f, .05f, .05f)
                 }
             });
+            rules.Add("mdlHANDOverclocked", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "HandL",
+                    localPos = new Vector3(-0.2449125f, 0.4218235f, 0.06620573f),
+                    localAngles = new Vector3(13.52424f, 9.952581f, 60.31852f),
+                    localScale = new Vector3(.35f, .35f, .35f)
+                }
+            });
+            rules.Add("mdlRocket", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "forearm.L",
+                    localPos = new Vector3(0.005877196f, 0.1465954f, 0.09405536f),
+                    localAngles = new Vector3(72.98094f, 322.9417f, 297.9598f),
+                    localScale = new Vector3(.06f, .06f, .06f)
+                }
+            });
+            //rules.Add("mdlDaredevil", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "Pelvis",
+            //        localPos = new Vector3(0, 0, 0),
+            //        localAngles = new Vector3(0, 0, 0),
+            //        localScale = new Vector3(1, 1, 1)
+            //    }
+            //});
             return rules;
 
         }
@@ -718,7 +761,14 @@ namespace vanillaVoid.Items
                             player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
                             player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, tempItemCount);
                             float creditMult = directorMultiplier.Value + (directorMultiplierStacking.Value * (float)tempItemCount);
-                            obj.interactableCredit = (int)(obj.interactableCredit * creditMult);
+                            if (var2Mult.Value)
+                            {
+                                obj.interactableCredit = (int)(obj.interactableCredit * creditMult);
+                            }
+                            else
+                            {
+                                obj.interactableCredit = (int)(obj.interactableCredit + creditMult);
+                            }
                         }
                         else
                         {
@@ -727,14 +777,29 @@ namespace vanillaVoid.Items
                                 player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
                                 player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, tempItemCount);
                                 float creditMult = directorMultiplier.Value + (directorMultiplierStacking.Value * (float)tempItemCount);
-                                obj.interactableCredit = (int)(obj.interactableCredit * creditMult);
+                                if (var2Mult.Value)
+                                {
+                                    obj.interactableCredit = (int)(obj.interactableCredit * creditMult);
+                                }
+                                else
+                                {
+                                    obj.interactableCredit = (int)(obj.interactableCredit + creditMult);
+                                }
                             }
                             else
                             {
                                 player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, variantBreakAmount.Value);
                                 player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, variantBreakAmount.Value);
                                 float creditMult = directorMultiplier.Value + (directorMultiplierStacking.Value * (float)variantBreakAmount.Value);
-                                obj.interactableCredit = (int)(obj.interactableCredit * creditMult);
+                                if (var2Mult.Value)
+                                {
+                                    obj.interactableCredit = (int)(obj.interactableCredit * creditMult);
+                                }
+                                else
+                                {
+                                    obj.interactableCredit = (int)(obj.interactableCredit + creditMult);
+                                }
+                               
                             }
                         }
                         //player.body.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);

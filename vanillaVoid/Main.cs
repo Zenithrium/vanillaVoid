@@ -51,7 +51,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.4.8";
+        public const string ModVer = "1.4.10";
 
         public static ExpansionDef sotvDLC;
 
@@ -113,7 +113,7 @@ namespace vanillaVoid
 
             LotusVariant = Config.Bind<int>("Item: " + lotusname, "Variant of Item", 0, "Adjust which version of " + lotusname + " you'd prefer to use. Variant 0 releases slowing novas per pulse, which reduce enemy and projectile speed, while Variant 1 provides 50% barrier per pulse.");
             LotusDuration = Config.Bind<float>("Item: " + lotusname, "Slow Duration", 30f, "Variant 0: Adjust how long the slow should last per pulse. A given slow is replaced by the next slow, so with enough lotuses, the full duration won't get used. However, increasing this also decreases the rate at which the slow fades.");
-            LotusSlowPercent = Config.Bind<float>("Item: " + lotusname, "Slow Percent", 0.075f, "Variant 0: Adjust the strongest slow percent (between 0 and 1). Increasing this also makes it so the slow 'feels' shorter, as high values (near 1) feel very minor.");
+            LotusSlowPercent = Config.Bind<float>("Item: " + lotusname, "Slow Percent", 0.075f, "Variant 0: Adjust the strongest slow percent (between 0 and 1). Increasing this also makes it so the slow 'feels' shorter, as high values (near 1) feel very minor. Note that this is inverted, where 0 = 100% slow and 1 = 0% slow.");
 
             
 
@@ -482,7 +482,7 @@ namespace vanillaVoid
             var enabled = Config.Bind<bool>("Interactable: " + interactable.InteractableName, "Enable Interactable?", true, "Should this interactable appear in runs?").Value;
 
             //InteractableStatusDictionary.Add(interactable, enabled);
-
+            
             if (enabled)
             {
                 interactableList.Add(interactable);
@@ -532,51 +532,43 @@ namespace vanillaVoid
 
         IEnumerator delayedRockets(RoR2.CharacterBody player, int missileCount, int inventoryCount)
         {
-            int icbmMod = 1;
-            if (player.inventory.GetItemCount(DLC1Content.Items.MoreMissile) > 0)
-            {
-                icbmMod = 3;
-            }
+            //int icbmMod = 1;
+            //if (player.inventory.GetItemCount(DLC1Content.Items.MoreMissile) > 0)
+            //{
+            //    icbmMod = 3;
+            //}
             for (int i = 0; i < missileCount; i++)
             {
                 yield return new WaitForSeconds(.1f);
                 var playerPos = player.GetComponent<CharacterBody>().corePosition;
                 float random = UnityEngine.Random.Range(-30, 30);
-                Quaternion UpwardsQuat = Quaternion.Euler(270, random, 0);
-                Vector3 Upwards = new Vector3(270, random, 0);
+                //Quaternion UpwardsQuat = Quaternion.Euler(270, random, 0);
+                Vector3 Upwards = new Vector3(UnityEngine.Random.Range(-10, 10), 180 - UnityEngine.Random.Range(-30, 30), UnityEngine.Random.Range(-10, 10));
+                Vector3 upTransform = new Vector3(0, 1, 0);
                 //Debug.Log(((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100));
                 float rocketDamage = player.damage * ((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100);
-                for (int j = 0; j < icbmMod; j++)
-                {
-                    switch (j)
-                    {
-                        case 0:
-                            break;
-                        case 1:
-                            UpwardsQuat = Quaternion.Euler(225, random, 0);
-                            break;
-                        case 2:
-                            UpwardsQuat = Quaternion.Euler(315, random, 0);
-                            break;
 
-                    }
-                    FireProjectileInfo fireProjectileInfo = new FireProjectileInfo()
-                    {
-                        owner = player.gameObject,
-                        damage = rocketDamage,
-                        position = player.corePosition,
-                        rotation = UpwardsQuat,
-                        crit = player.RollCrit(),
-                        projectilePrefab = ExtraterrestrialExhaust.RocketProjectile,
-                        force = 10f,
-
-                        //useSpeedOverride = true,
-                        //speedOverride = 1f,
-                    };
-#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                    ProjectileManager.instance.FireProjectile(fireProjectileInfo);
-#pragma warning restore Publicizer001 // Accessing a member that was not originally public
-                }
+                //FireProjectileInfo fireProjectileInfo = new FireProjectileInfo()
+                //{
+                //    owner = player.gameObject,
+                //    damage = rocketDamage,
+                //    position = player.corePosition,
+                //    rotation = UpwardsQuat,
+                //    crit = player.RollCrit(),
+                //    projectilePrefab = ExtraterrestrialExhaust.RocketProjectile,
+                //    force = 10f,
+                //
+                //    //useSpeedOverride = true,
+                //    //speedOverride = 1f,
+                //};
+//#pragma warning disable Publicizer001 // Accessing a member that was not originally public
+                //ProjectileManager.instance.FireProjectile(fireProjectileInfo);
+//#pragma warning restore Publicizer001 // Accessing a member that was not originally public
+                ProcChainMask procChainMask = default(ProcChainMask);
+                //MissileUtils.FireMissile(fireProjectileInfo
+                //Debug.Log(player.corePosition + " | " + (180 - random));
+                MissileUtils.FireMissile(player.corePosition + upTransform, player, procChainMask, null, rocketDamage, player.RollCrit(), ExtraterrestrialExhaust.RocketProjectile, DamageColorIndex.Item, Upwards, 10f, false);
+                
                 //FireProjectileInfo fireProjectileInfo = new FireProjectileInfo()
                 //{
                 //    owner = player.gameObject,
@@ -730,8 +722,8 @@ namespace vanillaVoid
 
                     //EffectManager.SpawnEffect(HealthComponent.AssetReferences.executeEffectPrefab, effectDataPulse, true);
                     //EntityStates.BeetleGuardMonster.GroundSlam.slamEffectPrefab
-
-                    if (ItemBase<ExeBlade>.instance.enableOnDeathDamage.Value)
+                    //aoeRangeBaseExe.Value == 0 || baseDamageAOEExe.Value == 0
+                    if (ItemBase<ExeBlade>.instance.aoeRangeBaseExe.Value != 0 && ItemBase<ExeBlade>.instance.baseDamageAOEExe.Value != 0)
                     {
                         EffectManager.SpawnEffect(HealthComponent.AssetReferences.executeEffectPrefab, effectDataPulse, true);
                         float AOEDamage = dmgReport.attackerBody.damage * AOEDamageMult;
@@ -834,65 +826,71 @@ namespace vanillaVoid
             //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
             //    teleporterPos += celestialAdjust;
             //}
-            teleporterName = self.teleporterSpawnCard.ToString();
-            //Debug.Log("checking for primoridal: " + self.teleporterSpawnCard.ToString());
-
-            lotusSpawned = false;
-            teleporterPos = self.teleporterInstance.transform.position;
-            //if (obj.teleporterSpawnCard == LegacyResourcesAPI.Load<InteractableSpawnCard>("spawncards/interactablespawncard/iscLunarTeleporter"))
-            //{
-            //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-            //    teleporterPos += celestialAdjust;
-            //}
-            //if (isPrimoridal)
-            //{
-            //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-            //    teleporterPos += celestialAdjust;
-            //    Debug.Log("recognized it is");
-            //}
-            //Debug.Log("teleporter pos: " + teleporterPos);
-            int itemCount = 0;
-            TeamIndex teamDex = default;
-            foreach (var player in PlayerCharacterMasterController.instances)
-            {
-                itemCount += player.master.inventory.GetItemCount(ItemBase<CrystalLotus>.instance.ItemDef);
-                teamDex = player.master.teamIndex;
-            }
-            if (itemCount > 0)
-            {
-                teleporterPos = self.teleporterInstance.transform.position;
-                //Debug.Log(SceneCatalog.GetSceneDefForCurrentScene().baseSceneName);
-                if (teleporterName.Contains("iscLunarTeleporter"))
+            if (self) {
+                if (self.teleporterSpawnCard)
                 {
-                    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-                    teleporterPos += celestialAdjust;
+                    teleporterName = self.teleporterSpawnCard.ToString();
+                    //Debug.Log("checking for primoridal: " + self.teleporterSpawnCard.ToString());
+
+                    lotusSpawned = false;
+                    teleporterPos = self.teleporterInstance.transform.position;
+                    //if (obj.teleporterSpawnCard == LegacyResourcesAPI.Load<InteractableSpawnCard>("spawncards/interactablespawncard/iscLunarTeleporter"))
+                    //{
+                    //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+                    //    teleporterPos += celestialAdjust;
+                    //}
+                    //if (isPrimoridal)
+                    //{
+                    //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+                    //    teleporterPos += celestialAdjust;
+                    //    Debug.Log("recognized it is");
+                    //}
+                    //Debug.Log("teleporter pos: " + teleporterPos);
+                    int itemCount = 0;
+                    TeamIndex teamDex = default;
+                    foreach (var player in PlayerCharacterMasterController.instances)
+                    {
+                        itemCount += player.master.inventory.GetItemCount(ItemBase<CrystalLotus>.instance.ItemDef);
+                        teamDex = player.master.teamIndex;
+                    }
+                    if (itemCount > 0)
+                    {
+                        teleporterPos = self.teleporterInstance.transform.position;
+                        //Debug.Log(SceneCatalog.GetSceneDefForCurrentScene().baseSceneName);
+                        if (teleporterName.Contains("iscLunarTeleporter"))
+                        {
+                            Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+                            teleporterPos += celestialAdjust;
+                        }
+
+                        //if (SceneCatalog.GetSceneDefForCurrentScene().baseSceneName == "skymeadow")
+                        //{
+                        //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+                        //    teleporterPos += celestialAdjust;
+                        //}
+
+
+                        Quaternion rot = Quaternion.Euler(1.52666613f, 180, 9.999999f);
+                        var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
+                        tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
+                        tempLotus.transform.position = teleporterPos + heightAdjust;
+                        NetworkServer.Spawn(tempLotus);
+                        tempLotusObject = tempLotus;
+                        lotusSpawned = true;
+
+                        EffectData effectData = new EffectData
+                        {
+                            origin = tempLotus.transform.position
+                        };
+                        effectData.SetNetworkedObjectReference(tempLotus.gameObject);
+                        EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
+                    }
+                    //Debug.Log("checking prevfrac: " + previousPulseFraction);
+                    previousPulseFraction = 0;
+                    //Debug.Log("fixed prevfrac: " + previousPulseFraction);
                 }
-
-                //if (SceneCatalog.GetSceneDefForCurrentScene().baseSceneName == "skymeadow")
-                //{
-                //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-                //    teleporterPos += celestialAdjust;
-                //}
-
-
-                Quaternion rot = Quaternion.Euler(1.52666613f, 180, 9.999999f);
-                var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
-                tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
-                tempLotus.transform.position = teleporterPos + heightAdjust;
-                NetworkServer.Spawn(tempLotus);
-                tempLotusObject = tempLotus;
-                lotusSpawned = true;
-
-                EffectData effectData = new EffectData
-                {
-                    origin = tempLotus.transform.position
-                };
-                effectData.SetNetworkedObjectReference(tempLotus.gameObject);
-                EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
             }
-            //Debug.Log("checking prevfrac: " + previousPulseFraction);
-            previousPulseFraction = 0;
-            //Debug.Log("fixed prevfrac: " + previousPulseFraction);
+            
         }
 
         private void AddLotusOnEnter(SceneDirector obj)
@@ -1812,7 +1810,7 @@ namespace vanillaVoid
             Material[] allMaterials = bundle.LoadAllAssets<Material>();
             foreach (Material mat in allMaterials)
             {
-                Debug.Log("material: " + mat.name + " | with shader: " + mat.shader.name);
+                //Debug.Log("material: " + mat.name + " | with shader: " + mat.shader.name);
                 switch (mat.shader.name)
                 {
                     case "Stubbed Hopoo Games/Deferred/Standard":

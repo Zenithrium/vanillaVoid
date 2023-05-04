@@ -24,15 +24,17 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<float> rocketDamageStacking;
 
-        public ConfigEntry<float> secondsPerRocket; 
+        public ConfigEntry<float> secondsPerRocket;
 
+        public ConfigEntry<bool> accurateRockets;
         public override string ItemName => "Extraterrestrial Exhaust";
 
         public override string ItemLangTokenName => "EXT_EXHAUST_ITEM";
 
         public override string ItemPickupDesc => $"Upon activating a skill, fire a number of rockets depending on the skill's cooldown. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemFullDescription => $"Upon <style=cIsUtility>activating a skill</style>, <style=cIsDamage>fire a rocket</style> for <style=cIsUtility>every {secondsPerRocket.Value} seconds</style> of the skill's <style=cIsUtility>cooldown</style>, dealing <style=cIsDamage>{rocketDamage.Value}%</style> <style=cStack>(+{rocketDamageStacking.Value}% per stack)</style> base damage. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+        public override string ItemFullDescription => $"Upon <style=cIsUtility>activating a skill</style>, <style=cIsDamage>fire a rocket</style> for <style=cIsUtility>every {secondsPerRocket.Value} seconds</style> of the skill's <style=cIsUtility>cooldown</style>, dealing <style=cIsDamage>{rocketDamage.Value}%</style>" +
+            (rocketDamageStacking.Value != 0 ? $" <style=cStack>(+{rocketDamageStacking.Value}% per stack)</style>" : "") + $" base damage. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemLore => $"<style=cMono>//-- AUTO-TRANSCRIPTION FROM RALLYPOINT EPSILON RECORDER 7 --//</style>" +
             "\n\n\"I... I had a dream...and..and, I know it was a dream. There's no way it c-could've been anything else. I..it felt so real, but....it..It Could Not Have Been. It..it ccould not have been anything else, I-I refused to acceptt it. I have.. and will.. continue to remain safe in this shelter while the others are out, and and they'll, they'll be back soon. Any time now rreally. I will tend to my p-plants, and not worry myself ssick over this nonsense..it was a dream. It was all a ddream. I must've just..p-planted this one while I was tired..I...maybe I should get more sleep... \"";
@@ -65,9 +67,11 @@ namespace vanillaVoid.Items
         public override void CreateConfig(ConfigFile config)
         {
             //rocketsPerSecond = config.Bind<float>("Item: " + ItemName, "Rockets per Second", 2f, "Adjust the number of rockets fired for each second of skill cooldown.");
-            secondsPerRocket = config.Bind<float>("Item: " + ItemName, "Seconds per Rocket", 2f, "Adjust the number of seconds of skill cooldown needed to fire a rocket.");
-            rocketDamage = config.Bind<float>("Item: " + ItemName, "Rocket Base Damage Percent", 20f, "Adjust the percent damage dealt on the first stack.");
-            rocketDamageStacking = config.Bind<float>("Item: " + ItemName, "Rocket Base Damage Percent Stacking", 20f, "Adjust the percent damage gained per stack.");
+            secondsPerRocket = config.Bind<float>("Item: " + ItemName, "Seconds per Rocket", 2f, "Adjust the number of seconds of skill cooldown needed to fire a rocket. (1 = 1 rocket per second of cooldown)");
+            rocketDamage = config.Bind<float>("Item: " + ItemName, "Rocket Damage Percent", 120f, "Adjust the percent damage dealt on the first stack. (100 = 100% base damage)");
+            rocketDamageStacking = config.Bind<float>("Item: " + ItemName, "Rocket Damage Percent Stacking", 60f, "Adjust the percent damage gained per stack. (100 = 100% base damage)");
+            accurateRockets = config.Bind<bool>("Item: " + ItemName, "More Accurate Rockets", false, "Adjust if the rockets should more accurately seek out enemies. Advised if another mod adjusts fireworks to be more accurate.");
+
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "Firework", "Adjust which item this is the void pair of.");
         }
 
@@ -84,7 +88,16 @@ namespace vanillaVoid.Items
             model.AddComponent<ProjectileGhostController>();
 
             //var netID = model.GetComponent<NetworkIdentity>();
-            
+            if (accurateRockets.Value)
+            {
+                var fireworkController = RocketProjectile.GetComponent<MissileController>();
+                fireworkController.acceleration = 3f;
+                fireworkController.giveupTimer = 30f;
+                fireworkController.deathTimer = 30f;
+                fireworkController.turbulence = 0f;
+                fireworkController.maxSeekDistance = 10000f;
+            }
+
 
             var projectileController = RocketProjectile.GetComponent<ProjectileController>();
             projectileController.ghostPrefab = model;
@@ -379,16 +392,16 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(.025f, .025f, .025f)
                 }
             });
-            //rules.Add("mdlChef", new RoR2.ItemDisplayRule[]
+            //rules.Add("mdlCHEF", new RoR2.ItemDisplayRule[]
             //{
             //    new RoR2.ItemDisplayRule
             //    {
             //        ruleType = ItemDisplayRuleType.ParentedPrefab,
             //        followerPrefab = ItemBodyModelPrefab,
-            //        childName = "Door",
-            //        localPos = new Vector3(0f, 0f, 0f),
-            //        localAngles = new Vector3(0f, 0f, 0f),
-            //        localScale = new Vector3(0f, 0f, 0f)
+            //        childName = "Head",
+            //        localPos = new Vector3(1.312011f, 0.5727088f, -0.789186f),
+            //        localAngles = new Vector3(357.4176f, 288.5043f, 1.859076f),
+            //        localScale = new Vector3(.12f, .12f, .12f)
             //    }
             //});
             rules.Add("mdlMiner", new RoR2.ItemDisplayRule[]
@@ -403,18 +416,18 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(.00025f, .00025f, .00025f)
                 }
             });
-            //rules.Add("mdlSniper", new RoR2.ItemDisplayRule[]
-            //{
-            //    new RoR2.ItemDisplayRule
-            //    {
-            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
-            //        followerPrefab = ItemBodyModelPrefab,
-            //        childName = "Body",
-            //        localPos = new Vector3(0f, 0f, 0f),
-            //        localAngles = new Vector3(0f, 0f, 0f),
-            //        localScale = new Vector3(0f, 0f, 0f)
-            //    }
-            //});
+            rules.Add("mdlSniper", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "ThighL",
+                    localPos = new Vector3(0.05744834f, 0.1742157f, -0.1112903f),
+                    localAngles = new Vector3(10.45809f, 266.0404f, 160.3855f),
+                    localScale = new Vector3(.025f, .025f, .025f)
+                }
+            });
             rules.Add("DancerBody", new RoR2.ItemDisplayRule[]
             {
                 new RoR2.ItemDisplayRule
@@ -487,6 +500,42 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(.0125f, .0125f, .0125f)
                 }
             });
+            rules.Add("mdlHANDOverclocked", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    localPos = new Vector3(1.312011f, 0.5727088f, -0.789186f),
+                    localAngles = new Vector3(357.4176f, 288.5043f, 1.859076f),
+                    localScale = new Vector3(.12f, .12f, .12f)
+                }
+            });
+            rules.Add("mdlRocket", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "BlackBox",
+                    localPos = new Vector3(-0.04008894f, 0.4325569f, -0.1809917f),
+                    localAngles = new Vector3(15.42795f, 0.09629212f, 89.88361f),
+                    localScale = new Vector3(.035f, .035f, .035f)
+                }
+            });
+            //rules.Add("mdlDaredevil", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "Pelvis",
+            //        localPos = new Vector3(0, 0, 0),
+            //        localAngles = new Vector3(0, 0, 0),
+            //        localScale = new Vector3(1, 1, 1)
+            //    }
+            //});
             return rules;
 
         }

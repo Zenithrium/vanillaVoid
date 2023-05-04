@@ -66,7 +66,7 @@ namespace vanillaVoid.Items
         public override void CreateConfig(ConfigFile config)
         {
             //consumeStack = config.Bind<bool>("Item: " + ItemName, "Consume Stack", false, "Adjust if each potion should upgrade a whole stack, like benthic, or only one.");
-            refreshAmount = config.Bind<int>("Item: " + ItemName, "Refresh Amount", 1, "Adjust how many empty potions refresh at the start of a new stage. A negative number will refresh all stacks.");
+            refreshAmount = config.Bind<int>("Item: " + ItemName, "Refresh Amount", 1, "Adjust how many empty vials refresh at the start of a new stage. A negative number will refresh all stacks.");
         }
 
         private void RefreshVials(SceneDirector obj)
