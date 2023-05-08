@@ -35,7 +35,14 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<float> slowPercentage;
 
+        public ConfigEntry<float> freezeDurationModifier;
+
+        public ConfigEntry<float> overrideScalingFreeze;
+
+        public ConfigEntry<bool> refreshDurationOnNewStack;
+
         public ConfigEntry<bool> displaySlowAmount;
+
 
         public override string ItemName => "Supercritical Coolant";
 
@@ -44,11 +51,11 @@ namespace vanillaVoid.Items
         public override string ItemPickupDesc => $"Killing an enemy slows and eventually freezes other nearby enemies. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemFullDescription => $"Killing an enemy <style=cIsUtility>slows</style> all enemies" +
-            (displaySlowAmount.Value ? $" by up to <style=cIsUtility>{slowPercentage.Value}%</style>" : "" ) + $" within <style=cIsDamage>{aoeRangeBase.Value}m</style>" + 
+            (displaySlowAmount.Value ? $" by up to <style=cIsUtility>{slowPercentage.Value * 100}%</style>" : "" ) + $" within <style=cIsDamage>{aoeRangeBase.Value}m</style>" + 
             (aoeRangeStacking.Value != 0 ? $" <style=cStack>(+{aoeRangeStacking.Value}m per stack)</style>" : "") + $" for <style=cIsDamage>{baseDamageAOE.Value * 100}%</style>" + 
             (stackingDamageAOE.Value != 0 ? $" <style=cStack>(+{stackingDamageAOE.Value * 100}% per stack)</style>" : "") + $" base damage, which lasts for <style=cIsUtility>{slowDuration.Value}</style>" +
             (slowDurationStacking.Value != 0 ? $" <style=cStack>(+{slowDurationStacking.Value} per stack)</style>" : "") + $" seconds. Upon applying <style=cIsUtility>{requiredStacksForFreeze.Value} stacks</style> of <style=cIsUtility>slow</style> to an enemy, they are <style=cIsDamage>frozen</style>. " +
-            (requiredStacksForBossFreeze.Value >= 0 ? $"Freezing is less effective on bosses." : "Cannot freeze bosses.") + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+            (requiredStacksForBossFreeze.Value > 0 ? $"Freezing is less effective on bosses." : "Cannot freeze bosses.") + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemLore => $"<style=cSub>Order: Supercritical Coolant \nTracking Number: 03691215 \nEstimated Delivery: 25/10/2112 \nShipping Method: High Priority/Fragile \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" +
             "Originally we studied Void occurrences from afar, observing and cataloguing the distribution of galaxies and refining cosmological evolution models. We are in a new age of cosmic exploration. Advancements in space travel partnered with determined curiosity have brought us closer to our object of study, and with it, revelation.";
@@ -143,6 +150,9 @@ namespace vanillaVoid.Items
             slowPercentage = config.Bind<float>("Item: " + ItemName, "Max Percent Slow", .5f, "Adjust the percentage slow the buff causes. (1 = 100% slow)");
             slowDuration = config.Bind<float>("Item: " + ItemName, "Duration of Slow Debuff", 4, "Adjust the duration the slow lasts, in seconds.");
             slowDurationStacking = config.Bind<float>("Item: " + ItemName, "Duration of Slow Debuff per Stack", 2, "Adjust the duration the slow gains per stack.");
+            freezeDurationModifier = config.Bind<float>("Item: " + ItemName, "Freeze Duration Modifier", 1f, "Adjust the duration the of the freeze applied at enough stacks. (1 = 100% of buff duration).");
+            overrideScalingFreeze = config.Bind<float>("Item: " + ItemName, "Override Scaling Freeze Duration", 0, "Adjust whether or not to override the scaling freeze duration. If set to a value above zero, it will instead be used for the freeze duration rather than the duration of the slow debuff. Doing so also completely ignores the above 'freeze duration modifier' config.");
+            //refreshDurationOnNewStack = config.Bind<bool>("Item: " + ItemName, "Refresh Debuff Duration on New Stack", false, "Adjust whether or not to refresh all previous slow stacks upon applying a new slow stack.");
             displaySlowAmount = config.Bind<bool>("Item: " + ItemName, "Display Slow Percent in Item Description", false, "Adjust whether the the slow percentage is displayed in the logbook description.");
 
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "IgniteOnKill", "Adjust which item this is the void pair of.");
@@ -531,6 +541,42 @@ namespace vanillaVoid.Items
             //        localScale = new Vector3(1, 1, 1)
             //    }
             //});
+            rules.Add("mdlRMOR", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "ThighR",
+                    localPos = new Vector3(0F, -0.66441F, -0.86397F),
+                    localAngles = new Vector3(308.728F, 218.1655F, 149.5044F),
+                    localScale = new Vector3(0.3F, 0.3F, 0.3F)
+                }
+            });
+            //rules.Add("Spearman", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "thigh.l",
+            //        localPos = new Vector3(0.00921F, -0.00021F, -0.00079F),
+            //        localAngles = new Vector3(312.1787F, 335.8511F, 81.30679F),
+            //        localScale = new Vector3(0.0025F, 0.0025F, 0.0025F)
+            //    }
+            //});
+            rules.Add("mdlAssassin", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "leg_bone1.L",
+                    localPos = new Vector3(0.64538F, -0.20998F, 0.44171F),
+                    localAngles = new Vector3(25.23727F, 359.1689F, 42.15331F),
+                    localScale = new Vector3(0.125F, 0.125F, 0.125F)
+                }
+            });
             return rules;
         }
 
@@ -628,7 +674,26 @@ namespace vanillaVoid.Items
                         {
                             float duartion = slowDuration.Value + (slowDurationStacking.Value * (cryoCount - 1));
                             //Debug.Log("found a health component and hc body");
-                            hurtBox.healthComponent.body.AddTimedBuffAuthority(preFreezeSlow.buffIndex, duartion);
+
+                            CharacterBody body = hurtBox.healthComponent.body;
+                            //int originalCount = body.GetBuffCount(preFreezeSlow.buffIndex);
+
+                            //if (refreshDurationOnNewStack.Value && originalCount > 0)
+                            //{
+                            //    for(int j = 0; j < originalCount; ++j) {
+                            //        body.RemoveOldestTimedBuff(preFreezeSlow);
+                            //    }
+                            //    originalCount++;
+                            //    for (int j = 0; j < originalCount; ++j)
+                            //    {
+                            //        body.AddTimedBuffAuthority(preFreezeSlow.buffIndex, duartion);
+                            //    }
+                            //}
+                            //else
+                            //{
+                                body.AddTimedBuffAuthority(preFreezeSlow.buffIndex, duartion);
+                            // }
+
                             DamageInfo damageInfo = new DamageInfo
                             {
                                 attacker = attackerBody.gameObject,
@@ -639,41 +704,56 @@ namespace vanillaVoid.Items
                                 damageType = DamageType.AOE,
                                 damageColorIndex = DamageColorIndex.Item,
                             };
+
                             hurtBox.healthComponent.TakeDamage(damageInfo);
                             //Debug.Log("sent take damage");
                             //self.GetComponent<CharacterBody>().AddTimedBuff(preFreezeSlow, slowDuration.Value);
-                            if (hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow) >= requiredStacksForFreeze.Value)
+                            if (body.GetBuffCount(preFreezeSlow) >= requiredStacksForFreeze.Value)
                             {
                                 //float duartion = slowDuration.Value + ((slowDuration.Value / 2f) * (cryoCount - 1));
-                                if (!hurtBox.healthComponent.body.isBoss)
+                                if (!body.isBoss)
                                 {
                                     //hurtBox.healthComponent.isInFrozenState = true;
-                                    SetStateOnHurt setState = hurtBox.healthComponent.body.gameObject.GetComponent<SetStateOnHurt>();
+                                    SetStateOnHurt setState = body.gameObject.GetComponent<SetStateOnHurt>();
                                     if (setState)
                                     {
-                                        int buffCount = hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow);
+                                        int buffCount = body.GetBuffCount(preFreezeSlow);
                                         for(int j = 0; j < buffCount; j++)
                                         {
-                                            hurtBox.healthComponent.body.RemoveOldestTimedBuff(preFreezeSlow);
+                                            body.RemoveOldestTimedBuff(preFreezeSlow);
                                         }
-
-                                        setState.SetFrozen(duartion);
+                                        if(overrideScalingFreeze.Value > 0)
+                                        {
+                                            setState.SetFrozen(overrideScalingFreeze.Value);
+                                        }
+                                        else
+                                        {
+                                            setState.SetFrozen(duartion * .75f);
+                                        }
                                     }
                                 }
-                                else if(hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow) >= requiredStacksForBossFreeze.Value)
+                                else if(body.GetBuffCount(preFreezeSlow) >= requiredStacksForBossFreeze.Value)
                                 {
-                                    //hurtBox.healthComponent.isInFrozenState = true;
-                                    //SetStateOnHurt setState = hurtBox.healthComponent.body.gameObject.GetComponent<SetStateOnHurt>();
-                                    //if (setState)
-                                    //{
-                                        int buffCount = hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow);
+                                    if(requiredStacksForBossFreeze.Value > 0)
+                                    {
+                                        int buffCount = body.GetBuffCount(preFreezeSlow);
                                         for (int j = 0; j < buffCount; j++)
                                         {
-                                            hurtBox.healthComponent.body.RemoveOldestTimedBuff(preFreezeSlow);
+                                            body.RemoveOldestTimedBuff(preFreezeSlow);
                                         }
 
                                         //setState.SetFrozen(duartion);
                                         hurtBox.healthComponent.isInFrozenState = true;
+                                    }
+                                    else
+                                    {
+                                        Debug.Log("Boss Freezing Disabled");
+                                    }
+                                    //hurtBox.healthComponent.isInFrozenState = true;
+                                    //SetStateOnHurt setState = hurtBox.healthComponent.body.gameObject.GetComponent<SetStateOnHurt>();
+                                    //if (setState)
+                                    //{
+
                                     //}
                                 }
 
@@ -681,6 +761,7 @@ namespace vanillaVoid.Items
                                 {
                                     origin = victimBody.corePosition
                                 };
+                                Debug.Log("victimBody.corePosition: " + victimBody.corePosition);
                                 effectData2.SetNetworkedObjectReference(victimBody.gameObject);
                                 EffectManager.SpawnEffect(EntityStates.Mage.Weapon.IceNova.impactEffectPrefab, effectData2, true);
                                 //EffectManager.SpawnEffect(EntityStates.Mage.Weapon.IceNova.novaEffectPrefab, effectData2, true);

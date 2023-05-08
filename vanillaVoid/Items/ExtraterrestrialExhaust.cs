@@ -536,6 +536,42 @@ namespace vanillaVoid.Items
             //        localScale = new Vector3(1, 1, 1)
             //    }
             //});
+            rules.Add("mdlRMOR", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    localPos = new Vector3(1.26923F, 1.05318F, -0.09499F),
+                    localAngles = new Vector3(0F, 355.7435F, 0.00002F),
+                    localScale = new Vector3(0.1F, 0.1F, 0.1F)
+                }
+            });
+            //rules.Add("Spearman", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "chest",
+            //        localPos = new Vector3(0, 0, 0),
+            //        localAngles = new Vector3(0, 0, 0),
+            //        localScale = new Vector3(1, 1, 1)
+            //    }
+            //});
+            rules.Add("mdlAssassin", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "leg_bone2.L",
+                    localPos = new Vector3(-0.32548F, 0.22482F, 0.09749F),
+                    localAngles = new Vector3(3.90754F, 179.2157F, 192.2801F),
+                    localScale = new Vector3(0.035F, 0.035F, 0.035F)
+                }
+            });
             return rules;
 
         }

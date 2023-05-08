@@ -373,6 +373,42 @@ namespace vanillaVoid.Misc
             //        localScale = new Vector3(1, 1, 1)
             //    }
             //});
+            rules.Add("mdlRMOR", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(0, 0, 0),
+                    localAngles = new Vector3(0, 0, 0),
+                    localScale = new Vector3(1, 1, 1)
+                }
+            });
+            rules.Add("Spearman", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(0, 0, 0),
+                    localAngles = new Vector3(0, 0, 0),
+                    localScale = new Vector3(1, 1, 1)
+                }
+            });
+            rules.Add("mdlAssassin", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(0, 0, 0),
+                    localAngles = new Vector3(0, 0, 0),
+                    localScale = new Vector3(1, 1, 1)
+                }
+            });
         */
     }
 }

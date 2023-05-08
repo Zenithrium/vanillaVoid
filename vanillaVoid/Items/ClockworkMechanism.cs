@@ -108,14 +108,14 @@ namespace vanillaVoid.Items
                     if (destroySelf.Value) //this needs to be COMPLETELY redone but i'm not fucking doing that right now
                     {
                         tempItemPickupDesc = $"Increase the number of interactables per stage. Breaks half of the current stack at low health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
-                        tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style>" +
-                            (stackingBuff.Value != 0 ? $" <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style>" : "") + $" chests. Taking damage to below <style=cIsHealth>25% health</style> breaks half of the current stack, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                        tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactable credits</style> per stage by an amount equal to <style=cIsUtility>{directorBuff.Value}</style>" +
+                            (stackingBuff.Value != 0 ? $" <style=cStack>(+{stackingBuff.Value} per stack)</style>" : "") + $". Taking damage to below <style=cIsHealth>25% health</style> breaks half of the current stack, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     }
                     else
                     {
                         tempItemPickupDesc = $"Increase the number of interactables per stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
-                        tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactables</style> per stage by an amount equal to <style=cIsUtility>{Math.Round(directorBuff.Value / 15, 1)}</style>" +
-                            (stackingBuff.Value != 0 ? $" <style=cStack>(+{Math.Round(stackingBuff.Value / 15, 1)} per stack)</style>" : "") + $" chests. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                        tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactable credits</style> per stage by <style=cIsUtility>{directorBuff.Value}</style>" +
+                            (stackingBuff.Value != 0 ? $" <style=cStack>(+{stackingBuff.Value} per stack)</style>" : "") + $". Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     
                     }
                     //if (scrapInstead.Value)
@@ -137,18 +137,27 @@ namespace vanillaVoid.Items
                     tempLore = $"\"May your greed know no bounds. Take what you have, and destroy it, for something better. It will have been worth it. \nI guarantee it.\"\n\n- Lost Journal, recovered from Petrichor V";
                     if (variantBreakAmount.Value < 0)
                     {
-                        tempItemFullDescription = (var2Mult.Value ? "Multiply " : "Increase ") + $"the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>all</style> stacks after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                        tempItemFullDescription = (var2Mult.Value ? "Multiply " : "Increase ") + $"the number of <style=cIsUtility>" + (var2Mult.Value ? "interactables" : "interactable credits") + $"</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style>" +
+                            (directorMultiplierStacking.Value != 0 ? $" <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>" : "") + $". Breaks <style=cDeath>all</style> stacks after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     }
                     else if (variantBreakAmount.Value == 1)
                     {
-                        tempItemFullDescription = (var2Mult.Value ? "Multiply " : "Increase ") + $"the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stack after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                        tempItemFullDescription = (var2Mult.Value ? "Multiply " : "Increase ") + $"the number of <style=cIsUtility>" + (var2Mult.Value ? "interactables" : "interactable credits") + $"</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style>" +
+                            (directorMultiplierStacking.Value != 0 ? $" <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>" : "") + $" <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stack after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     }
                     else
                     {
-                        tempItemFullDescription = (var2Mult.Value ? "Multiply " : "Increase ") + $"the number of <style=cIsUtility>interactables</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style> <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stacks after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                        tempItemFullDescription = (var2Mult.Value ? "Multiply " : "Increase ") + $"the number of <style=cIsUtility>" + (var2Mult.Value ? "interactables" : "interactable credits") + $"</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style>" +
+                            (directorMultiplierStacking.Value != 0 ? $" <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>" : "") + $" <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stacks after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     }
-                    tempItemPickupDesc.Replace("Breaks", "Scraps");
-                    tempItemFullDescription.Replace("Breaks", "Scraps");
+
+                    if (scrapInstead.Value)
+                    {
+                        tempItemPickupDesc.Replace("Breaks", "Scraps");
+                        tempItemFullDescription.Replace("Breaks", "Scraps");
+                    }
+                    //tempItemPickupDesc.Replace("Breaks", "Scraps");
+                    //tempItemFullDescription.Replace("Breaks", "Scraps");
                     break;
                     
                 default:
@@ -183,7 +192,7 @@ namespace vanillaVoid.Items
             directorBuff = config.Bind<float>("Item: " + ItemName, "Credit Bonus", 22.5f, "Variant 1: Adjust how many credits the first stack gives the director. 15 credits is one chest.");
             stackingBuff = config.Bind<float>("Item: " + ItemName, "Credit Bonus per Stack", 22.5f, "Variant 1: Adjust the increase gained per stack."); //22.5f is 1.5 chests
 
-            var2Mult = config.Bind<bool>("Item: " + ItemName, "Multiply Credits", true, "Variant 2: Adjust whether the variant should multiply credits or add credits to the director. Multipling is true, adding is false.");
+            var2Mult = config.Bind<bool>("Item: " + ItemName, "Multiply Credits", true, "Variant 2: Adjust whether the variant should multiply credits or add credits to the director. Multiplying is true, adding is false.");
             directorMultiplier = config.Bind<float>("Item: " + ItemName, "Director Multiplier", 1.75f, "Variant 2: Adjust the multiplier to the number of credits the director gets.");
             directorMultiplierStacking = config.Bind<float>("Item: " + ItemName, "Director Multiplier Stacking", 1f, "Variant 2: Adjust the multiplier bonus provided by every stack except the first (This means that in multiplayer, if two players have the item, the base multiplier will still only be applied once, and this one applied for every other stack).");
             variantBreakAmount = config.Bind<int>("Item: " + ItemName, "Variant 2 Breaks per Stage", -1, "Variant 2: Adjust how many items in the stack Variant 2 breaks when stage-transitioning. The number of items broken times the multiplier is how much the director credits will be increased by (thus breaking only one means the muliplier will only apply once, per player). A negative number means it will break the entire stack.");
@@ -570,6 +579,42 @@ namespace vanillaVoid.Items
             //        localScale = new Vector3(1, 1, 1)
             //    }
             //});
+            rules.Add("mdlRMOR", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "HandL",
+                    localPos = new Vector3(-0.24002F, 0.44941F, -0.0827F),
+                    localAngles = new Vector3(0.57549F, 1.82044F, 66.94895F),
+                    localScale = new Vector3(0.3F, 0.3F, 0.3F)
+                }
+            });
+            //rules.Add("Spearman", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "arm.l",
+            //        localPos = new Vector3(-0.00018F, 0.01277F, -0.00243F),
+            //        localAngles = new Vector3(6.04041F, 101.8368F, 256.191F),
+            //        localScale = new Vector3(0.002F, 0.002F, 0.002F)
+            //    }
+            //});
+            rules.Add("mdlAssassin", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "arm_bone2.R",
+                    localPos = new Vector3(-0.08237F, 0.5071F, -0.03797F),
+                    localAngles = new Vector3(272.3181F, 23.97936F, 14.97954F),
+                    localScale = new Vector3(0.1F, 0.1F, 0.1F)
+                }
+            }); 
             return rules;
 
         }
