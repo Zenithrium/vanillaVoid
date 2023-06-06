@@ -41,6 +41,7 @@ namespace vanillaVoid.Items
         public ConfigEntry<bool> bazaarHappen;
 
         public ConfigEntry<bool> var2Mult;
+        public ConfigEntry<bool> isPerPlayer;
 
         public ConfigEntry<float> directorMultiplier;
 
@@ -143,12 +144,12 @@ namespace vanillaVoid.Items
                     else if (variantBreakAmount.Value == 1)
                     {
                         tempItemFullDescription = (var2Mult.Value ? "Multiply " : "Increase ") + $"the number of <style=cIsUtility>" + (var2Mult.Value ? "interactables" : "interactable credits") + $"</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style>" +
-                            (directorMultiplierStacking.Value != 0 ? $" <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>" : "") + $" <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stack after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                            (directorMultiplierStacking.Value != 0 ? $" <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>" : "") + $". Breaks <style=cDeath>{variantBreakAmount.Value}</style> stack after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     }
                     else
                     {
                         tempItemFullDescription = (var2Mult.Value ? "Multiply " : "Increase ") + $"the number of <style=cIsUtility>" + (var2Mult.Value ? "interactables" : "interactable credits") + $"</style> in the next stage by <style=cIsUtility>{directorMultiplier.Value}</style>" +
-                            (directorMultiplierStacking.Value != 0 ? $" <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>" : "") + $" <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>. Breaks <style=cDeath>{variantBreakAmount.Value}</style> stacks after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                            (directorMultiplierStacking.Value != 0 ? $" <style=cStack>(+{directorMultiplierStacking.Value} per stack)</style>" : "") + $". Breaks <style=cDeath>{variantBreakAmount.Value}</style> stacks after use. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     }
 
                     if (scrapInstead.Value)
@@ -182,7 +183,6 @@ namespace vanillaVoid.Items
             bazaarHappen = config.Bind<bool>("Item: " + ItemName, "Function in Bazaar", false, "Variant 0: Adjust whether or not should function in the bazaar. This additionally causes the item to no longer break items in the bazaar.");
 
             breakCooldown = config.Bind<float>("Item: " + ItemName, "Breaking Cooldown", 3.0f, "Variant 0 and 1: Adjust how long the cooldown is between the item breaking other items.");
-
             scrapInstead = config.Bind<bool>("Item: " + ItemName, "Scrap Instead", false, "Variant 0 and 1: Adjust whether the items are scrapped or destroyed.");
             destroySelf = config.Bind<bool>("Item: " + ItemName, "Destroy Self Instead", false, "Variant 0 and 1: Adjust if the item should destroy itself, rather than other items. Destroys half of the current stack. Overrides the config option below (tier priority).");
             proritizeLowTier = config.Bind<bool>("Item: " + ItemName, "Prioritize Lower Tier", true, "Variant 0 and 1: Adjust the item's preference for lower tier items. False means no prefrence, true means a general preference (unlikely, but possible to destroy higher tiers).");
@@ -192,6 +192,8 @@ namespace vanillaVoid.Items
             directorBuff = config.Bind<float>("Item: " + ItemName, "Credit Bonus", 22.5f, "Variant 1: Adjust how many credits the first stack gives the director. 15 credits is one chest.");
             stackingBuff = config.Bind<float>("Item: " + ItemName, "Credit Bonus per Stack", 22.5f, "Variant 1: Adjust the increase gained per stack."); //22.5f is 1.5 chests
 
+            isPerPlayer = config.Bind<bool>("Item: " + ItemName, "Multiply Adjustment per Player", false, "Variant 1 and 2: Adjust whether these variants should multiply the number of credits being added/multiplied to the director by the player count. Makes the item significantly stronger with many players.");
+            
             var2Mult = config.Bind<bool>("Item: " + ItemName, "Multiply Credits", true, "Variant 2: Adjust whether the variant should multiply credits or add credits to the director. Multiplying is true, adding is false.");
             directorMultiplier = config.Bind<float>("Item: " + ItemName, "Director Multiplier", 1.75f, "Variant 2: Adjust the multiplier to the number of credits the director gets.");
             directorMultiplierStacking = config.Bind<float>("Item: " + ItemName, "Director Multiplier Stacking", 1f, "Variant 2: Adjust the multiplier bonus provided by every stack except the first (This means that in multiplayer, if two players have the item, the base multiplier will still only be applied once, and this one applied for every other stack).");
@@ -784,16 +786,34 @@ namespace vanillaVoid.Items
             }
             else if((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariant.Value == 1) { //var 1
                 int itemCount = 0;
+                //int playerCount = 0; // icould probably do this in a better way
+                int playerCount = PlayerCharacterMasterController.instances.Count;
+                if (playerCount == 0)
+                {
+                    playerCount = 1; //don't think this should ever happen but i wnana be sure it doesnt!
+                }
                 foreach (var player in PlayerCharacterMasterController.instances)
                 {
+                    //++playerCount;
                     itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
                 }
-                obj.interactableCredit += (int)(directorBuff.Value + (stackingBuff.Value * (itemCount - 1)));
+
+                float creditBoost = ((directorBuff.Value + (stackingBuff.Value * (itemCount - 1f))));
+                if (isPerPlayer.Value)
+                {
+                    creditBoost *= playerCount;
+                }
+                obj.interactableCredit += (int)creditBoost;
             }
             else if(obj.interactableCredit != 0 && itemVariant.Value == 2) //var 2
             {
                 int itemCount = 0;
                 int tempItemCount = 0;
+                int playerCount = PlayerCharacterMasterController.instances.Count;
+                if(playerCount == 0)
+                {
+                    playerCount = 1; //don't think this should ever happen but i wnana be sure it doesnt!
+                }
                 foreach (var player in PlayerCharacterMasterController.instances)
                 {
                     //itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
@@ -806,13 +826,20 @@ namespace vanillaVoid.Items
                             player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
                             player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, tempItemCount);
                             float creditMult = directorMultiplier.Value + (directorMultiplierStacking.Value * (float)tempItemCount);
+
+                            if (isPerPlayer.Value)
+                            {
+                                creditMult *= playerCount;
+                            }
+
                             if (var2Mult.Value)
                             {
-                                obj.interactableCredit = (int)(obj.interactableCredit * creditMult);
+                                //obj.interactableCredit = (int)(obj.interactableCredit * creditMult);
+                                obj.interactableCredit *= (int)creditMult;
                             }
                             else
                             {
-                                obj.interactableCredit = (int)(obj.interactableCredit + creditMult);
+                                obj.interactableCredit += (int)creditMult;
                             }
                         }
                         else

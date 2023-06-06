@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 45458720
+CRC: 376081015
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: b00c2ee34d66291fa93e4e3fa029b1f6
+    Hash: d2a1cc3ea5a34cc9a17ac3e1d5032251
   TypeTreeHash:
     serializedVersion: 2
     Hash: 6ba044ad33d408c04b562a940f2669ef
@@ -46,10 +46,12 @@ Assets:
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladeDisplay.prefab
 - Assets/Textures/Materials/Item/Mess/pottexture.mat
 - Assets/Textures/Icons/Buffs/preFreezeSlow.png
+- Assets/Models/VFX/texCloudIce.png
 - Assets/Textures/Icons/Item/LotusItem/lotusSlowMat2.mat
 - Assets/Textures/Icons/Item/LotusItem/crystalLotusIcon512.png
 - Assets/Sprites/texUICornerTier1.png
 - Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryPickup.prefab
+- Assets/Models/VFX/texBehemothTileMask.png
 - Assets/raw/orrery/newOrreryMaterial.mat
 - Assets/raw/cryo/cryoMat.mat
 - Assets/Textures/Materials/Item/OrreryItem/ringsMedium.mat
@@ -68,6 +70,7 @@ Assets:
 - Assets/Textures/Icons/Item/VialsItem/vialsIcon.png
 - Assets/raw/lotus/lotusmaterial.mat
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedVialsPickup.prefab
+- Assets/Models/VFX/mdlIcoRockS.asset
 - Assets/raw/quill/realdiffuse.png
 - Assets/Models/Misc/matPurpleGrassyStonePink.mat
 - Assets/raw/whorl/WhorlShellMat.mat
@@ -99,6 +102,7 @@ Assets:
 - Assets/Textures/Icons/Item/ventItem/ventIcon.png
 - Assets/Textures/Icons/Item/LotusItem/texMagmaCloud.png
 - Assets/Textures/Materials/Item/ExtVent/ventMat.mat
+- Assets/Models/VFX/texRampIce.png
 - Assets/Sprites/texUICornerTier3.png
 - Assets/Models/Prefabs/Item/StaffItem/mdlStaffDisplay.prefab
 - Assets/Textures/Icons/Item/AbyssalAdze/adzeIcon.png
@@ -106,6 +110,8 @@ Assets:
 - Assets/Models/Prefabs/Item/MessItem/mdlMessPickup.prefab
 - Assets/Models/Misc/LotusTeleporterCollider.prefab
 - Assets/Textures/Icons/Item/MessItem/brokenMessIconLarge.png
+- Assets/Models/VFX/IceExplosionAoe.prefab
+- Assets/Models/VFX/matIceAura.mat
 - Assets/Textures/Icons/Buffs/whorlRegenBuffIcon.png
 - Assets/raw/lotus/betterLotusMaterial.mat
 - Assets/Models/Prefabs/Item/ExtVent/ventOrb.prefab
@@ -113,6 +119,8 @@ Assets:
 - Assets/Textures/Materials/Item/ClockworkWatch/casingMat.mat
 - Assets/Textures/Materials/Item/OrreryItem/cup.mat
 - Assets/Textures/Materials/Item/AbyssalAdze/HeadMaterial.mat
+- Assets/Models/VFX/donut1Mesh.asset
+- Assets/Models/VFX/matLaserPointerBeam.mat
 - Assets/Textures/Icons/Interactables/texRampCrowbar.png
 - Assets/Models/Prefabs/Item/QuillItem/mdlQuillSoloDisplay.prefab
 - Assets/Models/Prefabs/Item/QuillItem/mdlQuillPickupReal.prefab

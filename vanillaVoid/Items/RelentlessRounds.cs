@@ -21,7 +21,7 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<float> stackingBuff;
 
-        public ConfigEntry<string> voidPair;
+//public ConfigEntry<string> voidPair;
 
         public override string ItemName => "Relentless Rounds";
 
@@ -43,6 +43,10 @@ namespace vanillaVoid.Items
 
         public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
 
+        public BuffDef relentlessDef { get; private set; }
+
+        public static DotController.DotIndex dotIndex;
+        public static DotController.DotDef dotDef;
         public override void Init(ConfigFile config)
         {
             CreateConfig(config);
@@ -50,6 +54,7 @@ namespace vanillaVoid.Items
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
             VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
+            CreateDOT();
 
             Hooks(); 
         }
@@ -60,6 +65,65 @@ namespace vanillaVoid.Items
             stackingBuff = config.Bind<float>("Item: " + ItemName, "Stacking Percent Damage Increase", .3f, "Adjust the percent of extra damage dealt per stack.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "BossDamageBonus", "Adjust which item this is the void pair of.");
         }
+
+        public void CreateDOT()
+        {
+            
+            //relentlessDef = ScriptableObject.CreateInstance<BuffDef>();
+            //relentlessDef.buffColor = Color.white;
+            //relentlessDef.canStack = true;
+            //relentlessDef.isDebuff = false;
+            //relentlessDef.name = "ZnVV" + "shatterStatus";
+            //relentlessDef.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("shatterStatus");
+            //ContentAddition.AddBuffDef(relentlessDef);
+            //
+            ////Sprite DOTIcon = ItemIcon;
+            //index = DotAPI.RegisterDotDef(0.25f, 0.25f, DamageColorIndex.SuperBleed, relentlessDef);
+            ////DotAPI.RegisterDotDef()
+            //
+
+            relentlessDef.name = "ZnVVrelentlessDOT";
+            relentlessDef.buffColor = new Color32(96, 245, 250, 255);
+            relentlessDef.canStack = false;
+            relentlessDef.isDebuff = false;
+            relentlessDef.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("shatterStatus");
+
+            //ashBurnEffectParams = new BurnEffectController.EffectParams
+            //{
+            //    startSound = "Play_item_proc_igniteOnKill_Loop",
+            //    stopSound = "Stop_item_proc_igniteOnKill_Loop",
+            //    overlayMaterial = Main.AssetBundle.LoadAsset<Material>("Assets/Items/Marwan's Ash/matMarwanAshBurnOverlay.mat"),
+            //    fireEffectPrefab = null
+            //};
+            //ColorCatalog.ColorIndex.VoidCoin
+            dotDef = new DotController.DotDef 
+            {
+                associatedBuff = relentlessDef,
+                damageCoefficient = 1f,
+                damageColorIndex = DamageColorIndex.Void,
+                interval = .5f
+            };
+            dotIndex = DotAPI.RegisterDotDef(dotDef, (self, dotStack) =>
+            {
+                var damageMultiplier = 1f;
+                var attackerDamage = 1f;
+                if (dotStack.attackerObject)
+                {
+                    var attackerBody = dotStack.attackerObject.GetComponent<CharacterBody>();
+                    if (attackerBody)
+                    {
+                        attackerDamage = attackerBody.damage;
+                        if (attackerDamage != 0f) damageMultiplier = dotStack.damage / attackerDamage;
+                    }
+                }
+                if (self.victimHealthComponent)
+                    dotStack.damage = self.victimHealthComponent.fullCombinedHealth * damageMultiplier; //Mathf.Min(self.victimHealthComponent.fullCombinedHealth * damageMultiplier, attackerDamage * 8);
+                else
+                    dotStack.damage = 0;
+                dotStack.damage *= dotDef.interval;
+            });
+        }
+
 
         public override ItemDisplayRuleDict CreateItemDisplayRules()
         {
@@ -403,37 +467,29 @@ namespace vanillaVoid.Items
         }
 
         private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
-            //CharacterBody victimBody = self.body;
-            float initialDmg = damageInfo.damage;
-            if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
-            {
-                CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
-                if (attackerBody.inventory)
-                {
-                    var stackCount = GetCount(attackerBody);
+            
+            orig(self, damageInfo);
 
-                    if (stackCount > 0)
+            if (!damageInfo.rejected)
+            {
+                var body = self.body;
+                if (body)
+                {
+                    if (body.isBoss && body.GetBuffCount(relentlessDef) > 0)
                     {
-                        //var healthPercentage = self.health / self.fullCombinedHealth;
-                        var healthFraction = Mathf.Clamp((1 - self.combinedHealthFraction), 0f, 1f);
-                        //Debug.Log("health fraction: " + healthFraction);
-                        var mult = healthFraction * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
-                        
-                        damageInfo.damage = damageInfo.damage + (damageInfo.damage * mult);
-                        float maxDamage = initialDmg + (initialDmg * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1))));
-                        //Debug.Log("max damage: " + maxDamage + " | actual damage: " + damageInfo.damage + " | original damage: " + initialDmg);
-                        //damageInfo.damage = damageInfo.damage * (1 + (victimBody.GetBuffCount(adzeDebuff) * dmgPerDebuff.Value));
-                        //if(damageInfo.damage > maxDamage)
-                        //{
-                        //    //Debug.Log("damage was too high! oopsies!!!");
-                        //    damageInfo.damage = maxDamage; // i don't know if this is a needed check, but i *think* i was noticing insanely high damage numbers with adze on the end score screen. maybe this'll fix that? or maybe it was another mod entirely
-                        //}
-                        damageInfo.damage = Mathf.Min(damageInfo.damage, maxDamage);
+                        var dotInfo = new InflictDotInfo()
+                        {
+                            attackerObject = damageInfo.attacker,
+                            victimObject = self.body.gameObject,
+                            dotIndex = dotIndex,
+                            duration = -1,
+                            damageMultiplier = 1,
+                        };
+                        DotController.InflictDot(ref dotInfo);
                     }
                 }
             }
-            
-            orig(self, damageInfo);
+
         }
     }
 

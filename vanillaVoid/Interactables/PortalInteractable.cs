@@ -95,6 +95,9 @@ namespace vanillaVoid.Interactables
 
             InteractableBodyModelPrefab = InteractableModel;
             InteractableBodyModelPrefab.AddComponent<NetworkIdentity>();
+            var expReqComp = InteractableBodyModelPrefab.AddComponent<RoR2.ExpansionManagement.ExpansionRequirementComponent>();
+            expReqComp.requiredExpansion = vanillaVoidPlugin.sotvDLC;
+
 
             var purchaseInteraction = InteractableBodyModelPrefab.AddComponent<PurchaseInteraction>();
             purchaseInteraction.displayNameToken = $"VV_INTERACTABLE_{InteractableLangToken}_NAME";

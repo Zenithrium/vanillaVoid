@@ -26,6 +26,8 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<float> secondsPerRocket;
 
+        public ConfigEntry<float> exhaustCoefficient;
+
         public ConfigEntry<bool> accurateRockets;
         public override string ItemName => "Extraterrestrial Exhaust";
 
@@ -70,6 +72,7 @@ namespace vanillaVoid.Items
             secondsPerRocket = config.Bind<float>("Item: " + ItemName, "Seconds per Rocket", 2f, "Adjust the number of seconds of skill cooldown needed to fire a rocket. (1 = 1 rocket per second of cooldown)");
             rocketDamage = config.Bind<float>("Item: " + ItemName, "Rocket Damage Percent", 120f, "Adjust the percent damage dealt on the first stack. (100 = 100% base damage)");
             rocketDamageStacking = config.Bind<float>("Item: " + ItemName, "Rocket Damage Percent Stacking", 60f, "Adjust the percent damage gained per stack. (100 = 100% base damage)");
+            exhaustCoefficient = config.Bind<float>("Item: " + ItemName, "Proc Coefficient", .2f, "Adjust the proc coefficient for the item's fired projectiles. For reference, Fireworks' is .2 per missile. (0 is no procs, 1 is normal proc rate)");
             accurateRockets = config.Bind<bool>("Item: " + ItemName, "More Accurate Rockets", false, "Adjust if the rockets should more accurately seek out enemies. Advised if another mod adjusts fireworks to be more accurate.");
 
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "Firework", "Adjust which item this is the void pair of.");
@@ -103,6 +106,7 @@ namespace vanillaVoid.Items
             projectileController.ghostPrefab = model;
             projectileController.startSound = "Play_item_void_critGlasses";
             projectileController.allowPrediction = false;
+            projectileController.procCoefficient = exhaustCoefficient.Value;
             //RocketProjectile.GetComponent<EffectComponent>().soundName = "Play_item_void_critGlasses";
             //RocketProjectile.GetComponent<ProjectileExplosion>();
 

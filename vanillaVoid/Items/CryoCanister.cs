@@ -12,6 +12,7 @@ using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
 using VoidItemAPI;
+using System.Collections;
 
 namespace vanillaVoid.Items
 {
@@ -35,14 +36,9 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<float> slowPercentage;
 
-        public ConfigEntry<float> freezeDurationModifier;
-
-        public ConfigEntry<float> overrideScalingFreeze;
-
-        public ConfigEntry<bool> refreshDurationOnNewStack;
+        public ConfigEntry<float> cryoCoefficient;
 
         public ConfigEntry<bool> displaySlowAmount;
-
 
         public override string ItemName => "Supercritical Coolant";
 
@@ -51,8 +47,8 @@ namespace vanillaVoid.Items
         public override string ItemPickupDesc => $"Killing an enemy slows and eventually freezes other nearby enemies. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemFullDescription => $"Killing an enemy <style=cIsUtility>slows</style> all enemies" +
-            (displaySlowAmount.Value ? $" by up to <style=cIsUtility>{slowPercentage.Value * 100}%</style>" : "" ) + $" within <style=cIsDamage>{aoeRangeBase.Value}m</style>" + 
-            (aoeRangeStacking.Value != 0 ? $" <style=cStack>(+{aoeRangeStacking.Value}m per stack)</style>" : "") + $" for <style=cIsDamage>{baseDamageAOE.Value * 100}%</style>" + 
+            (displaySlowAmount.Value ? $" by up to <style=cIsUtility>{slowPercentage.Value * 100}%</style>" : "") + $" within <style=cIsDamage>{aoeRangeBase.Value}m</style>" +
+            (aoeRangeStacking.Value != 0 ? $" <style=cStack>(+{aoeRangeStacking.Value}m per stack)</style>" : "") + $" for <style=cIsDamage>{baseDamageAOE.Value * 100}%</style>" +
             (stackingDamageAOE.Value != 0 ? $" <style=cStack>(+{stackingDamageAOE.Value * 100}% per stack)</style>" : "") + $" base damage, which lasts for <style=cIsUtility>{slowDuration.Value}</style>" +
             (slowDurationStacking.Value != 0 ? $" <style=cStack>(+{slowDurationStacking.Value} per stack)</style>" : "") + $" seconds. Upon applying <style=cIsUtility>{requiredStacksForFreeze.Value} stacks</style> of <style=cIsUtility>slow</style> to an enemy, they are <style=cIsDamage>frozen</style>. " +
             (requiredStacksForBossFreeze.Value > 0 ? $"Freezing is less effective on bosses." : "Cannot freeze bosses.") + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
@@ -74,13 +70,10 @@ namespace vanillaVoid.Items
         public BuffDef preFreezeSlow { get; private set; }
 
         //public GameObject iceDeathAOEObject;// = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/EliteIce/AffixWhiteExplosion.prefab").WaitForCompletion();
-        GameObject iceDeathObject;
+        //GameObject iceDeathObject;
 
-        public GameObject iceDeathAOEObject { get; set; } = MainAssets.LoadAsset<GameObject>("CryoAOEExplosionEffect");
-        public GameObject iceDeathAOEObjectLazy;
+        public static GameObject iceDeathAOEObject { get; set; } = MainAssets.LoadAsset<GameObject>("IceExplosionAoe");
 
-        public GameObject iceDeathAOEObjectFucked;
-        public GameObject iceDeathObjectFucked;
         //GameObject gameObject = UnityEngine.Object.Instantiate(iceDeathAOEObject, position, Quaternion.identity);
 
 
@@ -92,6 +85,17 @@ namespace vanillaVoid.Items
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
             VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
             CreateBuff();
+
+            var vfxattr = iceDeathAOEObject.AddComponent<VFXAttributes>();
+            vfxattr.vfxPriority = VFXAttributes.VFXPriority.Low;
+            vfxattr.vfxIntensity = VFXAttributes.VFXIntensity.Low;
+
+            var effectcomp = iceDeathAOEObject.AddComponent<EffectComponent>();
+            //effectcomp.positionAtReferencedTransform = false;
+
+            iceDeathAOEObject.AddComponent<DestroyOnParticleEnd>();
+
+            ContentAddition.AddEffect(iceDeathAOEObject);
 
             //RoR2/Base/EliteIce/AffixWhiteExplosion.prefab
             //string aoePath = "RoR2/Base/Common/VFX/OmniImpactVFXFrozen.prefab"; // "RoR2 /Base/Common/VFX/OmniImpactVFXFrozen.prefab";
@@ -126,8 +130,9 @@ namespace vanillaVoid.Items
 
             //i hate modding
 
-            Hooks(); 
+            Hooks();
         }
+
         public void CreateBuff()
         {
             preFreezeSlow = ScriptableObject.CreateInstance<BuffDef>();
@@ -150,9 +155,7 @@ namespace vanillaVoid.Items
             slowPercentage = config.Bind<float>("Item: " + ItemName, "Max Percent Slow", .5f, "Adjust the percentage slow the buff causes. (1 = 100% slow)");
             slowDuration = config.Bind<float>("Item: " + ItemName, "Duration of Slow Debuff", 4, "Adjust the duration the slow lasts, in seconds.");
             slowDurationStacking = config.Bind<float>("Item: " + ItemName, "Duration of Slow Debuff per Stack", 2, "Adjust the duration the slow gains per stack.");
-            freezeDurationModifier = config.Bind<float>("Item: " + ItemName, "Freeze Duration Modifier", 1f, "Adjust the duration the of the freeze applied at enough stacks. (1 = 100% of buff duration).");
-            overrideScalingFreeze = config.Bind<float>("Item: " + ItemName, "Override Scaling Freeze Duration", 0, "Adjust whether or not to override the scaling freeze duration. If set to a value above zero, it will instead be used for the freeze duration rather than the duration of the slow debuff. Doing so also completely ignores the above 'freeze duration modifier' config.");
-            //refreshDurationOnNewStack = config.Bind<bool>("Item: " + ItemName, "Refresh Debuff Duration on New Stack", false, "Adjust whether or not to refresh all previous slow stacks upon applying a new slow stack.");
+            cryoCoefficient = config.Bind<float>("Item: " + ItemName, "Proc Coefficient", 0, "Adjust the proc coefficient for the item's damage AOE. For reference, Gasoline's is 0. (0 is no procs, 1 is normal proc rate)");
             displaySlowAmount = config.Bind<bool>("Item: " + ItemName, "Display Slow Percent in Item Description", false, "Adjust whether the the slow percentage is displayed in the logbook description.");
 
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "IgniteOnKill", "Adjust which item this is the void pair of.");
@@ -161,7 +164,7 @@ namespace vanillaVoid.Items
         public override ItemDisplayRuleDict CreateItemDisplayRules()
         {
             ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlCryoDisplay.prefab");
- 
+
             string fluidMat = "RoR2/Base/Huntress/matHuntressGlaive.mat";
 
             var cryoFluidModel = ItemModel.transform.Find("Glowybits").GetComponent<MeshRenderer>();
@@ -261,7 +264,7 @@ namespace vanillaVoid.Items
                     localAngles = new Vector3(294.3157f, 50.21239f, 8.014451f),
                     localScale = new Vector3(0.07f, 0.07f, 0.07f)
                 }
-                
+
             });
             rules.Add("mdlMerc", new RoR2.ItemDisplayRule[]
             {
@@ -541,52 +544,138 @@ namespace vanillaVoid.Items
             //        localScale = new Vector3(1, 1, 1)
             //    }
             //});
-            rules.Add("mdlRMOR", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
-                {
-                    ruleType = ItemDisplayRuleType.ParentedPrefab,
-                    followerPrefab = ItemBodyModelPrefab,
-                    childName = "ThighR",
-                    localPos = new Vector3(0F, -0.66441F, -0.86397F),
-                    localAngles = new Vector3(308.728F, 218.1655F, 149.5044F),
-                    localScale = new Vector3(0.3F, 0.3F, 0.3F)
-                }
-            });
-            //rules.Add("Spearman", new RoR2.ItemDisplayRule[]
-            //{
-            //    new RoR2.ItemDisplayRule
-            //    {
-            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
-            //        followerPrefab = ItemBodyModelPrefab,
-            //        childName = "thigh.l",
-            //        localPos = new Vector3(0.00921F, -0.00021F, -0.00079F),
-            //        localAngles = new Vector3(312.1787F, 335.8511F, 81.30679F),
-            //        localScale = new Vector3(0.0025F, 0.0025F, 0.0025F)
-            //    }
-            //});
-            rules.Add("mdlAssassin", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
-                {
-                    ruleType = ItemDisplayRuleType.ParentedPrefab,
-                    followerPrefab = ItemBodyModelPrefab,
-                    childName = "leg_bone1.L",
-                    localPos = new Vector3(0.64538F, -0.20998F, 0.44171F),
-                    localAngles = new Vector3(25.23727F, 359.1689F, 42.15331F),
-                    localScale = new Vector3(0.125F, 0.125F, 0.125F)
-                }
-            });
             return rules;
         }
 
         public override void Hooks()
         {
             //On.RoR2.HealthComponent.TakeDamage += AdzeDamageBonus;
-            GlobalEventManager.onCharacterDeathGlobal += CryoCanisterAOE;
+            //GlobalEventManager.onCharacterDeathGlobal += CryoCanisterAOE;
             RecalculateStatsAPI.GetStatCoefficients += CalculateStatsCryoHook;
+            GlobalEventManager.onCharacterDeathGlobal += CryoAoe2;
             //On.RoR2.CharacterBody.RecalculateStats += CryoStatsHook;
 
+        }
+
+        private void CryoAoe2(DamageReport obj)
+        {
+
+            if (!obj.attacker || !obj.attackerBody || !obj.victim || !obj.victimBody)
+            {
+                return; //end func if death wasn't killed by something real enough
+            }
+
+            CharacterBody victimBody = obj.victimBody;
+            //dmgReport.victimBody.gameObject.AddComponent<ExeToken>();
+            CharacterBody attackerBody = obj.attackerBody;
+            
+            if (attackerBody.inventory)
+            {
+                var cryoCount = attackerBody.inventory.GetItemCount(ItemBase<CryoCanister>.instance.ItemDef);
+                if (cryoCount > 0)
+                {
+                    float stackRadius = aoeRangeBase.Value + (aoeRangeStacking.Value * (float)(cryoCount - 1));
+                    float victimRadius = victimBody.radius;
+                    float effectiveRadius = stackRadius + victimRadius;
+                    float AOEDamageMult = baseDamageAOE.Value + (stackingDamageAOE.Value * (float)(cryoCount - 1));
+                    float AOEDamage = obj.attackerBody.damage * AOEDamageMult;
+
+                    float duration = slowDuration.Value + (slowDurationStacking.Value * (cryoCount - 1));
+
+                    var attackerTeamIndex = attackerBody.teamComponent.teamIndex;
+
+                    //float num = 8f + 4f * (float)cryoCount;
+                    //float radius = victimBody.radius;
+                    //float num2 = num + radius;
+                    //float num3 = 1.5f;
+                    //float baseDamage = obj.attackerBody.damage * num3;
+                    //float value = (float)(1 + cryoCount) * 0.75f * obj.attackerBody.damage;
+
+                    Vector3 corePosition = victimBody.corePosition;
+
+                    SphereSearch cryoAOESphereSearch = new SphereSearch();
+                    List<HurtBox> cryoAOEHurtBoxBuffer = new List<HurtBox>();
+
+                    cryoAOESphereSearch.origin = corePosition;
+                    cryoAOESphereSearch.mask = LayerIndex.entityPrecise.mask;
+                    cryoAOESphereSearch.radius = effectiveRadius;
+                    cryoAOESphereSearch.RefreshCandidates();
+                    cryoAOESphereSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetUnprotectedTeams(attackerTeamIndex));
+                    cryoAOESphereSearch.FilterCandidatesByDistinctHurtBoxEntities();
+                    cryoAOESphereSearch.OrderCandidatesByDistance();
+                    cryoAOESphereSearch.GetHurtBoxes(cryoAOEHurtBoxBuffer);
+                    cryoAOESphereSearch.ClearCandidates();
+
+                    for (int i = 0; i < cryoAOEHurtBoxBuffer.Count; i++)
+                    {
+                        HurtBox hurtBox = cryoAOEHurtBoxBuffer[i];
+                        //Debug.Log("hurtbox " + hurtBox);
+                        if (hurtBox.healthComponent)
+                        {
+                            hurtBox.healthComponent.body.AddTimedBuffAuthority(preFreezeSlow.buffIndex, duration);
+                            
+
+                            if(hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow) >= requiredStacksForFreeze.Value && !hurtBox.healthComponent.body.isBoss)
+                            {
+                                SetStateOnHurt setState = hurtBox.healthComponent.body.gameObject.GetComponent<SetStateOnHurt>();
+                                if (setState && setState.canBeFrozen)
+                                {
+                                    int buffCount = hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow);
+                                    for (int j = 0; j < buffCount; j++)
+                                    {
+                                        hurtBox.healthComponent.body.RemoveOldestTimedBuff(preFreezeSlow);
+                                    }
+                            
+                                    setState.SetFrozen(duration);
+                            
+                                    //EffectData effectData2 = new EffectData
+                                    //{
+                                    //    origin = victimBody.corePosition
+                                    //};
+                                    //effectData2.SetNetworkedObjectReference(victimBody.gameObject);
+                                    //EffectManager.SpawnEffect(EntityStates.Mage.Weapon.IceNova.impactEffectPrefab, effectData2, true);
+                                }
+                            }
+                            else if(hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow) >= requiredStacksForBossFreeze.Value && hurtBox.healthComponent.body.isBoss && requiredStacksForBossFreeze.Value > 0)
+                            {
+                                int buffCount = hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow);
+                                for (int j = 0; j < buffCount; j++)
+                                {
+                                    hurtBox.healthComponent.body.RemoveOldestTimedBuff(preFreezeSlow);
+                                }
+                            
+                                //setState.SetFrozen(duartion);
+                                hurtBox.healthComponent.isInFrozenState = true;
+                            }
+                        }
+                    }
+                    cryoAOEHurtBoxBuffer.Clear();
+                    
+                    new BlastAttack
+                    {
+                        radius = effectiveRadius,
+                        baseDamage = AOEDamage,
+                        procCoefficient = cryoCoefficient.Value,
+                        crit = Util.CheckRoll(obj.attackerBody.crit, obj.attackerMaster),
+                        damageColorIndex = DamageColorIndex.Item,
+                        attackerFiltering = AttackerFiltering.Default,
+                        falloffModel = BlastAttack.FalloffModel.None,
+                        attacker = obj.attacker,
+                        teamIndex = attackerTeamIndex,
+                        position = corePosition,
+                        //baseForce = 0,
+                        //damageType = DamageType.AOE
+                    }.Fire();
+
+                    //EntityStates.Mage.Weapon.IceNova.impactEffectPrefab
+                    EffectManager.SpawnEffect(iceDeathAOEObject, new EffectData
+                    {
+                        origin = corePosition,
+                        scale = effectiveRadius,
+                        rotation = Util.QuaternionSafeLookRotation(obj.damageInfo.force)
+                    }, true);
+                }
+            }
         }
 
         //private void CryoStatsHook(On.RoR2.CharacterBody.orig_RecalculateStats orig, CharacterBody self)
@@ -601,6 +690,7 @@ namespace vanillaVoid.Items
         //    }
         //}
         //
+
         private void CalculateStatsCryoHook(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
         {
             if (sender)
@@ -614,200 +704,219 @@ namespace vanillaVoid.Items
                     //{
                     //    b = 1;
                     //}
+                    float ratio;
+
+                    //Debug.Log("aahh: " + ((float)buffCount) / ((float)requiredStacksForFreeze.Value - 1f));
+                    if((requiredStacksForFreeze.Value - 1) != 0) //this is slightly better
+                    {
+                        if (buffCount >= requiredStacksForFreeze.Value - 1)
+                        {
+                            ratio = 1;
+                        }
+                        else
+                        {
+                            ratio = ((float)buffCount) / ((float)requiredStacksForFreeze.Value - 1f);
+                        }
+                    }
+                    else
+                    {
+                        ratio = 1;
+                    }
                     float slowProportion = -(slowPercentage.Value / (slowPercentage.Value - 1f)); //converts an input of .5 -> 50% to 1 which if added as a reductionmultadd you get 50% slow
-                    float distFromMax = slowProportion / (requiredStacksForFreeze.Value - buffCount - 1); //converts the max slow into a proportion based on missing stacks
+                    //float stacks = requiredStacksForFreeze.Value - buffCount - 1; //4 - 3 - 1 = 0
+                    //float distFromMax1 = slowProportion / (requiredStacksForFreeze.Value - buffCount - 1); //converts the max slow into a proportion based on missing stacks 
+
+                    float distFromMax = slowProportion * ratio; //this no longer accurately splits the slow up between each stack but who fucking cares
+
+                    //Debug.Log("ratio: " + ratio + " | " + distFromMax + " | " + buffCount + " | " + ((float)buffCount + 1f) / (float)requiredStacksForFreeze.Value);
+
                     args.moveSpeedReductionMultAdd += distFromMax;
                 }
             }
         }
 
-        private static readonly SphereSearch cryoAOESphereSearch = new SphereSearch();
-        private static readonly List<HurtBox> cryoAOEHurtBoxBuffer = new List<HurtBox>();
+        //private static readonly SphereSearch cryoAOESphereSearch = new SphereSearch();
+        //private static readonly List<HurtBox> cryoAOEHurtBoxBuffer = new List<HurtBox>();
         //string aoePath = "RoR2/Base/EliteIce/AffixWhiteExplosion.prefab";
         //public GameObject iceDeathAOE = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/EliteIce/AffixWhiteExplosion.prefab").WaitForCompletion();
-        private void CryoCanisterAOE(DamageReport dmgReport)
-        {
-            if (!dmgReport.attacker || !dmgReport.attackerBody || !dmgReport.victim || !dmgReport.victimBody)
-            {
-                //Debug.Log("fake");
-                return; //end func if death wasn't killed by something real enough
-            }
-
-            CharacterBody victimBody = dmgReport.victimBody;
-            //dmgReport.victimBody.gameObject.AddComponent<ExeToken>();
-            CharacterBody attackerBody = dmgReport.attackerBody;
-            if (attackerBody.inventory)
-            {
-                var cryoCount = attackerBody.inventory.GetItemCount(ItemBase<CryoCanister>.instance.ItemDef);
-                if (cryoCount > 0)
-                {
-                    float stackRadius = aoeRangeBase.Value + (aoeRangeStacking.Value * (float)(cryoCount - 1));
-                    float victimRadius = victimBody.radius;
-                    float effectiveRadius = stackRadius + victimRadius;
-                    float AOEDamageMult = baseDamageAOE.Value + (stackingDamageAOE.Value * (float)(cryoCount - 1));
-
-                    EffectData effectData = new EffectData
-                    {
-                        origin = victimBody.corePosition
-                    };
-                    effectData.SetNetworkedObjectReference(victimBody.gameObject);
-                    EffectManager.SpawnEffect(EntityStates.Mage.Weapon.FireIceOrb.effectPrefab, effectData, true);
-                    
-                        //EntityStates.Mage.Weapon.FireIceOrb.effectPrefab
-                    float AOEDamage = dmgReport.attackerBody.damage * AOEDamageMult;
-                    Vector3 corePosition = victimBody.corePosition;
-
-                    cryoAOESphereSearch.origin = corePosition;
-                    cryoAOESphereSearch.mask = LayerIndex.entityPrecise.mask;
-                    cryoAOESphereSearch.radius = effectiveRadius;
-                    cryoAOESphereSearch.RefreshCandidates();
-                    cryoAOESphereSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetUnprotectedTeams(dmgReport.attackerBody.teamComponent.teamIndex));
-                    cryoAOESphereSearch.FilterCandidatesByDistinctHurtBoxEntities();
-                    cryoAOESphereSearch.OrderCandidatesByDistance();
-                    cryoAOESphereSearch.GetHurtBoxes(cryoAOEHurtBoxBuffer);
-                    cryoAOESphereSearch.ClearCandidates();
-                    //Debug.Log("found: " + cryoAOEHurtBoxBuffer.Count);
-                    for (int i = 0; i < cryoAOEHurtBoxBuffer.Count; i++)
-                    {
-                        HurtBox hurtBox = cryoAOEHurtBoxBuffer[i];
-                        if (hurtBox.healthComponent && hurtBox.healthComponent.body)
-                        {
-                            float duartion = slowDuration.Value + (slowDurationStacking.Value * (cryoCount - 1));
-                            //Debug.Log("found a health component and hc body");
-
-                            CharacterBody body = hurtBox.healthComponent.body;
-                            //int originalCount = body.GetBuffCount(preFreezeSlow.buffIndex);
-
-                            //if (refreshDurationOnNewStack.Value && originalCount > 0)
-                            //{
-                            //    for(int j = 0; j < originalCount; ++j) {
-                            //        body.RemoveOldestTimedBuff(preFreezeSlow);
-                            //    }
-                            //    originalCount++;
-                            //    for (int j = 0; j < originalCount; ++j)
-                            //    {
-                            //        body.AddTimedBuffAuthority(preFreezeSlow.buffIndex, duartion);
-                            //    }
-                            //}
-                            //else
-                            //{
-                                body.AddTimedBuffAuthority(preFreezeSlow.buffIndex, duartion);
-                            // }
-
-                            DamageInfo damageInfo = new DamageInfo
-                            {
-                                attacker = attackerBody.gameObject,
-                                crit = attackerBody.RollCrit(),
-                                damage = AOEDamage,
-                                position = corePosition,
-                                procCoefficient = 1,
-                                damageType = DamageType.AOE,
-                                damageColorIndex = DamageColorIndex.Item,
-                            };
-
-                            hurtBox.healthComponent.TakeDamage(damageInfo);
-                            //Debug.Log("sent take damage");
-                            //self.GetComponent<CharacterBody>().AddTimedBuff(preFreezeSlow, slowDuration.Value);
-                            if (body.GetBuffCount(preFreezeSlow) >= requiredStacksForFreeze.Value)
-                            {
-                                //float duartion = slowDuration.Value + ((slowDuration.Value / 2f) * (cryoCount - 1));
-                                if (!body.isBoss)
-                                {
-                                    //hurtBox.healthComponent.isInFrozenState = true;
-                                    SetStateOnHurt setState = body.gameObject.GetComponent<SetStateOnHurt>();
-                                    if (setState)
-                                    {
-                                        int buffCount = body.GetBuffCount(preFreezeSlow);
-                                        for(int j = 0; j < buffCount; j++)
-                                        {
-                                            body.RemoveOldestTimedBuff(preFreezeSlow);
-                                        }
-                                        if(overrideScalingFreeze.Value > 0)
-                                        {
-                                            setState.SetFrozen(overrideScalingFreeze.Value);
-                                        }
-                                        else
-                                        {
-                                            setState.SetFrozen(duartion * .75f);
-                                        }
-                                    }
-                                }
-                                else if(body.GetBuffCount(preFreezeSlow) >= requiredStacksForBossFreeze.Value)
-                                {
-                                    if(requiredStacksForBossFreeze.Value > 0)
-                                    {
-                                        int buffCount = body.GetBuffCount(preFreezeSlow);
-                                        for (int j = 0; j < buffCount; j++)
-                                        {
-                                            body.RemoveOldestTimedBuff(preFreezeSlow);
-                                        }
-
-                                        //setState.SetFrozen(duartion);
-                                        hurtBox.healthComponent.isInFrozenState = true;
-                                    }
-                                    else
-                                    {
-                                        Debug.Log("Boss Freezing Disabled");
-                                    }
-                                    //hurtBox.healthComponent.isInFrozenState = true;
-                                    //SetStateOnHurt setState = hurtBox.healthComponent.body.gameObject.GetComponent<SetStateOnHurt>();
-                                    //if (setState)
-                                    //{
-
-                                    //}
-                                }
-
-                                EffectData effectData2 = new EffectData
-                                {
-                                    origin = victimBody.corePosition
-                                };
-                                Debug.Log("victimBody.corePosition: " + victimBody.corePosition);
-                                effectData2.SetNetworkedObjectReference(victimBody.gameObject);
-                                EffectManager.SpawnEffect(EntityStates.Mage.Weapon.IceNova.impactEffectPrefab, effectData2, true);
-                                //EffectManager.SpawnEffect(EntityStates.Mage.Weapon.IceNova.novaEffectPrefab, effectData2, true);
-
-                                //EntityStates.Mage.Weapon.FireIceOrb.effectPrefab;
-                                //GlobalEventManager.CommonAssets.bleedOnHitAndExplodeImpactEffect
-                                //EffectManager.SpawnEffect(iceDeathAOEObjectLazy, effectData, true);
-                                //effectData.SetNetworkedObjectReference(victimBody.gameObject);
-                                ////EffectManager.SpawnEffect(iceDeathAOEObject, effectData, true);
-                                //EffectManager.SpawnEffect(iceDeathAOEObjectLazy, effectData, true);
-                                //GameObject gameObject = UnityEngine.Object.Instantiate(iceDeathAOEObject, victimBody.corePosition, Quaternion.identity);
-                                //iceDeathObject.AddComponent<EffectComponent>();
-
-                            }
-                            //Quaternion rot = Quaternion.Euler(0, 180, 0);
-                            //var tempBlade = Instantiate(bladeObject, victimBody.corePosition, rot);
-                            //tempBlade.GetComponent<TeamFilter>().teamIndex = attackerBody.teamComponent.teamIndex;
-                            //tempBlade.transform.position = victimBody.corePosition;
-                            //NetworkServer.Spawn(tempBlade);
-                            //EffectData effectData = new EffectData
-                            //{
-                            //    origin = victimBody.corePosition
-                            //};
-                            //effectData.SetNetworkedObjectReference(tempBlade);
-                            //EffectManager.SpawnEffect(GlobalEventManager.CommonAssets.igniteOnKillExplosionEffectPrefab, effectData, transmit: true);
-                            //StartCoroutine(ExeBladeDelayedExecutions(bladeCount, tempBlade, dmgReport));
-                        }
-                    }
-                    cryoAOEHurtBoxBuffer.Clear();
-
-                    //if (victimBody.GetBuffCount(preFreezeSlow) > requiredStacksForFreeze.Value)
-                    //{
-                    //}
-
-                    if (victimBody.healthComponent.isInFrozenState)
-                    {
-                        EffectData effectData2 = new EffectData
-                        {
-                            origin = victimBody.corePosition
-                        };
-                        effectData2.SetNetworkedObjectReference(victimBody.gameObject);
-                        EffectManager.SpawnEffect(EntityStates.Mage.Weapon.IceNova.impactEffectPrefab, effectData2, true);
-                    }
-                }
-            }
-        }
+        //private void CryoCanisterAOE(DamageReport dmgReport)
+        //{
+        //    if (!dmgReport.attacker || !dmgReport.attackerBody || !dmgReport.victim || !dmgReport.victimBody)
+        //    {
+        //        //Debug.Log("fake");
+        //        return; //end func if death wasn't killed by something real enough
+        //    }
+        //
+        //    int dumbFix = requiredStacksForBossFreeze.Value;
+        //    if(requiredStacksForBossFreeze.Value <= 0)
+        //    {
+        //        dumbFix = int.MaxValue;
+        //    }
+        //
+        //    CharacterBody victimBody = dmgReport.victimBody;
+        //    //dmgReport.victimBody.gameObject.AddComponent<ExeToken>();
+        //    CharacterBody attackerBody = dmgReport.attackerBody;
+        //    if (attackerBody.inventory)
+        //    {
+        //        var cryoCount = attackerBody.inventory.GetItemCount(ItemBase<CryoCanister>.instance.ItemDef);
+        //        if (cryoCount > 0)
+        //        {
+        //            float stackRadius = aoeRangeBase.Value + (aoeRangeStacking.Value * (float)(cryoCount - 1));
+        //            float victimRadius = victimBody.radius;
+        //            float effectiveRadius = stackRadius + victimRadius;
+        //            float AOEDamageMult = baseDamageAOE.Value + (stackingDamageAOE.Value * (float)(cryoCount - 1));
+        //
+        //            //EffectData effectData = new EffectData
+        //            //{
+        //            //    origin = victimBody.corePosition
+        //            //};
+        //            //effectData.SetNetworkedObjectReference(victimBody.gameObject);
+        //            //EffectManager.SpawnEffect(EntityStates.Mage.Weapon.FireIceOrb.effectPrefab, effectData, true);
+        //
+        //            //EntityStates.Mage.Weapon.FireIceOrb.effectPrefab
+        //            float AOEDamage = dmgReport.attackerBody.damage * AOEDamageMult;
+        //            Vector3 corePosition = victimBody.corePosition;
+        //
+        //            cryoAOESphereSearch.origin = corePosition;
+        //            cryoAOESphereSearch.mask = LayerIndex.entityPrecise.mask;
+        //            cryoAOESphereSearch.radius = effectiveRadius;
+        //            cryoAOESphereSearch.RefreshCandidates();
+        //            cryoAOESphereSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetUnprotectedTeams(dmgReport.attackerBody.teamComponent.teamIndex));
+        //            cryoAOESphereSearch.FilterCandidatesByDistinctHurtBoxEntities();
+        //            //cryoAOESphereSearch.OrderCandidatesByDistance();
+        //            cryoAOESphereSearch.GetHurtBoxes(cryoAOEHurtBoxBuffer);
+        //            cryoAOESphereSearch.ClearCandidates();
+        //            //Debug.Log("found: " + cryoAOEHurtBoxBuffer.Count);
+        //            for (int i = 0; i < cryoAOEHurtBoxBuffer.Count; i++)
+        //            {
+        //                HurtBox hurtBox = cryoAOEHurtBoxBuffer[i];
+        //                if (hurtBox.healthComponent && hurtBox.healthComponent.body)
+        //                {
+        //                    float duartion = slowDuration.Value + (slowDurationStacking.Value * (cryoCount - 1));
+        //                    //Debug.Log("found a health component and hc body");
+        //                    hurtBox.healthComponent.body.AddTimedBuffAuthority(preFreezeSlow.buffIndex, duartion);
+        //                    //DamageInfo damageInfo = new DamageInfo
+        //                    //{
+        //                    //    attacker = attackerBody.gameObject,
+        //                    //    crit = attackerBody.RollCrit(),
+        //                    //    damage = AOEDamage,
+        //                    //    position = corePosition,
+        //                    //    procCoefficient = 1,
+        //                    //    damageType = DamageType.AOE,
+        //                    //    damageColorIndex = DamageColorIndex.Item,
+        //                    //    force = new Vector3(0, 0, 0)
+        //                    //};
+        //                    //hurtBox.healthComponent.TakeDamage(damageInfo);
+        //                    //Debug.Log("sent take damage");
+        //                    //self.GetComponent<CharacterBody>().AddTimedBuff(preFreezeSlow, slowDuration.Value);
+        //                    if (hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow) >= requiredStacksForFreeze.Value)
+        //                    {
+        //                        //float duartion = slowDuration.Value + ((slowDuration.Value / 2f) * (cryoCount - 1));
+        //                        if (!hurtBox.healthComponent.body.isBoss)
+        //                        {
+        //                            //hurtBox.healthComponent.isInFrozenState = true;
+        //                            SetStateOnHurt setState = hurtBox.healthComponent.body.gameObject.GetComponent<SetStateOnHurt>();
+        //                            if (setState && setState.canBeFrozen)
+        //                            {
+        //                                int buffCount = hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow);
+        //                                for (int j = 0; j < buffCount; j++)
+        //                                {
+        //                                    hurtBox.healthComponent.body.RemoveOldestTimedBuff(preFreezeSlow);
+        //                                }
+        //
+        //                                setState.SetFrozen(duartion);
+        //
+        //                                //EffectData effectData2 = new EffectData
+        //                                //{
+        //                                //    origin = victimBody.corePosition
+        //                                //};
+        //                                //effectData2.SetNetworkedObjectReference(victimBody.gameObject);
+        //                                //EffectManager.SpawnEffect(EntityStates.Mage.Weapon.IceNova.impactEffectPrefab, effectData2, true);
+        //                            }
+        //                        }
+        //                        else if (hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow) >= dumbFix)
+        //                        {
+        //                            //hurtBox.healthComponent.isInFrozenState = true;
+        //                            //SetStateOnHurt setState = hurtBox.healthComponent.body.gameObject.GetComponent<SetStateOnHurt>();
+        //                            //if (setState)
+        //                            //{
+        //                            int buffCount = hurtBox.healthComponent.body.GetBuffCount(preFreezeSlow);
+        //                            for (int j = 0; j < buffCount; j++)
+        //                            {
+        //                                hurtBox.healthComponent.body.RemoveOldestTimedBuff(preFreezeSlow);
+        //                            }
+        //
+        //                            //setState.SetFrozen(duartion);
+        //                            hurtBox.healthComponent.isInFrozenState = true;
+        //
+        //                            //EffectData effectData2 = new EffectData
+        //                            //{
+        //                            //    origin = victimBody.corePosition
+        //                            //};
+        //                            //effectData2.SetNetworkedObjectReference(victimBody.gameObject);
+        //                            //EffectManager.SpawnEffect(EntityStates.Mage.Weapon.IceNova.impactEffectPrefab, effectData2, true);
+        //                            //}
+        //                        }
+        //
+        //
+        //                        //EffectManager.SpawnEffect(EntityStates.Mage.Weapon.IceNova.novaEffectPrefab, effectData2, true);
+        //
+        //                        //EntityStates.Mage.Weapon.FireIceOrb.effectPrefab;
+        //                        //GlobalEventManager.CommonAssets.bleedOnHitAndExplodeImpactEffect
+        //                        //EffectManager.SpawnEffect(iceDeathAOEObjectLazy, effectData, true);
+        //                        //effectData.SetNetworkedObjectReference(victimBody.gameObject);
+        //                        ////EffectManager.SpawnEffect(iceDeathAOEObject, effectData, true);
+        //                        //EffectManager.SpawnEffect(iceDeathAOEObjectLazy, effectData, true);
+        //                        //GameObject gameObject = UnityEngine.Object.Instantiate(iceDeathAOEObject, victimBody.corePosition, Quaternion.identity);
+        //                        //iceDeathObject.AddComponent<EffectComponent>();
+        //
+        //                    }
+        //                    //Quaternion rot = Quaternion.Euler(0, 180, 0);
+        //                    //var tempBlade = Instantiate(bladeObject, victimBody.corePosition, rot);
+        //                    //tempBlade.GetComponent<TeamFilter>().teamIndex = attackerBody.teamComponent.teamIndex;
+        //                    //tempBlade.transform.position = victimBody.corePosition;
+        //                    //NetworkServer.Spawn(tempBlade);
+        //                    //EffectData effectData = new EffectData
+        //                    //{
+        //                    //    origin = victimBody.corePosition
+        //                    //};
+        //                    //effectData.SetNetworkedObjectReference(tempBlade);
+        //                    //EffectManager.SpawnEffect(GlobalEventManager.CommonAssets.igniteOnKillExplosionEffectPrefab, effectData, transmit: true);
+        //                    //StartCoroutine(ExeBladeDelayedExecutions(bladeCount, tempBlade, dmgReport));
+        //
+        //                    DamageInfo damageInfo = new DamageInfo
+        //                    {
+        //                        attacker = attackerBody.gameObject,
+        //                        crit = attackerBody.RollCrit(),
+        //                        damage = AOEDamage,
+        //                        position = corePosition,
+        //                        procCoefficient = 1,
+        //                        damageType = DamageType.AOE,
+        //                        damageColorIndex = DamageColorIndex.Item,
+        //                        force = new Vector3(0, 0, 0)
+        //                    };
+        //                    hurtBox.healthComponent.TakeDamage(damageInfo);
+        //
+        //                }
+        //            }
+        //            cryoAOEHurtBoxBuffer.Clear();
+        //
+        //            //if (victimBody.GetBuffCount(preFreezeSlow) > requiredStacksForFreeze.Value)
+        //            //{
+        //            //}
+        //
+        //            if (victimBody.healthComponent.isInFrozenState)
+        //            {
+        //                EffectData effectData2 = new EffectData
+        //                {
+        //                    origin = victimBody.corePosition
+        //                };
+        //                effectData2.SetNetworkedObjectReference(victimBody.gameObject);
+        //                EffectManager.SpawnEffect(EntityStates.Mage.Weapon.IceNova.impactEffectPrefab, effectData2, true);
+        //            }
+        //        }
+        //    }
+        //}
 
         public class CryoToken : MonoBehaviour
         {

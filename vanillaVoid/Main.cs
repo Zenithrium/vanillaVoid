@@ -21,6 +21,8 @@ using RoR2.Projectile;
 using vanillaVoid.Interactables;
 using vanillaVoid.Misc;
 using vanillaVoid.Utils;
+using MonoMod.Cil;
+using RoR2.EntitlementManagement;
 //using static vanillaVoid.Utils.Components.MaterialControllerComponents;
 
 namespace vanillaVoid
@@ -51,10 +53,10 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.4.12";
+        public const string ModVer = "1.5.0";
 
         public static ExpansionDef sotvDLC;
-
+        public static ExpansionDef sotvDLC2;
         public static AssetBundle MainAssets;
 
         //public List<ArtifactBase> Artifacts = new List<ArtifactBase>();
@@ -122,7 +124,12 @@ namespace vanillaVoid
             var harm = new Harmony(Info.Metadata.GUID);
             new PatchClassProcessor(harm, typeof(ModdedDamageColors)).Patch();
 
-            sotvDLC = ExpansionCatalog.expansionDefs.FirstOrDefault(x => x.nameToken == "DLC1_NAME");  //learn what sotv is 
+            //sotvDLC = ExpansionCatalog.expansionDefs.FirstOrDefault(x => x.nameToken == "DLC1_NAME");  //learn what sotv is 
+
+            //sotvDLC2 = LegacyResourcesAPI.Load<ExpansionDef>("ExpansionDefs/DLC1");
+            sotvDLC = Addressables.LoadAssetAsync<ExpansionDef>("RoR2/DLC1/Common/DLC1.asset").WaitForCompletion();
+            //expansionDef.enabledChoice
+            //EntitlementDef dlc1Entitlemnt = LegacyResourcesAPI.Load<EntitlementDef>("EntitlementDefs/entitlementDLC1");
 
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("vanillaVoid.vanillavoidassets"))
             {
@@ -151,6 +158,9 @@ namespace vanillaVoid
             //On.RoR2.CharacterBody.FixedUpdate += LotusSlowVisuals;
             //n.RoR2.CharacterModel.UpdateOverlays += AddLotusMaterial;
             On.RoR2.CharacterBody.FixedUpdate += LastTry;
+
+            //IL.RoR2.GenericSkill.RunRecharge += Ah;
+            //On.RoR2.GenericSkill.RunRecharge += Ah2;
 
             On.RoR2.Language.GetLocalizedStringByToken += (orig, self, token) =>
             {
@@ -369,6 +379,38 @@ namespace vanillaVoid
             //}
 
         }
+
+        //private void Ah2(On.RoR2.GenericSkill.orig_RunRecharge orig, GenericSkill self, float dt)
+        //{
+        //    if (self)
+        //    {
+        //        if (self.characterBody)
+        //        {
+        //            if (self.characterBody.inventory)
+        //            {
+        //                if (self.characterBody.inventory.GetItemCount(DashQuill.instance.ItemDef) > 0)
+        //                {
+        //                    dt *= 2;
+        //                }
+        //            }
+        //        }
+        //    }
+        //    orig(self, dt);
+        //}
+        //
+        //private void Ah(ILContext il)
+        //{
+        //    ILCursor c = new ILCursor(il);
+        //    c.Index = 0;
+        //
+        //    bool ILFound = c.TryGotoNext(MoveType.After,
+        //    x => x.MatchCallOrCallvirt(typeof(System.Type).GetMethod("op_Equality")),
+        //    x => x.MatchBrtrue(out _),
+        //    x => x.MatchLdarg(0)
+        //    ); 
+        //
+        //    //throw new NotImplementedException();
+        //}
 
         /// <summary>
         /// A helper to easily set up and initialize an artifact from your artifact classes if the user has it enabled in their configuration files.
@@ -706,7 +748,7 @@ namespace vanillaVoid
                         crit = attackerBody.RollCrit(),
                         damage = 1,
                         position = bladeObject.transform.position,
-                        procCoefficient = 1,
+                        procCoefficient = ItemBase<ExeBlade>.instance.bladeCoefficient.Value,
                         damageType = DamageType.AOE,
                         damageColorIndex = DamageColorIndex.Default,
                     };
@@ -750,7 +792,7 @@ namespace vanillaVoid
                                     crit = attackerBody.RollCrit(),
                                     damage = AOEDamage,
                                     position = corePosition,
-                                    procCoefficient = 1,
+                                    procCoefficient = ItemBase<ExeBlade>.instance.bladeCoefficient.Value,
                                     damageType = DamageType.AOE,
                                     damageColorIndex = DamageColorIndex.Item,
                                 };

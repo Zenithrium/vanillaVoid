@@ -19,9 +19,11 @@
 	<ItemGroup>
 		<Compile Remove="Equipment\ExampleEquipment.cs" />
 		<Compile Remove="Equipment\ExampleEquipWithTargeting.cs" />
+		<Compile Remove="Items\CoatOfScars.cs" />
+		<Compile Remove="Items\EmptyShell.cs" />
 		<Compile Remove="Items\ExampleItem.cs" />
 		<Compile Remove="Items\RelentlessRounds.cs" />
-		<Compile Remove="Items\VoidCell.cs" />
+		<Compile Remove="Items\UrchinTide.cs" />
 		<Compile Remove="Items\WhorlShell.cs" />
 		<Compile Remove="Items\WickedStaff.cs" />
 	</ItemGroup>
@@ -51,6 +53,7 @@
 		<PackageReference Include="R2API.ContentManagement" Version="1.0.1" />
 		<PackageReference Include="R2API.Core" Version="5.0.6" />
 		<PackageReference Include="R2API.Director" Version="1.0.0" />
+		<PackageReference Include="R2API.Dot" Version="1.0.0" />
 		<PackageReference Include="R2API.Items" Version="1.0.1" />
 		<PackageReference Include="R2API.Language" Version="1.0.0" />
 		<PackageReference Include="R2API.Networking" Version="1.0.2" />

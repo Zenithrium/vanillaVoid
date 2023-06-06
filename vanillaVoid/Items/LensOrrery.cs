@@ -149,7 +149,6 @@ namespace vanillaVoid.Items
             buffDamageBonus = config.Bind<float>("Item: " + name, "Buff Percent Damage Bonus", .1f, "Variant 0 - Adjust the damage bonus granted by each stack of the non-crit buff. Multiply this by the max buffs to get the max damage bonus.");
             buffStacksPerCount = config.Bind<int>("Item: " + name, "Max Buffs per Stack", 5, "Variant 0 - Adjust max number of stacks of the damage buff can be active at once, per stack.");
 
-
             newLensBonus = config.Bind<float>("Item: " + name, "Crit Buff", .3f, "Adjust the percent buff to crit glasses on the first stack.");
             newStackingLensBonus = config.Bind<float>("Item: " + name, "Crit Buff per Stack", 0.05f, "Adjust the percent buff to crit glasses per stack.");
             additionalCritLevels = config.Bind<float>("Item: " + name, "Additional Crit Levels", 1f, "Adjust the number of additional crit levels each stack allows.");

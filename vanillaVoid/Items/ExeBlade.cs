@@ -31,6 +31,8 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<float> aoeRangeBaseExe;
 
+        public ConfigEntry<float> bladeCoefficient;
+
         //public ConfigEntry<bool> enableOnDeathDamage;
 
         //public ConfigEntry<float> aoeRangeStackingExe;
@@ -103,6 +105,8 @@ namespace vanillaVoid.Items
             //enableOnDeathDamage = config.Bind<bool>("Item: " + name, "Enable Damage AOE", true, "Enable or disable the additional AOE without having to set the next two configs to zero. ");
             baseDamageAOEExe = config.Bind<float>("Item: " + name, "Percent Base Damage", 1f, "Adjust the percent base damage the AOE does.");
             aoeRangeBaseExe = config.Bind<float>("Item: " + name, "Range of AOE", 12f, "Adjust the range of the damaging AOE on the first stack.");
+            bladeCoefficient = config.Bind<float>("Item: " + name, "Proc Coefficient", .5f, "Adjust the proc coefficient for the item's damage AOE. (0 is no procs, 1 is normal proc rate)");
+
             voidPair = config.Bind<string>("Item: " + name, "Item to Corrupt", "ExecuteLowHealthElite", "Adjust which item this is the void pair of.");
         }
 
