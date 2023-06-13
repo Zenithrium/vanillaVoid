@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 376081015
+CRC: 4168919719
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: d2a1cc3ea5a34cc9a17ac3e1d5032251
+    Hash: 496ef6f6a0a7fb7eceadf2bae7d83ee9
   TypeTreeHash:
     serializedVersion: 2
     Hash: 6ba044ad33d408c04b562a940f2669ef
@@ -42,6 +42,7 @@ Assets:
 - Assets/Textures/Icons/Buffs/lotusSlow.png
 - Assets/Models/Prefabs/Item/CryoItem/mdlCryoDisplay.prefab
 - Assets/Textures/Materials/Item/Mess/gooptexture.mat
+- Assets/Textures/Icons/Item/WhorlItem/texShellIcon2.png
 - Assets/Textures/Materials/Item/OrreryItem/miscGray.mat
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladeDisplay.prefab
 - Assets/Textures/Materials/Item/Mess/pottexture.mat
@@ -52,6 +53,7 @@ Assets:
 - Assets/Sprites/texUICornerTier1.png
 - Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryPickup.prefab
 - Assets/Models/VFX/texBehemothTileMask.png
+- Assets/Models/Prefabs/Item/WhorlItem/texParticlesGalaxy.png
 - Assets/raw/orrery/newOrreryMaterial.mat
 - Assets/raw/cryo/cryoMat.mat
 - Assets/Textures/Materials/Item/OrreryItem/ringsMedium.mat
@@ -97,10 +99,12 @@ Assets:
 - Assets/Models/Misc/fbxVoidArch.fbx
 - Assets/Models/Prefabs/Item/QuillItem/mdlQuillPickup.prefab
 - Assets/Sprites/texShrineIconOutlined.png
+- Assets/Textures/Icons/Item/WhorlItem/whorlIcon512old.png
 - Assets/Textures/Materials/Item/OrreryItem/planets.mat
 - Assets/Models/Prefabs/Item/QuillItem/mdlPotSoloDisplay.prefab
 - Assets/Textures/Icons/Item/ventItem/ventIcon.png
 - Assets/Textures/Icons/Item/LotusItem/texMagmaCloud.png
+- Assets/Models/Prefabs/Item/WhorlItem/texRingTileMask.png
 - Assets/Textures/Materials/Item/ExtVent/ventMat.mat
 - Assets/Models/VFX/texRampIce.png
 - Assets/Sprites/texUICornerTier3.png
@@ -110,6 +114,7 @@ Assets:
 - Assets/Models/Prefabs/Item/MessItem/mdlMessPickup.prefab
 - Assets/Models/Misc/LotusTeleporterCollider.prefab
 - Assets/Textures/Icons/Item/MessItem/brokenMessIconLarge.png
+- Assets/Models/Prefabs/Item/WhorlItem/donut2Mesh.asset
 - Assets/Models/VFX/IceExplosionAoe.prefab
 - Assets/Models/VFX/matIceAura.mat
 - Assets/Textures/Icons/Buffs/whorlRegenBuffIcon.png
@@ -118,7 +123,10 @@ Assets:
 - Assets/Textures/Materials/Item/Mess/voidorb.mat
 - Assets/Textures/Materials/Item/ClockworkWatch/casingMat.mat
 - Assets/Textures/Materials/Item/OrreryItem/cup.mat
+- Assets/Models/Prefabs/Item/WhorlItem/texRingLightningMask.png
 - Assets/Textures/Materials/Item/AbyssalAdze/HeadMaterial.mat
+- Assets/Models/Prefabs/Item/WhorlItem/texRingRamp.png
+- Assets/Models/Prefabs/Item/WhorlItem/matRings.mat
 - Assets/Models/VFX/donut1Mesh.asset
 - Assets/Models/VFX/matLaserPointerBeam.mat
 - Assets/Textures/Icons/Interactables/texRampCrowbar.png
@@ -138,6 +146,7 @@ Assets:
 - Assets/Textures/Materials/Item/OrreryItem/ringsLarge.mat
 - Assets/Textures/Materials/Item/Blade/bladeMateria.mat
 - Assets/Textures/Materials/Item/ClockworkWatch/whiteMat.mat
+- Assets/Models/Prefabs/Item/WhorlItem/WhorlShellVFX.prefab
 - Assets/Textures/Icons/Item/VialsEmptyItem/emptyVialsIcon.png
 - Assets/Textures/Icons/Item/VialsEmptyItem/emptyVialsIcon512.png
 - Assets/Models/Prefabs/Item/VialsItem/vialsTwo/mdlVialsFinalDisplay.prefab
@@ -154,14 +163,17 @@ Assets:
 - Assets/Textures/Icons/Item/LotusItem/texCloudDifferenceBW1.png
 - Assets/Textures/Materials/Item/VialsItem/vialMat.mat
 - Assets/raw/extVent/extVentMat.mat
+- Assets/Models/Prefabs/Item/WhorlItem/matParticles.mat
 - Assets/Textures/Materials/Item/ClockworkWatch/b/mainGrayMat.mat
 - Assets/Textures/Icons/Item/LotusItem/texRampIce2.png
+- Assets/Textures/Icons/Item/WhorlItem/whorlIcon512.png
 - Assets/Textures/Icons/Buffs/orreryDamageNew.png
 - Assets/Textures/Materials/Item/Mess/armtexture.mat
 - Assets/Models/Prefabs/Item/WhorlItem/mdlWhorlPickup.prefab
 - Assets/Textures/Icons/Item/LotusItem/ancientlotusIcon512.png
 - Assets/Textures/Materials/Item/ClockworkWatch/backMat.mat
 - Assets/Textures/Icons/Item/MessItem/brokenMessIcon512.png
+- Assets/Models/Prefabs/Item/WhorlItem/texParticlesRamp.png
 - Assets/Models/Prefabs/Item/AbyssalAdze/mdlAdzePickup.prefab
 - Assets/Textures/Icons/Item/LotusItem/texMagmaCloud2.png
 - Assets/Models/Prefabs/Item/CryoItem/CryoAOEExplosionEffect.prefab

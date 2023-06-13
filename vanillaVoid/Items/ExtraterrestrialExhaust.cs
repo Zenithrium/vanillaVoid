@@ -576,6 +576,30 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.035F, 0.035F, 0.035F)
                 }
             });
+            rules.Add("mdlExecutioner2", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "ShoulderR",
+                    localPos = new Vector3(-0.02813F, -0.10344F, -0.05165F),
+                    localAngles = new Vector3(24.14783F, 357.26F, 157.5212F),
+                    localScale = new Vector3(0.015F, 0.015F, 0.015F)
+                }
+            });
+            rules.Add("mdlNemCommando", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(0.80923F, -0.03724F, 0.63302F),
+                    localAngles = new Vector3(4.29694F, 144.3949F, 176.929F),
+                    localScale = new Vector3(0.1F, 0.1F, 0.1F)
+                }
+            });
             return rules;
 
         }
