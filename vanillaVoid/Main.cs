@@ -103,6 +103,7 @@ namespace vanillaVoid
         GameObject tier3Clone;
         GameObject tier4Clone;
         bool hasAdjustedTiers;
+
         public static BuffDef lotusSlow { get; private set; }
 
         private void Awake()

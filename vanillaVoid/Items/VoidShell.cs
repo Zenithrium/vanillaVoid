@@ -31,6 +31,12 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<float> bossMonsterCredits;
 
+        public ConfigEntry<float> bossMonsterNullifierWeight;
+
+        public ConfigEntry<float> bossMonsterJailerWeight;
+
+        public ConfigEntry<float> bossMonsterDevastatorWeight;
+
         public ConfigEntry<float> ShellTier1Weight;
 
         public ConfigEntry<float> ShellTier2Weight;
@@ -117,8 +123,12 @@ namespace vanillaVoid.Items
         {
             enableFog = config.Bind<bool>("Item: " + ItemName, "Enable Void Fog", true, "Adjust whether the Lost Battery should have void fog while charging (like void fields).");
 
-            monsterCredits = config.Bind<float>("Item: " + ItemName, "Void Monster Credits", 200, "Adjust amount of credits the regular director gets to spawn void monsters. This one usually just spawns barnacles.");
-            bossMonsterCredits = config.Bind<float>("Item: " + ItemName, "Void Boss Credits", 600, "Adjust the amount of credits the boss director gets to spawn a larger void threat. This one usually spawns two reavers or jailers.");
+            monsterCredits = config.Bind<float>("Item: " + ItemName, "Void Monster Credits", 150, "Adjust amount of credits the regular director gets to spawn void monsters. This one usually just spawns barnacles.");
+            bossMonsterCredits = config.Bind<float>("Item: " + ItemName, "Void Boss Credits", 800, "Adjust the amount of credits the boss director gets to spawn a larger void threat. Nullifiers cost 300, Jailers cost 450, and Devastators cost 800.");
+            
+            bossMonsterNullifierWeight = config.Bind<float>("Item: " + ItemName, "Boss Nullifier Weight", .5225f, "Adjust the weight of Nullifiers being spawned as the 'boss' of the Lost Battery.");
+            bossMonsterJailerWeight = config.Bind<float>("Item: " + ItemName, "Boss Jailer Weight", .4275f, "Adjust the weight of Jailer being spawned as the 'boss' of the Lost Battery.");
+            bossMonsterDevastatorWeight = config.Bind<float>("Item: " + ItemName, "Boss Devastator Weight", .05f, "Adjust the weight of Devastator being spawned as the 'boss' of the Lost Battery.");
 
             ShellTier1Weight = config.Bind<float>("Item: " + ItemName, "Tier 1 Weight", .316f, "Adjust weight of Tier 1 items.");
             ShellTier2Weight = config.Bind<float>("Item: " + ItemName, "Tier 2 Weight", .08f, "Adjust weight of Tier 2 items.");
@@ -145,11 +155,44 @@ namespace vanillaVoid.Items
 
             Vector3 zero = new Vector3(0, 0, 0);
 
-            var locusCards = Addressables.LoadAssetAsync<DirectorCardCategorySelection>("RoR2/DLC1/voidstage/dccsVoidStageMonsters.asset").WaitForCompletion();
-
-            //DirectorCardCategorySelection newCards = new DirectorCardCategorySelection();
+            var locusCards = Addressables.LoadAssetAsync<DirectorCardCategorySelection>("RoR2/DLC1/voidstage/dccsVoidStageMonsters.asset").WaitForCompletion(); //maybe "RoR2/Base/Common/dccsNullifiersOnly.asset"
+            //var nullifierCards = Addressables.LoadAssetAsync<DirectorCardCategorySelection>("RoR2/Base/Common/dccsNullifiersOnly.asset").WaitForCompletion(); 
+            
+            DirectorCardCategorySelection voidThreats = new DirectorCardCategorySelection();
+            //Debug.Log("Category Selection Made - " + voidThreats);
             //var fodder = newCards.AddCategory("Void Fodder", .9f);
-            //var threats = newCards.AddCategory("Void Threats", .1f);
+            //var category0 = voidThreats.AddCategory("All", 1);
+            var category1 = voidThreats.AddCategory("Nullifiers", bossMonsterNullifierWeight.Value);
+            var category2 = voidThreats.AddCategory("Jailer", bossMonsterJailerWeight.Value);
+            var category3 = voidThreats.AddCategory("Devastators", bossMonsterDevastatorWeight.Value);
+            
+            var card1 = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/Base/Nullifier/cscNullifier.asset").WaitForCompletion();
+            var dc1 = new DirectorCard();
+            dc1.spawnCard = card1;
+            dc1.minimumStageCompletions = 0;
+            dc1.selectionWeight = 1;
+            dc1.spawnDistance = DirectorCore.MonsterSpawnDistance.Standard;
+            //Debug.Log("Cost of Nullifier: " + card1.directorCreditCost);
+
+            var card2 = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidJailer/cscVoidJailer.asset").WaitForCompletion();
+            var dc2 = new DirectorCard();
+            dc2.spawnCard = card2;
+            dc2.minimumStageCompletions = 0;
+            dc2.selectionWeight = 1;
+            dc2.spawnDistance = DirectorCore.MonsterSpawnDistance.Standard;
+            //Debug.Log("Cost of Jailer: " + card2.directorCreditCost);
+
+            var card3 = Addressables.LoadAssetAsync<CharacterSpawnCard>("RoR2/DLC1/VoidMegaCrab/cscVoidMegaCrab.asset").WaitForCompletion();
+            var dc3 = new DirectorCard();
+            dc3.spawnCard = card3;
+            dc3.minimumStageCompletions = 0;
+            dc3.selectionWeight = 1;
+            dc3.spawnDistance = DirectorCore.MonsterSpawnDistance.Standard;
+            //Debug.Log("Cost of Mega Crab: " + card3.directorCreditCost);
+
+            voidThreats.AddCard(category1, dc1);
+            voidThreats.AddCard(category2, dc2);
+            voidThreats.AddCard(category3, dc3);
             //newCards.AddCard(fodder, );
 
             var tempPortalBattery = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/DeepVoidPortalBattery/DeepVoidPortalBattery.prefab").WaitForCompletion();
@@ -185,11 +228,11 @@ namespace vanillaVoid.Items
                 //Debug.Log("found hzc");
                 hzc.baseRadius = 25;
                 hzc.baseChargeDuration = 30;
-                hzc.inBoundsObjectiveToken = "OBJECTIVE_VOID_BATTERY";
-                hzc.outOfBoundsObjectiveToken = "OBJECTIVE_VOID_BATTERY_OOB";
+                hzc.inBoundsObjectiveToken = "VV_OBJECTIVE_SHELL";
+                hzc.outOfBoundsObjectiveToken = "VV_OBJECTIVE_SHELL_OOB";
                 //hzc.
-                //LanguageAPI.Add("VV_OBJECTIVE_SHELL", "Charge the Void Battery"); //look at treasure map
-                //LanguageAPI.Add("VV_OBJECTIVE_SHELL_OOB");
+                LanguageAPI.Add("VV_OBJECTIVE_SHELL", "Charge the <style=cIsVoid>Lost Battery</style> ({0}%)"); //look at treasure map
+                LanguageAPI.Add("VV_OBJECTIVE_SHELL_OOB", "Enter the <style=cIsVoid>Lost Battery's radius!</style> ({0}%)");
 
                 //hzc.onCharged.AddListener(ShellDropRewards);
                 //hzc.onCharged = new HoldoutZoneController.HoldoutZoneControllerChargedUnityEvent();
@@ -228,18 +271,18 @@ namespace vanillaVoid.Items
                 var cd2 = center.gameObject.AddComponent<CombatDirector>();
                 cd2.monsterCredit = bossMonsterCredits.Value;
                 cd2.customName = "LostBatteryDirectorBoss";
-                cd2.monsterCards = locusCards;
+                cd2.monsterCards = voidThreats;
                 cd2.eliteBias = 1;
                 //cd2.num
                 //cd2.moneyWaveIntervals = new RangeFloat[] { new RangeFloat { min = 1, max = 1 } };
-                cd2.shouldSpawnOneWave = true;
+                cd2.shouldSpawnOneWave = false;
                 cd2.targetPlayers = true;
                 cd2.creditMultiplier = 1;
                 cd2.ignoreTeamSizeLimit = true;
-                cd2.skipSpawnIfTooCheap = true;
+                cd2.skipSpawnIfTooCheap = false;
                 cd2.teamIndex = TeamIndex.Void;
                 cd2.monsterSpawnTimer = 5;
-                cd2.maximumNumberToSpawnBeforeSkipping = 2;
+                cd2.maximumNumberToSpawnBeforeSkipping = 1;
                 cd2.enabled = false;
             }
 
@@ -809,7 +852,6 @@ namespace vanillaVoid.Items
             x => x.MatchStfld<RoR2.UI.ChargeIndicatorController>(nameof(RoR2.UI.ChargeIndicatorController.holdoutZoneController)),
             x => x.MatchCallOrCallvirt<NetworkServer>("get_" + nameof(NetworkServer.active))
             );
-            Debug.Log("found: " + ILFound);
             if (ILFound)
             {
                 c.Index += 4;
@@ -838,7 +880,7 @@ namespace vanillaVoid.Items
                                 var cd2 = center.gameObject.GetComponent<CombatDirector>();
                                 cd2.enabled = true;
                                 cd2.monsterSpawnTimer = 0;
-                                cd2.SetNextSpawnAsBoss();
+                                //cd2.SetNextSpawnAsBoss();
                             }
 
                             var fogcontroller = self.GetComponent<FogDamageController>();
@@ -869,8 +911,6 @@ namespace vanillaVoid.Items
             ILCursor c = new ILCursor(il);
 
             bool ILFound = c.TryGotoNext(MoveType.After,
-            //x => x.MatchLdarg(0),
-            //x => x.MatchCallOrCallvirt(typeof(EntityStates.DeepVoidPortalBattery.BaseDeepVoidPortalBatteryState).GetMethod(nameof(EntityStates.DeepVoidPortalBattery.BaseDeepVoidPortalBatteryState.OnEnter))),
             x => x.MatchCallOrCallvirt(typeof(VoidStageMissionController).GetMethod("get_instance")),
             x => x.MatchCallOrCallvirt(typeof(UnityEngine.Object).GetMethod("op_Implicit"))
             );
