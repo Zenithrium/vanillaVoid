@@ -11,7 +11,6 @@ using UnityEngine.AddressableAssets;
 using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
-using VoidItemAPI;
 
 namespace vanillaVoid.Items
 {
@@ -73,7 +72,7 @@ namespace vanillaVoid.Items
             //CreateBrokenItem();
 
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
-            VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
+            //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
 
             Hooks(); 
         }
@@ -110,13 +109,14 @@ namespace vanillaVoid.Items
         public override ItemDisplayRuleDict CreateItemDisplayRules()
         {
             ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlVialsFinalDisplay.prefab");
-            string glass = "RoR2/DLC1/HealingPotion/matHealingPotionGlass.mat"; 
 
-            var vialGlass = ItemModel.transform.Find("_Vials").GetComponent<MeshRenderer>();
-            vialGlass.material = Addressables.LoadAssetAsync<Material>(glass).WaitForCompletion();
-
-            var vialGlassDisplay = ItemBodyModelPrefab.transform.Find("_Vials").GetComponent<MeshRenderer>();
-            vialGlassDisplay.material = Addressables.LoadAssetAsync<Material>(glass).WaitForCompletion();
+            //string glass = "RoR2/DLC1/HealingPotion/matHealingPotionGlass.mat"; 
+            //
+            //var vialGlass = ItemModel.transform.Find("_Vials").GetComponent<MeshRenderer>();
+            //vialGlass.material = Addressables.LoadAssetAsync<Material>(glass).WaitForCompletion();
+            //
+            //var vialGlassDisplay = ItemBodyModelPrefab.transform.Find("_Vials").GetComponent<MeshRenderer>();
+            //vialGlassDisplay.material = Addressables.LoadAssetAsync<Material>(glass).WaitForCompletion();
 
 
             var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();

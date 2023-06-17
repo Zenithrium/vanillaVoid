@@ -50,14 +50,14 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="BepInEx.Core" Version="5.4.21" />
-		<PackageReference Include="R2API.ContentManagement" Version="1.0.1" />
-		<PackageReference Include="R2API.Core" Version="5.0.6" />
-		<PackageReference Include="R2API.Director" Version="1.0.0" />
-		<PackageReference Include="R2API.Dot" Version="1.0.0" />
-		<PackageReference Include="R2API.Items" Version="1.0.1" />
-		<PackageReference Include="R2API.Language" Version="1.0.0" />
+		<PackageReference Include="R2API.ContentManagement" Version="1.0.2" />
+		<PackageReference Include="R2API.Core" Version="5.0.10" />
+		<PackageReference Include="R2API.Director" Version="1.1.2" />
+		<PackageReference Include="R2API.Dot" Version="1.0.1" />
+		<PackageReference Include="R2API.Items" Version="1.0.3" />
+		<PackageReference Include="R2API.Language" Version="1.0.1" />
 		<PackageReference Include="R2API.Networking" Version="1.0.2" />
-		<PackageReference Include="R2API.Prefab" Version="1.0.1" />
+		<PackageReference Include="R2API.Prefab" Version="1.0.3" />
 		<PackageReference Include="R2API.RecalculateStats" Version="1.2.0" />
 		<PackageReference Include="RiskOfRain2.GameLibs" Version="1.2.4-r.0" />
 		<PackageReference Include="UnityEngine.Modules" Version="2019.4.26" />
@@ -105,9 +105,6 @@
 		</Reference>
 		<Reference Include="UnityEngine.UI">
 			<HintPath>libs\UnityEngine.UI.dll</HintPath>
-		</Reference>
-		<Reference Include="VoidItemAPI">
-			<HintPath>libs\VoidItemAPI.dll</HintPath>
 		</Reference>
 		<Reference Include="Wwise">
 			<HintPath>libs\Wwise.dll</HintPath>

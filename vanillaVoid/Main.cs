@@ -23,6 +23,7 @@ using vanillaVoid.Misc;
 using vanillaVoid.Utils;
 using MonoMod.Cil;
 using RoR2.EntitlementManagement;
+using On.RoR2.Items;
 //using static vanillaVoid.Utils.Components.MaterialControllerComponents;
 
 namespace vanillaVoid
@@ -39,7 +40,7 @@ namespace vanillaVoid
     //[BepInDependency("com.bepis.r2api.networking", BepInDependency.DependencyFlags.HardDependency)]
 
     //[BepInDependency("com.RumblingJOSEPH.VoidItemAPI", BepInDependency.DependencyFlags.HardDependency)]
-    [BepInDependency(VoidItemAPI.VoidItemAPI.MODGUID)]
+    //[BepInDependency(VoidItemAPI.VoidItemAPI.MODGUID)]
     
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     //[BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
@@ -53,7 +54,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.5.0";
+        public const string ModVer = "1.5.1";
 
         public static ExpansionDef sotvDLC;
         public static ExpansionDef sotvDLC2;
@@ -76,6 +77,8 @@ namespace vanillaVoid
         public static GameObject lotusObject;
         public static GameObject lotusPulse;
         public static GameObject lotusCollider;
+
+        public static GameObject exhaustVFX;
 
         public Xoroshiro128Plus genericRng;
 
@@ -118,8 +121,6 @@ namespace vanillaVoid
             LotusDuration = Config.Bind<float>("Item: " + lotusname, "Slow Duration", 30f, "Variant 0: Adjust how long the slow should last per pulse. A given slow is replaced by the next slow, so with enough lotuses, the full duration won't get used. However, increasing this also decreases the rate at which the slow fades.");
             LotusSlowPercent = Config.Bind<float>("Item: " + lotusname, "Slow Percent", 0.075f, "Variant 0: Adjust the strongest slow percent (between 0 and 1). Increasing this also makes it so the slow 'feels' shorter, as high values (near 1) feel very minor. Note that this is inverted, where 0 = 100% slow and 1 = 0% slow.");
 
-            
-
             ModLogger = Logger;
 
             var harm = new Harmony(Info.Metadata.GUID);
@@ -140,6 +141,8 @@ namespace vanillaVoid
             //SwapShadersFromMaterials(MainAssets);
             //Debug.Log("beginning test");
             Swapallshaders(MainAssets);
+
+            On.RoR2.Items.ContagiousItemManager.Init += AddVoidItemsToDict;
 
             On.RoR2.CharacterBody.OnSkillActivated += ExtExhaustFireProjectile;
 
@@ -198,6 +201,16 @@ namespace vanillaVoid
             lotusCollider.AddComponent<BuffWard>();
             lotusCollider.AddComponent<SlowDownProjectiles>();
 
+            exhaustVFX = MainAssets.LoadAsset<GameObject>("ExhaustVFX.prefab");
+            var exhefc = exhaustVFX.AddComponent<EffectComponent>();
+            exhefc.applyScale = true;
+            var exhvfx = exhaustVFX.AddComponent<VFXAttributes>();
+            exhvfx.vfxIntensity = VFXAttributes.VFXIntensity.Low;
+            exhvfx.vfxPriority = VFXAttributes.VFXPriority.Low;
+            var exhdestroy = exhaustVFX.AddComponent<DestroyOnTimer>();
+            exhdestroy.duration = 5;
+
+            ContentAddition.AddEffect(exhaustVFX);
             //List<LotusBodyToken> bodyTokens = new List<LotusBodyToken>();
 
 
@@ -323,6 +336,8 @@ namespace vanillaVoid
             //This section automatically scans the project for all items
             var ItemTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(ItemBase)));
 
+            List<ItemDef.Pair> newVoidPairs = new List<ItemDef.Pair>();
+
             foreach (var itemType in ItemTypes)
             {
 
@@ -336,6 +351,42 @@ namespace vanillaVoid
                     //    itemTempName.Replace('\'', ' ');
                     //}
                     item.Init(Config);
+
+                    var tags = item.ItemTags;
+                    bool aiValid = true;
+                    bool aiBlacklist = false;
+                    if(item.ItemDef.deprecatedTier == ItemTier.NoTier)
+                    {
+                        aiBlacklist = true;
+                        aiValid = false;
+                    }
+                    string name = item.ItemName;
+                    //Debug.Log("prename " + name);
+                    name = name.Replace("'", "");
+                    //Debug.Log("postname " + name);
+                     
+                    foreach (var tag in tags) 
+                    {
+                        if (tag == ItemTag.AIBlacklist)
+                        {
+                            aiBlacklist = true;
+                            aiValid = false;
+                            break;
+                        }
+                    }
+                    if (aiValid)
+                    {
+                        aiBlacklist = Config.Bind<bool>("Item: " + name, "Blacklist Item from AI Use?", false, "Should the AI not be able to obtain this item?").Value;
+                    }
+                    else
+                    {
+                        aiBlacklist = true;
+                    }
+
+                    if (aiBlacklist)
+                    {
+                        item.AIBlacklisted = true;
+                    }
                 }
             }
 
@@ -354,7 +405,7 @@ namespace vanillaVoid
 
             var InteractableTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(InteractableBase)));
 
-            ModLogger.LogInfo("---INTERACTABLES---");
+            //ModLogger.LogInfo("---VV INTERACTABLES---");
 
             foreach (var interactableType in InteractableTypes)
             {
@@ -378,6 +429,31 @@ namespace vanillaVoid
             //
             //    }
             //}
+
+        }
+
+        private void AddVoidItemsToDict(ContagiousItemManager.orig_Init orig)
+        {
+            List<ItemDef.Pair> newVoidPairs = new List<ItemDef.Pair>();
+            Debug.Log("Adding VanillaVoid item transformations...");
+            foreach (var item in Items)
+            {
+                if (item.ItemDef.deprecatedTier != ItemTier.NoTier) //safe assumption i think
+                {
+                    item.AddVoidPair(newVoidPairs);
+                }
+                else
+                {
+                    Debug.Log("Skipping " + item.ItemName);
+                }
+            }
+            var key = DLC1Content.ItemRelationshipTypes.ContagiousItem;
+            Debug.Log(key);
+            var voidPairs = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem];
+            ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = voidPairs.Union(newVoidPairs).ToArray();
+            Debug.Log("Finishing appending VanillaVoid item transformations.");
+
+            orig();
 
         }
 
@@ -441,7 +517,6 @@ namespace vanillaVoid
             string name = item.ItemName.Replace("'", string.Empty);
             //string name = item.ItemName == "Lens-Maker's Orrery" ? "Lens-Makers Orrery" : item.ItemName;
             bool enabled = false;
-            bool aiBlacklist = false;
             //if (name.Equals("Empty Vials") || name.Equals("Broken Mess"))
             //{
             //    //enabled = true; //override config option
@@ -457,7 +532,8 @@ namespace vanillaVoid
             if (item.Tier == ItemTier.NoTier)
             {
                 enabled = true;
-                aiBlacklist = true;
+                item.AIBlacklisted = true;
+                //aiBlacklist = true;
                 //Debug.Log("Adding Broken Item: " + item.ItemName);
             }
             else
@@ -467,7 +543,25 @@ namespace vanillaVoid
                 //aiBlacklist = true;
                 //Debug.Log("Adding Normal Item: " + item.ItemName);
                 enabled = Config.Bind<bool>("Item: " + name, "Enable Item?", true, "Should this item appear in runs?").Value;
-                aiBlacklist = Config.Bind<bool>("Item: " + name, "Blacklist Item from AI Use?", false, "Should the AI not be able to obtain this item?").Value;
+                //var tags = item.ItemTags;
+                //bool aiValid = true;
+                //foreach(var tag in tags)
+                //{
+                //    if(tag == ItemTag.AIBlacklist)
+                //    {
+                //        aiBlacklist = true;
+                //        break;
+                //    }
+                //}
+                //if (aiValid)
+                //{
+                //    aiBlacklist = Config.Bind<bool>("Item: " + name, "Blacklist Item from AI Use?", false, "Should the AI not be able to obtain this item?").Value;
+                //}
+                //else
+                //{
+                //    aiBlacklist = true;
+                //}
+                //aiBlacklist = Config.Bind<bool>("Item: " + name, "Blacklist Item from AI Use?", false, "Should the AI not be able to obtain this item?").Value;
             }
 
             //enabled = Config.Bind<bool>("Item: " + name, "Enable Item?", true, "Should this item appear in runs?").Value;
@@ -480,10 +574,10 @@ namespace vanillaVoid
             if (enabled)
             {
                 itemList.Add(item);
-                if (aiBlacklist)
-                {
-                    item.AIBlacklisted = true;
-                }
+                //if (aiBlacklist)
+                //{
+                //    item.AIBlacklisted = true;
+                //}
             }
             return enabled;
         }
@@ -582,6 +676,7 @@ namespace vanillaVoid
             //}
             for (int i = 0; i < missileCount; i++)
             {
+                
                 yield return new WaitForSeconds(.1f);
                 var playerPos = player.GetComponent<CharacterBody>().corePosition;
                 float random = UnityEngine.Random.Range(-30, 30);
@@ -611,7 +706,24 @@ namespace vanillaVoid
                 //MissileUtils.FireMissile(fireProjectileInfo
                 //Debug.Log(player.corePosition + " | " + (180 - random));
                 MissileUtils.FireMissile(player.corePosition + upTransform, player, procChainMask, null, rocketDamage, player.RollCrit(), ExtraterrestrialExhaust.RocketProjectile, DamageColorIndex.Item, Upwards, 10f, false);
-                
+
+                //EffectData effectData = new EffectData
+                //{
+                //    origin = player.modelLocator.modelBaseTransform.localPosition,
+                //    rootObject = player.gameObject
+                //};
+                //effectData.SetNetworkedObjectReference(player.modelLocator.modelBaseTransform.gameObject); //pulverizedEffectPrefab
+                //EffectManager.SpawnEffect(exhaustVFX, effectData, transmit: true);
+
+                //EffectData effectData = new EffectData
+                //{
+                //    origin = player.corePosition,
+                //    rootObject = player.gameObject
+                //};
+                //effectData.SetNetworkedObjectReference(player.gameObject); //pulverizedEffectPrefab
+                //EffectManager.SpawnEffect(exhaustVFX, effectData, transmit: true);
+
+
                 //FireProjectileInfo fireProjectileInfo = new FireProjectileInfo()
                 //{
                 //    owner = player.gameObject,

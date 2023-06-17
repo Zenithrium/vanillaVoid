@@ -11,7 +11,6 @@ using UnityEngine.AddressableAssets;
 using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
-using VoidItemAPI;
 
 namespace vanillaVoid.Items
 {
@@ -53,10 +52,18 @@ namespace vanillaVoid.Items
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
-            VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
+            //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
+
+
 
             Hooks(); 
         }
+
+        //public override string VoidPair()
+        //{
+        //    return voidPair.Value;
+        //}
+
 
         public override void CreateConfig(ConfigFile config)
         {
@@ -72,18 +79,18 @@ namespace vanillaVoid.Items
             //string orbTransp = "RoR2/DLC1/voidraid/matVoidRaidPlanetPurpleWave.mat"; 
             //string orbCore = "RoR2/DLC1/voidstage/matVoidCoralPlatformPurple.mat";
 
-            string orbTransp = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorLightning.mat";
-            string orbCore = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorPod.mat";
-
-            var adzeOrbsModelTransp = ItemModel.transform.Find("orbTransp").GetComponent<MeshRenderer>();
-            var adzeOrbsModelCore = ItemModel.transform.Find("orbCore").GetComponent<MeshRenderer>();
-            adzeOrbsModelTransp.material = Addressables.LoadAssetAsync<Material>(orbTransp).WaitForCompletion();
-            adzeOrbsModelCore.material = Addressables.LoadAssetAsync<Material>(orbCore).WaitForCompletion();
-
-            var adzeOrbsDisplayTransp = ItemBodyModelPrefab.transform.Find("orbTransp").GetComponent<MeshRenderer>();
-            var adzeOrbsDisplayCore = ItemBodyModelPrefab.transform.Find("orbCore").GetComponent<MeshRenderer>();
-            adzeOrbsDisplayTransp.material = Addressables.LoadAssetAsync<Material>(orbTransp).WaitForCompletion();
-            adzeOrbsDisplayCore.material = Addressables.LoadAssetAsync<Material>(orbCore).WaitForCompletion();
+            //string orbTransp = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorLightning.mat";
+            //string orbCore = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorPod.mat";
+            //
+            //var adzeOrbsModelTransp = ItemModel.transform.Find("orbTransp").GetComponent<MeshRenderer>();
+            //var adzeOrbsModelCore = ItemModel.transform.Find("orbCore").GetComponent<MeshRenderer>();
+            //adzeOrbsModelTransp.material = Addressables.LoadAssetAsync<Material>(orbTransp).WaitForCompletion();
+            //adzeOrbsModelCore.material = Addressables.LoadAssetAsync<Material>(orbCore).WaitForCompletion();
+            //
+            //var adzeOrbsDisplayTransp = ItemBodyModelPrefab.transform.Find("orbTransp").GetComponent<MeshRenderer>();
+            //var adzeOrbsDisplayCore = ItemBodyModelPrefab.transform.Find("orbCore").GetComponent<MeshRenderer>();
+            //adzeOrbsDisplayTransp.material = Addressables.LoadAssetAsync<Material>(orbTransp).WaitForCompletion();
+            //adzeOrbsDisplayCore.material = Addressables.LoadAssetAsync<Material>(orbCore).WaitForCompletion();
 
             var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
             itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);

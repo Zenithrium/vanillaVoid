@@ -11,7 +11,6 @@ using UnityEngine.AddressableAssets;
 using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
-using VoidItemAPI;
 
 namespace vanillaVoid.Items
 {
@@ -36,6 +35,8 @@ namespace vanillaVoid.Items
         public ConfigEntry<bool> destroySelf;
 
         public ConfigEntry<bool> proritizeLowTier;
+
+        public ConfigEntry<bool> scaleDestruction;
 
         public ConfigEntry<bool> alwaysHappen;
         public ConfigEntry<bool> bazaarHappen;
@@ -96,7 +97,8 @@ namespace vanillaVoid.Items
                     {
                         tempItemPickupDesc = $"Gain items at the start of the next stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                         tempItemFullDescription = $"Gain <style=cIsUtility>{itemsPerStage.Value}</style>" +
-                            (itemsPerStageStacking.Value != 0 ? $" <style=cStack>(+{itemsPerStageStacking.Value} per stack)</style>" : "") + $" items at the start of the next stage. Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
+                            (itemsPerStageStacking.Value != 0 ? $" <style=cStack>(+{itemsPerStageStacking.Value} per stack)</style>" : "") + $" items at the start of the next stage. Taking damage to below <style=cIsHealth>25% health</style> breaks " +
+                            (scaleDestruction.Value ? $"<style=cDeath>1</style> <style=cStack>(+1 per stack)</style> <style=cDeath>random items</style>" : "<style=cDeath>a random item</style>") + $", with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all Delicate Watches</style>.";
 
                     }
                     tempLore = $"\"The clock is always ticking. The hands of time move independently of your desire for them to still - the sands flow eternally and will never pause. Use what little time you have efficiently - once you've lost that time, it's quite hard to find more.\"" +
@@ -116,7 +118,8 @@ namespace vanillaVoid.Items
                     {
                         tempItemPickupDesc = $"Increase the number of interactables per stage. Breaks a random item at low health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                         tempItemFullDescription = $"Increase the number of <style=cIsUtility>interactable credits</style> per stage by <style=cIsUtility>{directorBuff.Value}</style>" +
-                            (stackingBuff.Value != 0 ? $" <style=cStack>(+{stackingBuff.Value} per stack)</style>" : "") + $". Taking damage to below <style=cIsHealth>25% health</style> breaks <style=cDeath>a random item</style>, with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                            (stackingBuff.Value != 0 ? $" <style=cStack>(+{stackingBuff.Value} per stack)</style>" : "") + $". Taking damage to below <style=cIsHealth>25% health</style> breaks " +
+                            (scaleDestruction.Value ? $"<style=cDeath>1</style> <style=cStack>(+1 per stack)</style> <style=cDeath>random items</style>" : "<style=cDeath>a random item</style>") + $", with a cooldown of <style=cIsUtility>{breakCooldown.Value} seconds</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     
                     }
                     //if (scrapInstead.Value)
@@ -169,7 +172,7 @@ namespace vanillaVoid.Items
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
-            VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
+            //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
             //CreateBuff();
             Hooks();
         }
@@ -186,6 +189,7 @@ namespace vanillaVoid.Items
             scrapInstead = config.Bind<bool>("Item: " + ItemName, "Scrap Instead", false, "Variant 0 and 1: Adjust whether the items are scrapped or destroyed.");
             destroySelf = config.Bind<bool>("Item: " + ItemName, "Destroy Self Instead", false, "Variant 0 and 1: Adjust if the item should destroy itself, rather than other items. Destroys half of the current stack. Overrides the config option below (tier priority).");
             proritizeLowTier = config.Bind<bool>("Item: " + ItemName, "Prioritize Lower Tier", true, "Variant 0 and 1: Adjust the item's preference for lower tier items. False means no prefrence, true means a general preference (unlikely, but possible to destroy higher tiers).");
+            scaleDestruction = config.Bind<bool>("Item: " + ItemName, "Scale Number of Items Broken per Stack", false, "Variant 0 and 1: Adjust whether or not the item should break more items the more stacks of it you have. One break per stack.");
 
             //breaksPerStageCap = config.Bind<int>("Item: " + ItemName, "Breaks per Stage", -1, "Cap the number of items this item can break per stage at this number. -1 means there is no cap.");
             alwaysHappen = config.Bind<bool>("Item: " + ItemName, "Function in Special Stages", false, "Variant 1: Adjust whether or not should function in stages where the director doesn't get any credits (ex Gilded Coast, Commencement, Bazaar).");
@@ -218,10 +222,10 @@ namespace vanillaVoid.Items
             
             ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlClockworkDisplay.prefab");
 
-            string transpMat = "RoR2/DLC1/voidraid/matVoidRaidPlanetAcidRing.mat";
-
-            var transpBit = ItemBodyModelPrefab.transform.Find("CaseTopTransp").GetComponent<MeshRenderer>(); //CaseTopTransp 
-            transpBit.material = Addressables.LoadAssetAsync<Material>(transpMat).WaitForCompletion();
+            //string transpMat = "RoR2/DLC1/voidraid/matVoidRaidPlanetAcidRing.mat";
+            //
+            //var transpBit = ItemBodyModelPrefab.transform.Find("CaseTopTransp").GetComponent<MeshRenderer>(); //CaseTopTransp 
+            //transpBit.material = Addressables.LoadAssetAsync<Material>(transpMat).WaitForCompletion();
 
             var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
             itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);
@@ -944,6 +948,8 @@ namespace vanillaVoid.Items
                     List<ItemIndex> list = new List<ItemIndex>(self.body.inventory.itemAcquisitionOrder);
                     ItemIndex itemIndex = ItemIndex.None;
                     Util.ShuffleList(list, watchVoidRng);
+
+                    int tempCount = 0;
                     foreach (ItemIndex item in list)
                     {
 
@@ -970,7 +976,10 @@ namespace vanillaVoid.Items
                                         //itemIndex = item;
                                         //Debug.Log("lunar iten chosen: " + itemIndex);
                                         itemTierInt = 5;
-                                        break;
+                                        if (!scaleDestruction.Value)
+                                        {
+                                            break;
+                                        }
                                     }
                                 }
                                 else if (itemDef.tier == ItemTier.Boss || itemDef.tier == ItemTier.VoidBoss)
@@ -980,7 +989,10 @@ namespace vanillaVoid.Items
                                         //itemIndex = item;
                                         //Debug.Log("boss iten chosen: " + itemIndex);
                                         itemTierInt = 4;
-                                        break;
+                                        if (!scaleDestruction.Value)
+                                        {
+                                            break;
+                                        }
                                     }
                                 }
                                 else if (itemDef.tier == ItemTier.Tier3 || itemDef.tier == ItemTier.VoidTier3)
@@ -990,7 +1002,10 @@ namespace vanillaVoid.Items
                                         //itemIndex = item;
                                         //Debug.Log("RED iten chosen: " + itemIndex);
                                         itemTierInt = 3;
-                                        break;
+                                        if (!scaleDestruction.Value)
+                                        {
+                                            break;
+                                        }
                                     }
                                 }
                                 else if (itemDef.tier == ItemTier.Tier2 || itemDef.tier == ItemTier.VoidTier2)
@@ -1000,7 +1015,10 @@ namespace vanillaVoid.Items
                                         //itemIndex = item;
                                         //Debug.Log("GREN iten chosen: " + itemIndex);
                                         itemTierInt = 2;
-                                        break;
+                                        if (!scaleDestruction.Value)
+                                        {
+                                            break;
+                                        }
                                     }
                                 }
                                 else if (itemDef.tier == ItemTier.Tier1 || itemDef.tier == ItemTier.VoidTier1)
@@ -1008,19 +1026,71 @@ namespace vanillaVoid.Items
                                     //itemIndex = item;
                                     //Debug.Log("WHITE iten chosen: " + itemIndex);
                                     itemTierInt = 1;
-                                    break;
+                                    if (!scaleDestruction.Value)
+                                    {
+                                        break;
+                                    }
                                 }
                             }
                             else
                             {
-                                break;
+                                if (!scaleDestruction.Value)
+                                {
+                                    break;
+                                }
+                            }
+
+                            if (scaleDestruction.Value)
+                            {
+                                self.body.inventory.RemoveItem(itemIndex);
+
+                                if (scrapInstead.Value)
+                                {
+                                    switch (itemTierInt)
+                                    {
+                                        case 1:
+                                            self.body.inventory.GiveItem(RoR2Content.Items.ScrapWhite);
+                                            CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapWhite.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                            break;
+                                        case 2:
+                                            self.body.inventory.GiveItem(RoR2Content.Items.ScrapGreen);
+                                            CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapGreen.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                            break;
+                                        case 3:
+                                            self.body.inventory.GiveItem(RoR2Content.Items.ScrapRed);
+                                            CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapRed.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                            break;
+                                        case 4:
+                                            self.body.inventory.GiveItem(RoR2Content.Items.ScrapYellow);
+                                            CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapYellow.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                            break;
+                                        case 5:
+                                            self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef);
+                                            CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                            break;
+                                        default:
+                                            Debug.LogError("Clockwork Mechanism didn't properly select an item to destroy, unable to give correct scrap.");
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef);
+                                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                }
+                                ++tempCount;
+                                if(tempCount >= ItemBase<ClockworkMechanism>.instance.GetCount(self.body))
+                                {
+                                    break;
+                                }
                             }
                             //itemIndex = item;
                             //break;
                         }
+                        
 
                     }
-                    if (itemIndex != ItemIndex.None)
+                    if (itemIndex != ItemIndex.None && !scaleDestruction.Value)
                     {
                         self.body.inventory.RemoveItem(itemIndex);
 
@@ -1057,7 +1127,6 @@ namespace vanillaVoid.Items
                         {
                             self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef);
                             CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
-
                         }
                     }
                 }

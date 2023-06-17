@@ -10,7 +10,6 @@ using UnityEngine.Networking;
 using UnityEngine.AddressableAssets;
 using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
-using VoidItemAPI;
 using System.Linq;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -121,7 +120,7 @@ namespace vanillaVoid.Items
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
-            VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
+            //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
             if (itemVariant.Value != 0)
             {
                 ModdedDamageColors.ReserveColor(new Color(1f, .2f, .2f), out indexRed);    //old: (.95f, .05f, .05f) 

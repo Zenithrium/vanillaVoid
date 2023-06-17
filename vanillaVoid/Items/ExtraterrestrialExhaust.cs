@@ -11,7 +11,6 @@ using UnityEngine.AddressableAssets;
 using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
-using VoidItemAPI;
 using RoR2.Projectile;
 
 namespace vanillaVoid.Items
@@ -45,7 +44,6 @@ namespace vanillaVoid.Items
 
         public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlVentPickup.prefab");
        
-
         public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("ventIcon512.png"); //amgous!!! AAAAAAA
 
         public static GameObject RocketProjectile;
@@ -61,7 +59,7 @@ namespace vanillaVoid.Items
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
-            VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
+            //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
             CreateProjectile();
             Hooks(); 
         }
@@ -120,31 +118,33 @@ namespace vanillaVoid.Items
         {
             
             ItemBodyModelPrefab = MainAssets.LoadAsset<GameObject>("mdlVentDisplay.prefab");
-            var projectileModel = MainAssets.LoadAsset<GameObject>("ventOrb.prefab");
-            
-            string guardTexture = "RoR2/DLC1/gauntlets/mVoidRaidPortalEdge.mat";
-            string ballTexture = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorBlasterSphereAreaIndicator.mat";
-            //string outerBall = "RoR2/DLC1/VoidRaidCrab/matVoidRaidCrabEye.mat";
+            //var projectileModel = MainAssets.LoadAsset<GameObject>("ventOrb.prefab");
 
+            //string guardTexture = "RoR2/DLC1/gauntlets/mVoidRaidPortalEdge.mat";
+            //string ballTexture = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorBlasterSphereAreaIndicator.mat";
+            ////string outerBall = "RoR2/DLC1/VoidRaidCrab/matVoidRaidCrabEye.mat";
+            //
+            //
 
-            var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
-            itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);
-
-            var guardPickup = ItemModel.transform.Find("Guard").GetComponent<MeshRenderer>();
-            guardPickup.material = Addressables.LoadAssetAsync<Material>(guardTexture).WaitForCompletion();
+            //
+            //var guardPickup = ItemModel.transform.Find("Guard").GetComponent<MeshRenderer>();
+            //guardPickup.material = Addressables.LoadAssetAsync<Material>(guardTexture).WaitForCompletion();
 
             //var testShell = ItemModel.transform.Find("Orb").GetComponent<MeshRenderer>();
             //testShell.material = Addressables.LoadAssetAsync<Material>(ballTexture).WaitForCompletion();
 
 
-            var guardDisplay = ItemBodyModelPrefab.transform.Find("Guard").GetComponent<MeshRenderer>();
-            guardDisplay.material = Addressables.LoadAssetAsync<Material>(guardTexture).WaitForCompletion();
+            //var guardDisplay = ItemBodyModelPrefab.transform.Find("Guard").GetComponent<MeshRenderer>();
+            //guardDisplay.material = Addressables.LoadAssetAsync<Material>(guardTexture).WaitForCompletion();
+            //
+            //var projCenter = projectileModel.transform.Find("Center").GetComponent<MeshRenderer>();
+            //projCenter.material = Addressables.LoadAssetAsync<Material>(ballTexture).WaitForCompletion();
+            //
+            //var projShell = projectileModel.transform.Find("Orb").GetComponent<MeshRenderer>();
+            //projShell.material = Addressables.LoadAssetAsync<Material>(ballTexture).WaitForCompletion();
 
-            var projCenter = projectileModel.transform.Find("Center").GetComponent<MeshRenderer>();
-            projCenter.material = Addressables.LoadAssetAsync<Material>(ballTexture).WaitForCompletion();
-
-            var projShell = projectileModel.transform.Find("Orb").GetComponent<MeshRenderer>();
-            projShell.material = Addressables.LoadAssetAsync<Material>(ballTexture).WaitForCompletion();
+            var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
+            itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);
 
             ItemDisplayRuleDict rules = new ItemDisplayRuleDict();
             rules.Add("mdlCommandoDualies", new RoR2.ItemDisplayRule[]{

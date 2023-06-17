@@ -87,6 +87,58 @@ namespace vanillaVoid.Items
             //LanguageAPI.Add("ITEM_" + ItemLangTokenName + "_LORE", ItemLore);
         }
 
+        public virtual string VoidPair()
+        {
+            if (voidPair != null)
+            {
+                return voidPair.Value;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        //public void AddVoidPair(List<ItemDef.Pair> newVoidPairs)
+        //{
+        //    var voidParent = VoidParent();
+        //    if (voidParent == null)
+        //    {
+        //        return;
+        //    }
+        //    //var voidPairs = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem].Where(x => x.itemDef1 != VoidParent.ItemDef); -- Use to overwrite other mods
+        //    ItemDef.Pair newVoidPair = new ItemDef.Pair()
+        //    {
+        //        itemDef1 = voidParent.ItemDef,
+        //        itemDef2 = ItemDef
+        //    };
+        //    newVoidPairs.Add(newVoidPair);
+        //}
+
+        public void AddVoidPair(List<ItemDef.Pair> newVoidPairs)
+        {
+            
+            string pair = VoidPair();
+            //Debug.Log("hello chat " + pair);
+            if(pair != null)
+            {
+                var pairDef = ItemCatalog.GetItemDef(ItemCatalog.FindItemIndex(pair)); //lol
+                //Debug.Log("chat " + pairDef);
+                if (pairDef != null)
+                {
+                    //Debug.Log("goodbye chat " + pairDef);
+                    //var voidPairs = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem].Where(x => x.itemDef1 != VoidParent.ItemDef); -- Use to overwrite other mods
+                    ItemDef.Pair newVoidPair = new ItemDef.Pair()
+                    {
+                        itemDef1 = pairDef,
+                        itemDef2 = ItemDef
+                    };
+                    newVoidPairs.Add(newVoidPair);
+                    //Debug.Log("Added new pair of " + pairDef.name + " and " + ItemDef.name);
+                }
+            }
+        }
+
         public abstract ItemDisplayRuleDict CreateItemDisplayRules();
 
         protected void CreateItem()

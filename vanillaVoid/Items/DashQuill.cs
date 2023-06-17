@@ -11,7 +11,6 @@ using UnityEngine.AddressableAssets;
 using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
-using VoidItemAPI;
 using EntityStates;
 
 namespace vanillaVoid.Items
@@ -53,7 +52,7 @@ namespace vanillaVoid.Items
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
-            VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
+            //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
 
             Hooks(); 
         }

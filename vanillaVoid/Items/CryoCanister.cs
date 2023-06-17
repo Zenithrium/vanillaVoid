@@ -11,7 +11,6 @@ using UnityEngine.AddressableAssets;
 using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
-using VoidItemAPI;
 using System.Collections;
 
 namespace vanillaVoid.Items
@@ -83,7 +82,7 @@ namespace vanillaVoid.Items
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
-            VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
+            //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
             CreateBuff();
 
             var vfxattr = iceDeathAOEObject.AddComponent<VFXAttributes>();
@@ -165,11 +164,11 @@ namespace vanillaVoid.Items
         {
             ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlCryoDisplay.prefab");
 
-            string fluidMat = "RoR2/Base/Huntress/matHuntressGlaive.mat";
-
+            string fluidMat = "RoR2/Base/Huntress/matHuntressGlaive.mat"; //this one doesn't seem to work if loaded from assetbundle? so i guess this way it is
+            
             var cryoFluidModel = ItemModel.transform.Find("Glowybits").GetComponent<MeshRenderer>();
             cryoFluidModel.material = Addressables.LoadAssetAsync<Material>(fluidMat).WaitForCompletion();
-
+            
             var cryoFluidDisplay = ItemBodyModelPrefab.transform.Find("Glowybits").GetComponent<MeshRenderer>();
             cryoFluidDisplay.material = Addressables.LoadAssetAsync<Material>(fluidMat).WaitForCompletion();
 

@@ -11,7 +11,6 @@ using UnityEngine.AddressableAssets;
 using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
-using VoidItemAPI;
 using RoR2.ExpansionManagement;
 using MonoMod.Cil;
 using Mono.Cecil.Cil;
@@ -26,6 +25,12 @@ namespace vanillaVoid.Items
         //public ConfigEntry<float> stackingBuff;
 
         public ConfigEntry<bool> enableFog;
+
+        public ConfigEntry<float> fogTickPeriod;
+
+        public ConfigEntry<float> fogHealthFraction;
+
+        public ConfigEntry<float> fogHealthFractionRamp;
 
         public ConfigEntry<float> monsterCredits;
 
@@ -48,6 +53,8 @@ namespace vanillaVoid.Items
         public ConfigEntry<float> ShellTier2VoidWeight;
 
         public ConfigEntry<float> ShellTier3VoidWeight;
+
+        public ConfigEntry<bool> showLaser;
 
         //public ConfigEntry<string> voidPair;
 
@@ -111,7 +118,7 @@ namespace vanillaVoid.Items
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
-            VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
+            //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
 
             CreateInteractable();
             //CreateVoidCellInteractable();
@@ -123,7 +130,11 @@ namespace vanillaVoid.Items
         {
             enableFog = config.Bind<bool>("Item: " + ItemName, "Enable Void Fog", true, "Adjust whether the Lost Battery should have void fog while charging (like void fields).");
 
-            monsterCredits = config.Bind<float>("Item: " + ItemName, "Void Monster Credits", 150, "Adjust amount of credits the regular director gets to spawn void monsters. This one usually just spawns barnacles.");
+            fogTickPeriod = config.Bind<float>("Item: " + ItemName, "Void Fog Tick Rate", .2f, "Adjust the rate at which the void fog ticks. Lower means the damage ticks faster.");
+            fogHealthFraction = config.Bind<float>("Item: " + ItemName, "Void Fog Health Fraction", .025f, "Adjust how much damage the void fog should do at base. This is half of the normal void fog in Void Locus.");
+            fogHealthFractionRamp = config.Bind<float>("Item: " + ItemName, "Void Fog Health Fraction Ramp", .05f, "Adjust how much damage the void fog should scale. This is half of the normal void fog in Void Locus.");
+
+            monsterCredits = config.Bind<float>("Item: " + ItemName, "Void Monster Credits", 125, "Adjust amount of credits the regular director gets to spawn void monsters. This one usually just spawns barnacles.");
             bossMonsterCredits = config.Bind<float>("Item: " + ItemName, "Void Boss Credits", 800, "Adjust the amount of credits the boss director gets to spawn a larger void threat. Nullifiers cost 300, Jailers cost 450, and Devastators cost 800.");
             
             bossMonsterNullifierWeight = config.Bind<float>("Item: " + ItemName, "Boss Nullifier Weight", .5225f, "Adjust the weight of Nullifiers being spawned as the 'boss' of the Lost Battery.");
@@ -136,6 +147,9 @@ namespace vanillaVoid.Items
             ShellTier1VoidWeight = config.Bind<float>("Item: " + ItemName, "Void Tier 1 Weight", .474f, "Adjust weight of Void Tier 1 items.");
             ShellTier2VoidWeight = config.Bind<float>("Item: " + ItemName, "Void Tier 2 Weight", .12f, "Adjust weight of Void Tier 2 items.");
             ShellTier3VoidWeight = config.Bind<float>("Item: " + ItemName, "Void Tier 3 Weight", .006f, "Adjust weight of Void Tier 3 items.");
+
+            showLaser = config.Bind<bool>("Item: " + ItemName, "Show Laser", true, "Adjust whether the special delivery should be marked with a laser.");
+
             //stackingBuff = config.Bind<float>("Item: " + ItemName, "Percent Damage Increase per Stack", .4f, "Adjust the percent of extra damage dealt per stack.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "FreeChest", "Adjust which item this is the void pair of.");
         }
@@ -215,12 +229,11 @@ namespace vanillaVoid.Items
             fogcontroller.enabled = false;
             fogcontroller.teamFilter = teamFilter;
             fogcontroller.invertTeamFilter = true;
-            fogcontroller.tickPeriodSeconds = .2f;
-            fogcontroller.healthFractionPerSecond = .025f;
-            fogcontroller.healthFractionRampCoefficientPerSecond = .05f;
+            fogcontroller.tickPeriodSeconds = fogTickPeriod.Value;
+            fogcontroller.healthFractionPerSecond = fogHealthFraction.Value;
+            fogcontroller.healthFractionRampCoefficientPerSecond = fogHealthFractionRamp.Value;
             fogcontroller.dangerBuffDef = Addressables.LoadAssetAsync<BuffDef>("RoR2/Base/Common/bdVoidFogMild.asset").WaitForCompletion();
             fogcontroller.dangerBuffDuration = .4f;
-
 
             var hzc = PortalBattery.GetComponent<HoldoutZoneController>();
             if (hzc)
@@ -253,7 +266,7 @@ namespace vanillaVoid.Items
                 combatdir.shouldSpawnOneWave = false;
                 //combatdir.minSpawnRange
                 combatdir.targetPlayers = true;
-                combatdir.creditMultiplier = 5;
+                combatdir.creditMultiplier = 3;
                 combatdir.ignoreTeamSizeLimit = true;
                 //combatdir.maxSpawnDistance = 75;
                 combatdir.skipSpawnIfTooCheap = false;
@@ -291,16 +304,22 @@ namespace vanillaVoid.Items
                 Transform beam = PortalBattery.transform.Find("Model").Find("mdlVoidSignal").Find("IdleFX").Find("Beam, Strong"); //yeah
                 if (beam)
                 {
-                    beam.transform.rotation = Quaternion.Euler(0, 0, 90);
-                    beam.transform.position = new Vector3(0, 102, 0);
-                    beam.transform.localScale = new Vector3(1, 1.5f, 1);
+                    if (showLaser.Value)
+                    {
+                        beam.transform.rotation = Quaternion.Euler(0, 0, 90);
+                        beam.transform.position = new Vector3(0, 102, 0);
+                        beam.transform.localScale = new Vector3(1, 1.5f, 1);
+                    }
+                    else
+                    {
+                        beam.gameObject.SetActive(false);
+                    }
                 }
             }
             catch (NullReferenceException e)
             {
                 Debug.Log(":( failed to adjust scale of beam (" + e + ")");
             }
-
 
             Transform decaltransf = seed.transform.Find("Decal");
 
@@ -382,27 +401,25 @@ namespace vanillaVoid.Items
         {
             ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlWhorlDisplay.prefab");
 
-            string orbTexture = "RoR2/DLC1/voidstage/matVoidAsteroid.mat";
-            string orbOuter = "RoR2/DLC1/VoidCamp/matVoidCampLock.mat";
-
-            var itemModelInterm = ItemModel.transform.Find("Intermediate");
-            var itemBodyInterm = ItemBodyModelPrefab.transform.Find("Intermediate");
-
-
-            var orbPartPickup1 = itemModelInterm.Find("Orb").GetComponent<MeshRenderer>();
-            var orbOuterPickup1 = itemModelInterm.Find("OrbAura").GetComponent<MeshRenderer>();
-            orbPartPickup1.material = Addressables.LoadAssetAsync<Material>(orbTexture).WaitForCompletion();
-            orbOuterPickup1.material = Addressables.LoadAssetAsync<Material>(orbOuter).WaitForCompletion();
-
-            var orbPartDisplay = itemBodyInterm.Find("Orb").GetComponent<MeshRenderer>();
-            var orbOuterDisplay = itemBodyInterm.Find("OrbAura").GetComponent<MeshRenderer>();
-            orbPartDisplay.material = Addressables.LoadAssetAsync<Material>(orbTexture).WaitForCompletion();
-            orbOuterDisplay.material = Addressables.LoadAssetAsync<Material>(orbOuter).WaitForCompletion();
+            //string orbTexture = "RoR2/DLC1/voidstage/matVoidAsteroid.mat";
+            //string orbOuter = "RoR2/DLC1/VoidCamp/matVoidCampLock.mat";
+            //
+            //var itemModelInterm = ItemModel.transform.Find("Intermediate");
+            //var itemBodyInterm = ItemBodyModelPrefab.transform.Find("Intermediate");
+            //
+            //
+            //var orbPartPickup1 = itemModelInterm.Find("Orb").GetComponent<MeshRenderer>();
+            //var orbOuterPickup1 = itemModelInterm.Find("OrbAura").GetComponent<MeshRenderer>();
+            //orbPartPickup1.material = Addressables.LoadAssetAsync<Material>(orbTexture).WaitForCompletion();
+            //orbOuterPickup1.material = Addressables.LoadAssetAsync<Material>(orbOuter).WaitForCompletion();
+            //
+            //var orbPartDisplay = itemBodyInterm.Find("Orb").GetComponent<MeshRenderer>();
+            //var orbOuterDisplay = itemBodyInterm.Find("OrbAura").GetComponent<MeshRenderer>();
+            //orbPartDisplay.material = Addressables.LoadAssetAsync<Material>(orbTexture).WaitForCompletion();
+            //orbOuterDisplay.material = Addressables.LoadAssetAsync<Material>(orbOuter).WaitForCompletion();
 
             var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
             itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);
-
-
 
             ItemDisplayRuleDict rules = new ItemDisplayRuleDict();
             rules.Add("mdlCommandoDualies", new RoR2.ItemDisplayRule[]{

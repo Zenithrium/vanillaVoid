@@ -11,7 +11,6 @@ using UnityEngine.AddressableAssets;
 using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
-using VoidItemAPI;
 
 namespace vanillaVoid.Items
 {
@@ -79,7 +78,7 @@ namespace vanillaVoid.Items
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
-            VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
+            //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
            // CreateBuff();
             //lotusObject = MainAssets.LoadAsset<GameObject>("mdlLotusWorldObject.prefab"); //lmao it makes the pickup spin WILDLY if you use mdlBladePickup
             //lotusObject.AddComponent<TeamFilter>();

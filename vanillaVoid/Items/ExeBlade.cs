@@ -11,7 +11,6 @@ using UnityEngine.AddressableAssets;
 using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
-using VoidItemAPI;
 using System.Collections;
 using RoR2.Projectile;
 
@@ -65,7 +64,7 @@ namespace vanillaVoid.Items
         string tempItemPickupDesc;
         string tempItemFullDescription;
 
-        public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
+        public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.Damage, ItemTag.AIBlacklist };
 
         public override void Init(ConfigFile config)
         {
@@ -88,7 +87,7 @@ namespace vanillaVoid.Items
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
-            VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
+            //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
 
             Hooks(); 
         }
