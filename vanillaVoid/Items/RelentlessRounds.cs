@@ -11,15 +11,18 @@ using UnityEngine.AddressableAssets;
 using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
-using VoidItemAPI;
 
 namespace vanillaVoid.Items
 {
     public class RelentlessRounds : ItemBase<RelentlessRounds>
     {
-        public ConfigEntry<float> baseDamageBuff;
+        public ConfigEntry<float> baseDamage;
 
-        public ConfigEntry<float> stackingBuff;
+        public ConfigEntry<float> stackingDamage;
+
+        public ConfigEntry<bool> hitAll;
+
+        public ConfigEntry<bool> requireTeleporter;
 
 //public ConfigEntry<string> voidPair;
 
@@ -27,9 +30,13 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "RELROUNDS_ITEM";
 
-        public override string ItemPickupDesc => "Killing enemies in the teleporter damages active bosses. <style=cIsVoid>Corrupts all Armor-Piercing Rounds</style>.";
+        public override string ItemPickupDesc => "Killing enemies" +
+            (requireTeleporter.Value ? $" in the teleporter" : "") + $" damages active bosses. <style=cIsVoid>Corrupts all Armor-Piercing Rounds</style>.";
 
-        public override string ItemFullDescription => $"Bosses passively take X% (+X% per stack) of their max health every Y seconds. <style=cIsVoid>Corrupts all Armor-Piercing Rounds</style>.";
+        public override string ItemFullDescription => $"Killing enemies" +
+            (hitAll.Value ? $" in the teleporter" : "") + $" deals {baseDamage.Value * 100}%"+
+            (stackingDamage.Value != 0 ? $" <style=cStack>(+{stackingDamage.Value * 100}% per stack)</style>" : "") + $" damage to " +
+            (hitAll.Value ? $" all active bosses" : " a random active boss") + $". <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemLore => $"Rounds Lore";
 
@@ -41,88 +48,93 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
+        public List<CharacterBody> activeBosses;
+
         public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
 
-        public BuffDef relentlessDef { get; private set; }
+        //public BuffDef relentlessDef { get; private set; }
 
-        public static DotController.DotIndex dotIndex;
-        public static DotController.DotDef dotDef;
+        //public static DotController.DotIndex dotIndex;
+        //public static DotController.DotDef dotDef;
+
         public override void Init(ConfigFile config)
         {
             CreateConfig(config);
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
-            VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
-            CreateDOT();
-
+            //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
+            //CreateDOT();
+            activeBosses = new List<CharacterBody>();
             Hooks(); 
         }
 
         public override void CreateConfig(ConfigFile config)
         {
-            baseDamageBuff = config.Bind<float>("Item: " + ItemName, "Base Percent Damage Increase", .3f, "Adjust the percent of extra damage dealt on the first stack.");
-            stackingBuff = config.Bind<float>("Item: " + ItemName, "Stacking Percent Damage Increase", .3f, "Adjust the percent of extra damage dealt per stack.");
+            baseDamage = config.Bind<float>("Item: " + ItemName, "Percent Damage", 2.5f, "Adjust the percent of extra damage dealt on the first stack.");
+            stackingDamage = config.Bind<float>("Item: " + ItemName, "Stacking Percent Damage", 2.5f, "Adjust the percent of extra damage dealt per stack.");
+            hitAll = config.Bind<bool>("Item: " + ItemName, "Hit All Bosses", true, "Adjust if the item should hit all active bosses or only one at random.");
+            requireTeleporter = config.Bind<bool>("Item: " + ItemName, "Require Teleporter", true, "Adjust if the item should only deal damage if the killed enemy.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "BossDamageBonus", "Adjust which item this is the void pair of.");
         }
 
-        public void CreateDOT()
-        {
-            
-            //relentlessDef = ScriptableObject.CreateInstance<BuffDef>();
-            //relentlessDef.buffColor = Color.white;
-            //relentlessDef.canStack = true;
-            //relentlessDef.isDebuff = false;
-            //relentlessDef.name = "ZnVV" + "shatterStatus";
-            //relentlessDef.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("shatterStatus");
-            //ContentAddition.AddBuffDef(relentlessDef);
-            //
-            ////Sprite DOTIcon = ItemIcon;
-            //index = DotAPI.RegisterDotDef(0.25f, 0.25f, DamageColorIndex.SuperBleed, relentlessDef);
-            ////DotAPI.RegisterDotDef()
-            //
-
-            relentlessDef.name = "ZnVVrelentlessDOT";
-            relentlessDef.buffColor = new Color32(96, 245, 250, 255);
-            relentlessDef.canStack = false;
-            relentlessDef.isDebuff = false;
-            relentlessDef.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("shatterStatus");
-
-            //ashBurnEffectParams = new BurnEffectController.EffectParams
-            //{
-            //    startSound = "Play_item_proc_igniteOnKill_Loop",
-            //    stopSound = "Stop_item_proc_igniteOnKill_Loop",
-            //    overlayMaterial = Main.AssetBundle.LoadAsset<Material>("Assets/Items/Marwan's Ash/matMarwanAshBurnOverlay.mat"),
-            //    fireEffectPrefab = null
-            //};
-            //ColorCatalog.ColorIndex.VoidCoin
-            dotDef = new DotController.DotDef 
-            {
-                associatedBuff = relentlessDef,
-                damageCoefficient = 1f,
-                damageColorIndex = DamageColorIndex.Void,
-                interval = .5f
-            };
-            dotIndex = DotAPI.RegisterDotDef(dotDef, (self, dotStack) =>
-            {
-                var damageMultiplier = 1f;
-                var attackerDamage = 1f;
-                if (dotStack.attackerObject)
-                {
-                    var attackerBody = dotStack.attackerObject.GetComponent<CharacterBody>();
-                    if (attackerBody)
-                    {
-                        attackerDamage = attackerBody.damage;
-                        if (attackerDamage != 0f) damageMultiplier = dotStack.damage / attackerDamage;
-                    }
-                }
-                if (self.victimHealthComponent)
-                    dotStack.damage = self.victimHealthComponent.fullCombinedHealth * damageMultiplier; //Mathf.Min(self.victimHealthComponent.fullCombinedHealth * damageMultiplier, attackerDamage * 8);
-                else
-                    dotStack.damage = 0;
-                dotStack.damage *= dotDef.interval;
-            });
-        }
+        //public void CreateDOT()
+        //{
+        //    
+        //    //relentlessDef = ScriptableObject.CreateInstance<BuffDef>();
+        //    //relentlessDef.buffColor = Color.white;
+        //    //relentlessDef.canStack = true;
+        //    //relentlessDef.isDebuff = false;
+        //    //relentlessDef.name = "ZnVV" + "shatterStatus";
+        //    //relentlessDef.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("shatterStatus");
+        //    //ContentAddition.AddBuffDef(relentlessDef);
+        //    //
+        //    ////Sprite DOTIcon = ItemIcon;
+        //    //index = DotAPI.RegisterDotDef(0.25f, 0.25f, DamageColorIndex.SuperBleed, relentlessDef);
+        //    ////DotAPI.RegisterDotDef()
+        //    //
+        //
+        //    relentlessDef.name = "ZnVVrelentlessDOT";
+        //    relentlessDef.buffColor = new Color32(96, 245, 250, 255);
+        //    relentlessDef.canStack = false;
+        //    relentlessDef.isDebuff = false;
+        //    relentlessDef.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("shatterStatus");
+        //
+        //    //ashBurnEffectParams = new BurnEffectController.EffectParams
+        //    //{
+        //    //    startSound = "Play_item_proc_igniteOnKill_Loop",
+        //    //    stopSound = "Stop_item_proc_igniteOnKill_Loop",
+        //    //    overlayMaterial = Main.AssetBundle.LoadAsset<Material>("Assets/Items/Marwan's Ash/matMarwanAshBurnOverlay.mat"),
+        //    //    fireEffectPrefab = null
+        //    //};
+        //    //ColorCatalog.ColorIndex.VoidCoin
+        //    dotDef = new DotController.DotDef 
+        //    {
+        //        associatedBuff = relentlessDef,
+        //        damageCoefficient = 1f,
+        //        damageColorIndex = DamageColorIndex.Void,
+        //        interval = .5f
+        //    };
+        //    dotIndex = DotAPI.RegisterDotDef(dotDef, (self, dotStack) =>
+        //    {
+        //        var damageMultiplier = 1f;
+        //        var attackerDamage = 1f;
+        //        if (dotStack.attackerObject)
+        //        {
+        //            var attackerBody = dotStack.attackerObject.GetComponent<CharacterBody>();
+        //            if (attackerBody)
+        //            {
+        //                attackerDamage = attackerBody.damage;
+        //                if (attackerDamage != 0f) damageMultiplier = dotStack.damage / attackerDamage;
+        //            }
+        //        }
+        //        if (self.victimHealthComponent)
+        //            dotStack.damage = self.victimHealthComponent.fullCombinedHealth * damageMultiplier; //Mathf.Min(self.victimHealthComponent.fullCombinedHealth * damageMultiplier, attackerDamage * 8);
+        //        else
+        //            dotStack.damage = 0;
+        //        dotStack.damage *= dotDef.interval;
+        //    });
+        //}
 
 
         public override ItemDisplayRuleDict CreateItemDisplayRules()
@@ -463,34 +475,101 @@ namespace vanillaVoid.Items
 
         public override void Hooks()
         {
-            On.RoR2.HealthComponent.TakeDamage += AdzeDamageBonus;
+            //On.RoR2.HealthComponent.TakeDamage += AdzeDamageBonus;
+            CharacterBody.onBodyStartGlobal += CheckForBosses;
+            GlobalEventManager.onCharacterDeathGlobal += RelentlessDeathDamage;
+
         }
 
-        private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
-            
-            orig(self, damageInfo);
-
-            if (!damageInfo.rejected)
+        private void CheckForBosses(CharacterBody obj)
+        {
+            if (obj.isBoss)
             {
-                var body = self.body;
-                if (body)
+                activeBosses.Add(obj);
+            }
+        }
+
+        private void RelentlessDeathDamage(DamageReport obj)
+        {
+            if (obj.victimIsBoss)
+            {
+                var success = activeBosses.Remove(obj.victimBody);
+                //Debug.Log(success + " for removing " + obj.victimBody.name);
+            }
+            var teleInstance = TeleporterInteraction.instance;
+            if (teleInstance)
+            {
+                var attacker = obj.attackerBody;
+                if (attacker && !obj.victimIsBoss)
                 {
-                    if (body.isBoss && body.GetBuffCount(relentlessDef) > 0)
+                    //var token = attacker.GetComponent<RoundsToken>();
+                    //if (token)
+                    //{
+                    
+                    //}
+                    if (attacker.inventory)
                     {
-                        var dotInfo = new InflictDotInfo()
+                        bool inTeleporter = teleInstance.holdoutZoneController.IsBodyInChargingRadius(obj.victimBody);
+                        if (attacker.inventory.GetItemCount(ItemDef) > 0 && (inTeleporter || !requireTeleporter.Value))
                         {
-                            attackerObject = damageInfo.attacker,
-                            victimObject = self.body.gameObject,
-                            dotIndex = dotIndex,
-                            duration = -1,
-                            damageMultiplier = 1,
-                        };
-                        DotController.InflictDot(ref dotInfo);
+                            foreach (var boss in activeBosses)
+                            {
+                                DamageInfo damageInfo = new DamageInfo
+                                {
+                                    attacker = attacker.gameObject,
+                                    crit = attacker.RollCrit(),
+                                    damage = attacker.damage * 2.5f,
+                                    position = attacker.transform.position,
+                                    procCoefficient = 1,
+                                    damageType = DamageType.Generic,
+                                    damageColorIndex = DamageColorIndex.Item,
+                                };
+                                boss.healthComponent.TakeDamage(damageInfo);
+                            }
+                            //token = attacker.gameObject.AddComponent<RoundsToken>();
+
+                        }
                     }
                 }
             }
-
         }
+
+
+        //private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
+        //    
+        //    orig(self, damageInfo);
+        //
+        //    if (!damageInfo.rejected)
+        //    {
+        //        var body = self.body;
+        //        if (body)
+        //        {
+        //            if (body.isBoss && body.GetBuffCount(relentlessDef) > 0)
+        //            {
+        //                var dotInfo = new InflictDotInfo()
+        //                {
+        //                    attackerObject = damageInfo.attacker,
+        //                    victimObject = self.body.gameObject,
+        //                    dotIndex = dotIndex,
+        //                    duration = -1,
+        //                    damageMultiplier = 1,
+        //                };
+        //                DotController.InflictDot(ref dotInfo);
+        //            }
+        //        }
+        //    }
+        //
+        //}
     }
+
+    //public class RoundsToken : MonoBehaviour
+    //{
+    //    public List<CharacterBody> activeBosses;
+    //
+    //    void Awake()
+    //    {
+    //        activeBosses = new List<CharacterBody>();
+    //    }
+    //}
 
 }

@@ -26,6 +26,8 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<bool> enableFog;
 
+        public ConfigEntry<bool> playerFog;
+
         public ConfigEntry<float> fogTickPeriod;
 
         public ConfigEntry<float> fogHealthFraction;
@@ -55,6 +57,8 @@ namespace vanillaVoid.Items
         public ConfigEntry<float> ShellTier3VoidWeight;
 
         public ConfigEntry<bool> showLaser;
+
+        public ConfigEntry<bool> specialHappen;
 
         //public ConfigEntry<string> voidPair;
 
@@ -90,7 +94,7 @@ namespace vanillaVoid.Items
 
         public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlWhorlPickup.prefab");
 
-        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("whorlIcon512.png");
+        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("cornucopiaIcon512.png");
 
         public static GameObject ItemBodyModelPrefab;
 
@@ -129,12 +133,13 @@ namespace vanillaVoid.Items
         public override void CreateConfig(ConfigFile config)
         {
             enableFog = config.Bind<bool>("Item: " + ItemName, "Enable Void Fog", true, "Adjust whether the Lost Battery should have void fog while charging (like void fields).");
+            playerFog = config.Bind<bool>("Item: " + ItemName, "Player Only Void Fog", true, "Adjust whether void fog should only target players rather than targeting everyone except void enemies.");
 
             fogTickPeriod = config.Bind<float>("Item: " + ItemName, "Void Fog Tick Rate", .2f, "Adjust the rate at which the void fog ticks. Lower means the damage ticks faster.");
             fogHealthFraction = config.Bind<float>("Item: " + ItemName, "Void Fog Health Fraction", .025f, "Adjust how much damage the void fog should do at base. This is half of the normal void fog in Void Locus.");
             fogHealthFractionRamp = config.Bind<float>("Item: " + ItemName, "Void Fog Health Fraction Ramp", .05f, "Adjust how much damage the void fog should scale. This is half of the normal void fog in Void Locus.");
 
-            monsterCredits = config.Bind<float>("Item: " + ItemName, "Void Monster Credits", 125, "Adjust amount of credits the regular director gets to spawn void monsters. This one usually just spawns barnacles.");
+            monsterCredits = config.Bind<float>("Item: " + ItemName, "Void Barnacle Credits", 50, "Adjust amount of credits the regular director gets to spawn void monsters. This one usually just spawns barnacles.");
             bossMonsterCredits = config.Bind<float>("Item: " + ItemName, "Void Boss Credits", 800, "Adjust the amount of credits the boss director gets to spawn a larger void threat. Nullifiers cost 300, Jailers cost 450, and Devastators cost 800.");
             
             bossMonsterNullifierWeight = config.Bind<float>("Item: " + ItemName, "Boss Nullifier Weight", .5225f, "Adjust the weight of Nullifiers being spawned as the 'boss' of the Lost Battery.");
@@ -149,6 +154,8 @@ namespace vanillaVoid.Items
             ShellTier3VoidWeight = config.Bind<float>("Item: " + ItemName, "Void Tier 3 Weight", .006f, "Adjust weight of Void Tier 3 items.");
 
             showLaser = config.Bind<bool>("Item: " + ItemName, "Show Laser", true, "Adjust whether the special delivery should be marked with a laser.");
+
+            specialHappen = config.Bind<bool>("Item: " + ItemName, "Spawn in Special Stages", true, "Adjust whether the special delivery should spawn in Commencement and Gold Shores. Every other special environment (such as bazaar or limbo) are already banned.");
 
             //stackingBuff = config.Bind<float>("Item: " + ItemName, "Percent Damage Increase per Stack", .4f, "Adjust the percent of extra damage dealt per stack.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "FreeChest", "Adjust which item this is the void pair of.");
@@ -221,13 +228,23 @@ namespace vanillaVoid.Items
             //oidShellDropTable tableController = new VoidShellDropTable();
             //PortalBattery.AddComponent<VoidShellDropTable>();
             var teamFilter = PortalBattery.AddComponent<TeamFilter>();
-            teamFilter.teamIndex = TeamIndex.Void;
-            teamFilter.defaultTeam = TeamIndex.Void;
-
             var fogcontroller = PortalBattery.AddComponent<FogDamageController>();
+            if (playerFog.Value)
+            {
+                teamFilter.teamIndex = TeamIndex.Player;
+                teamFilter.defaultTeam = TeamIndex.Player;
+                fogcontroller.invertTeamFilter = false;
+            }
+            else
+            {
+                teamFilter.teamIndex = TeamIndex.Void;
+                teamFilter.defaultTeam = TeamIndex.Void;
+                fogcontroller.invertTeamFilter = true;
+            }
+            //var teamFilter = PortalBattery.AddComponent<TeamFilter>();
+
             fogcontroller.enabled = false;
             fogcontroller.teamFilter = teamFilter;
-            fogcontroller.invertTeamFilter = true;
             fogcontroller.tickPeriodSeconds = fogTickPeriod.Value;
             fogcontroller.healthFractionPerSecond = fogHealthFraction.Value;
             fogcontroller.healthFractionRampCoefficientPerSecond = fogHealthFractionRamp.Value;
@@ -265,7 +282,7 @@ namespace vanillaVoid.Items
                 combatdir.shouldSpawnOneWave = false;
                 //combatdir.minSpawnRange
                 combatdir.targetPlayers = true;
-                combatdir.creditMultiplier = 3;
+                combatdir.creditMultiplier = 2;
                 combatdir.ignoreTeamSizeLimit = true;
                 //combatdir.maxSpawnDistance = 75;
                 combatdir.skipSpawnIfTooCheap = false;
@@ -894,6 +911,8 @@ namespace vanillaVoid.Items
             IL.EntityStates.DeepVoidPortalBattery.Charged.OnEnter += OverrideBatteryChargedEnter;
         }
 
+
+
         private void OverrideBatteryChargingEnter(ILContext il)
         {
             ILCursor c = new ILCursor(il);
@@ -982,12 +1001,14 @@ namespace vanillaVoid.Items
                             if (combat)
                             {
                                 combat.enabled = false;
+                                combat.monsterCredit = 0;
                             }
                             Transform center = self.transform.Find("Model");
                             if (center)
                             {
-                                var cd2 = center.gameObject.GetComponent<CombatDirector>();
-                                cd2.enabled = false;
+                                var combat2 = center.gameObject.GetComponent<CombatDirector>();
+                                combat2.enabled = false;
+                                combat2.monsterCredit = 0;
                                 
                             }
 
@@ -1087,6 +1108,20 @@ namespace vanillaVoid.Items
         private void AddCornucopiaCamp(On.RoR2.SceneDirector.orig_PopulateScene orig, SceneDirector self) 
         {
             orig(self);
+
+            var sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
+
+            if (sceneName == "bazaar" || sceneName == "limbo" || sceneName == "mysteryspace" || sceneName == "voidraid" || sceneName == "artifactworld")
+            {
+                return;
+            }
+            else if (sceneName == "moon" || sceneName == "moon2" || sceneName == "goldshores")
+            {
+                if (!specialHappen.Value)
+                {
+                    return;
+                }
+            }
 
             if (voidCellRng == null)
             {

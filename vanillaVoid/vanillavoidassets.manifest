@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 809372171
+CRC: 560016355
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 45e3dd3aa17ffda4c301f3fa6067d4c0
+    Hash: 5d6f616f71cbcc8c0e7bd5f18ac97463
   TypeTreeHash:
     serializedVersion: 2
     Hash: 0b41857b7164f96294ebced1c3191aa0
@@ -52,6 +52,7 @@ Assets:
 - Assets/Models/Prefabs/Item/ClockworkWatch/MessItem/pottexture.mat
 - Assets/Models/Prefabs/Item/CryoItem/preFreezeSlow.png
 - Assets/Models/Prefabs/Item/ExtVent/extSmokeMat.mat
+- Assets/Models/Prefabs/Item/WhorlItem/cornucopiaIcon512.png
 - Assets/Models/VFX/texCloudIce.png
 - Assets/Sprites/texUICornerTier1.png
 - Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryPickup.prefab
