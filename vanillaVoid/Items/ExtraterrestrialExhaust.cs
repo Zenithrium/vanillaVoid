@@ -28,6 +28,9 @@ namespace vanillaVoid.Items
         public ConfigEntry<float> exhaustCoefficient;
 
         public ConfigEntry<bool> accurateRockets;
+
+        public ConfigEntry<bool> visionsNerf;
+
         public override string ItemName => "Extraterrestrial Exhaust";
 
         public override string ItemLangTokenName => "EXT_EXHAUST_ITEM";
@@ -72,6 +75,7 @@ namespace vanillaVoid.Items
             rocketDamageStacking = config.Bind<float>("Item: " + ItemName, "Rocket Damage Percent Stacking", 60f, "Adjust the percent damage gained per stack. (100 = 100% base damage)");
             exhaustCoefficient = config.Bind<float>("Item: " + ItemName, "Proc Coefficient", .2f, "Adjust the proc coefficient for the item's fired projectiles. For reference, Fireworks' is .2 per missile. (0 is no procs, 1 is normal proc rate)");
             accurateRockets = config.Bind<bool>("Item: " + ItemName, "More Accurate Rockets", false, "Adjust if the rockets should more accurately seek out enemies. Advised if another mod adjusts fireworks to be more accurate.");
+            visionsNerf = config.Bind<bool>("Item: " + ItemName, "Visions of Heresy Nerf", false, "Adjust if Visions of Heresy should fire half as many rockets as it normally would with Exhaust.");
 
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "Firework", "Adjust which item this is the void pair of.");
         }
@@ -598,6 +602,42 @@ namespace vanillaVoid.Items
                     localPos = new Vector3(0.80923F, -0.03724F, 0.63302F),
                     localAngles = new Vector3(4.29694F, 144.3949F, 176.929F),
                     localScale = new Vector3(0.1F, 0.1F, 0.1F)
+                }
+            });
+            rules.Add("mdlTeslaTrooper", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "CalfR",
+                    localPos = new Vector3(-0.12546F, 0.07493F, -0.00753F),
+                    localAngles = new Vector3(359.5648F, 101.6721F, 177.7695F),
+                    localScale = new Vector3(0.02F, 0.02F, 0.02F)
+                }
+            });
+            rules.Add("mdlDesolator", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "CalfR",
+                    localPos = new Vector3(0.16078F, 0.05913F, -0.16904F),
+                    localAngles = new Vector3(3.01908F, 274.7029F, 183.3804F),
+                    localScale = new Vector3(0.02F, 0.02F, 0.02F)
+                }
+            });
+            rules.Add("mdlArsonist", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(0.12312F, 0.60723F, -0.31391F),
+                    localAngles = new Vector3(4.18845F, 0F, 0F),
+                    localScale = new Vector3(0.0125F, 0.0125F, 0.0125F)
                 }
             });
             return rules;

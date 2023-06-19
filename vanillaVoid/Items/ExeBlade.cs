@@ -561,6 +561,51 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.35F, 0.35F, 0.35F)
                 }
             });
+            rules.Add("mdlTeslaTrooper", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "LowerArmL",
+                    localPos = new Vector3(0.07703F, 0.13181F, 0.00804F),
+                    localAngles = new Vector3(274.092F, 299.6003F, 300.7438F),
+                    localScale = new Vector3(0.1F, 0.1F, 0.1F)
+                }
+            });
+            rules.Add("mdlDesolator", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "LowerArmL",
+                    localPos = new Vector3(0.04088F, 0.1637F, 0.0234F),
+                    localAngles = new Vector3(46.89203F, 110.4791F, 83.16012F),
+                    localScale = new Vector3(0.105F, 0.105F, 0.105F)
+                }
+            });
+            rules.Add("mdlArsonist", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(-0.04748F, 0.45498F, -0.12995F),
+                    localAngles = new Vector3(14.24262F, 182.636F, 359.6417F),
+                    localScale = new Vector3(0.085F, 0.085F, 0.085F)
+                },
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(0.05034F, 0.45041F, -0.13329F),
+                    localAngles = new Vector3(14.24262F, 182.636F, 22.40773F),
+                    localScale = new Vector3(0.085F, 0.085F, 0.085F)
+                }
+            });
             return rules;
 
         }

@@ -54,7 +54,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.5.1";
+        public const string ModVer = "1.5.2";
 
         public static ExpansionDef sotvDLC;
         public static ExpansionDef sotvDLC2;
@@ -145,6 +145,8 @@ namespace vanillaVoid
             On.RoR2.Items.ContagiousItemManager.Init += AddVoidItemsToDict;
 
             On.RoR2.CharacterBody.OnSkillActivated += ExtExhaustFireProjectile;
+            On.EntityStates.Mage.Weapon.PrepWall.OnExit += ExtExhaustIceWall;
+
 
             GlobalEventManager.onCharacterDeathGlobal += ExeBladeExtraDeath;
 
@@ -432,6 +434,8 @@ namespace vanillaVoid
 
         }
 
+        
+
         private void AddVoidItemsToDict(ContagiousItemManager.orig_Init orig)
         {
             List<ItemDef.Pair> newVoidPairs = new List<ItemDef.Pair>();
@@ -628,10 +632,61 @@ namespace vanillaVoid
             return false;
         }
 
+        private void ExtExhaustIceWall(On.EntityStates.Mage.Weapon.PrepWall.orig_OnExit orig, EntityStates.Mage.Weapon.PrepWall self)
+        {
+            if (self.goodPlacement)
+            {
+                var inventory = self.characterBody.inventory;
+                if (inventory)
+                {
+                    var inventoryCount = self.characterBody.inventory.GetItemCount(ItemBase<ExtraterrestrialExhaust>.instance.ItemDef);
+                    var skill = self.skillLocator.utilityBonusStockSkill;
+                    if (inventoryCount > 0 && skill.cooldownRemaining > 0) //maybe make this higher
+                    {
+                        //var playerPos = self.GetComponent<CharacterBody>().corePosition;
+                        float skillCD = skill.baseRechargeInterval;
+
+                        //Debug.Log("cooldown is " + skillCD);
+                        int missleCount = (int)Math.Ceiling(skillCD / ItemBase<ExtraterrestrialExhaust>.instance.secondsPerRocket.Value);
+                        //Debug.Log("rockets firing: " + missleCount);
+                        //Debug.Log("lunar primary: " + skill.stock); 
+
+                        //var voidtier1def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier1);
+                        //GameObject prefab = voidtier1def.highlightPrefab;
+                        //Instantiate(prefab, self.transform);
+                        //Debug.Log("time: " + Time.time);
+                        //if (skill.skillDef.ToString().Contains("LunarPrimaryReplacement"))
+                        //{
+                        //    //if (genericRng == null)
+                        //    //{
+                        //    //    genericRng = new Xoroshiro128Plus(Run.instance.seed);
+                        //    //}
+                        //    //int roll = genericRng.RangeInt(1, 100);
+                        //    if (skill.stock % 2 != 0)
+                        //    {
+                        //        missleCount = 1;
+                        //    }
+                        //    else
+                        //    {
+                        //        missleCount = 0;
+                        //    }
+                        //}
+                        
+                        StartCoroutine(delayedRockets(self.characterBody, missleCount, inventoryCount)); //this can probably be done better
+                    }
+                }
+                
+            }
+            
+            orig(self);
+
+            //throw new NotImplementedException();
+        }
+
         private void ExtExhaustFireProjectile(On.RoR2.CharacterBody.orig_OnSkillActivated orig, RoR2.CharacterBody self, RoR2.GenericSkill skill)
         {
             var inventoryCount = self.inventory.GetItemCount(ItemBase<ExtraterrestrialExhaust>.instance.ItemDef);
-            if (inventoryCount > 0 && skill.cooldownRemaining > 0) //maybe make this higher
+            if (inventoryCount > 0 && skill.cooldownRemaining > 0 && skill.skillDef.skillNameToken != "MAGE_UTILITY_ICE_NAME") //ice wall is handled specially 
             {
                 //var playerPos = self.GetComponent<CharacterBody>().corePosition;
                 float skillCD = skill.baseRechargeInterval;
@@ -645,7 +700,7 @@ namespace vanillaVoid
                 //GameObject prefab = voidtier1def.highlightPrefab;
                 //Instantiate(prefab, self.transform);
                 //Debug.Log("time: " + Time.time);
-                if (skill.skillDef.ToString().Contains("LunarPrimaryReplacement"))
+                if (skill.skillDef.skillNameToken != "SKILL_LUNAR_PRIMARY_REPLACEMENT_NAME" && ItemBase<ExtraterrestrialExhaust>.instance.visionsNerf.Value)
                 {
                     //if (genericRng == null)
                     //{
@@ -669,11 +724,6 @@ namespace vanillaVoid
 
         IEnumerator delayedRockets(RoR2.CharacterBody player, int missileCount, int inventoryCount)
         {
-            //int icbmMod = 1;
-            //if (player.inventory.GetItemCount(DLC1Content.Items.MoreMissile) > 0)
-            //{
-            //    icbmMod = 3;
-            //}
             for (int i = 0; i < missileCount; i++)
             {
                 

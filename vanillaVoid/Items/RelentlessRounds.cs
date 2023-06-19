@@ -27,7 +27,7 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "RELROUNDS_ITEM";
 
-        public override string ItemPickupDesc => "Bosses passively take damage over time. <style=cIsVoid>Corrupts all Armor-Piercing Rounds</style>.";
+        public override string ItemPickupDesc => "Killing enemies in the teleporter damages active bosses. <style=cIsVoid>Corrupts all Armor-Piercing Rounds</style>.";
 
         public override string ItemFullDescription => $"Bosses passively take X% (+X% per stack) of their max health every Y seconds. <style=cIsVoid>Corrupts all Armor-Piercing Rounds</style>.";
 

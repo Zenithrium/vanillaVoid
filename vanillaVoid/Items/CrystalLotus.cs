@@ -535,6 +535,42 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.45F, 0.45F, 0.45F)
                 }
             });
+            rules.Add("mdlTeslaTrooper", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(-0.24938F, 0.2834F, 0.08566F),
+                    localAngles = new Vector3(339.9367F, 289.0134F, 357.2876F),
+                    localScale = new Vector3(0.1F, 0.1F, 0.1F)
+                }
+            });
+            rules.Add("mdlDesolator", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(-0.1532F, 0.4091F, 0.33949F),
+                    localAngles = new Vector3(352.9707F, 321.627F, 14.20378F),
+                    localScale = new Vector3(0.1F, 0.1F, 0.1F)
+                }
+            });
+            rules.Add("mdlArsonist", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(0.23273F, 0.16713F, -0.32676F),
+                    localAngles = new Vector3(23.24931F, 60.94613F, 339.5645F),
+                    localScale = new Vector3(0.1F, 0.1F, 0.1F)
+                }
+            });
             return rules;
         }
 
