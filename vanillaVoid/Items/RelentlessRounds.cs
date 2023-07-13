@@ -11,6 +11,8 @@ using UnityEngine.AddressableAssets;
 using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
+using RoR2.Orbs;
+using System.Linq;
 
 namespace vanillaVoid.Items
 {
@@ -49,6 +51,8 @@ namespace vanillaVoid.Items
         public static GameObject ItemBodyModelPrefab;
 
         public List<CharacterBody> activeBosses;
+
+        public static DamageAPI.ModdedDamageType relentlessDamageType;
 
         public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
 
@@ -560,8 +564,135 @@ namespace vanillaVoid.Items
         //    }
         //
         //}
-    }
+        public class RelentlessOrb : Orb
+        {
+            public override void Begin()
+            {
+                base.duration = 0.2f;
 
+                EffectData effectData = new EffectData
+                {
+                    origin = this.origin,
+                    genericFloat = base.duration
+                };
+                effectData.SetHurtBoxReference(this.target);
+
+                EffectManager.SpawnEffect(maliceOrbEffectPrefab, effectData, true);
+            }
+
+            public override void OnArrival()
+            {
+                if (this.target)
+                {
+                    HealthComponent healthComponent = this.target.healthComponent;
+                    if (healthComponent)
+                    {
+                        DamageInfo damageInfo = new DamageInfo();
+                        damageInfo.damage = this.damageValue;
+                        damageInfo.attacker = this.attacker;
+                        damageInfo.inflictor = this.inflictor;
+                        damageInfo.force = Vector3.zero;
+                        damageInfo.crit = this.isCrit;
+                        damageInfo.procChainMask = this.procChainMask;
+                        damageInfo.procCoefficient = this.procCoefficient;
+                        damageInfo.position = this.target.transform.position;
+                        damageInfo.damageColorIndex = this.damageColorIndex;
+                        damageInfo.damageType = this.damageType;
+                        damageInfo.AddModdedDamageType(relentlessDamageType);
+                        healthComponent.TakeDamage(damageInfo);
+                        GlobalEventManager.instance.OnHitEnemy(damageInfo, healthComponent.gameObject);
+                        GlobalEventManager.instance.OnHitAll(damageInfo, healthComponent.gameObject);
+                    }
+                    if (this.bouncesRemaining > 0)
+                    {
+                        if (this.bouncedObjects != null)
+                        {
+                            this.bouncedObjects.Add(this.target.healthComponent);
+                        }
+                        HurtBox hurtBox = this.PickNextTarget(this.target.transform.position, healthComponent);
+                        if (hurtBox)
+                        {
+                            RelentlessOrb maliceOrb = new RelentlessOrb();
+                            maliceOrb.search = this.search;
+                            maliceOrb.origin = this.target.transform.position;
+                            maliceOrb.target = hurtBox;
+                            maliceOrb.attacker = this.attacker;
+                            maliceOrb.inflictor = this.inflictor;
+                            maliceOrb.teamIndex = this.teamIndex;
+                            maliceOrb.damageValue = this.damageValue * this.damageCoefficientPerBounce;
+                            maliceOrb.bouncesRemaining = this.bouncesRemaining - 1;
+                            maliceOrb.isCrit = this.isCrit;
+                            maliceOrb.bouncedObjects = this.bouncedObjects;
+                            maliceOrb.procChainMask = this.procChainMask;
+                            maliceOrb.procCoefficient = this.procCoefficient;
+                            maliceOrb.damageColorIndex = this.damageColorIndex;
+                            maliceOrb.damageCoefficientPerBounce = this.damageCoefficientPerBounce;
+                            maliceOrb.baseRange = this.baseRange;
+                            maliceOrb.damageType = this.damageType;
+                            OrbManager.instance.AddOrb(maliceOrb);
+                        }
+                    }
+
+                }
+            }
+            public HurtBox PickNextTarget(Vector3 position, HealthComponent currentVictim)
+            {
+                if (this.search == null)
+                {
+                    this.search = new BullseyeSearch();
+                }
+                float range = baseRange;
+                if (currentVictim && currentVictim.body)
+                {
+                    range += currentVictim.body.radius;
+                }
+                this.search.searchOrigin = position;
+                this.search.searchDirection = Vector3.zero;
+                this.search.teamMaskFilter = TeamMask.allButNeutral;
+                this.search.teamMaskFilter.RemoveTeam(this.teamIndex);
+                this.search.filterByLoS = false;
+                this.search.sortMode = BullseyeSearch.SortMode.Distance;
+                this.search.maxDistanceFilter = range;
+                this.search.RefreshCandidates();
+                HurtBox hurtBox = (from v in this.search.GetResults()
+                                   where !this.bouncedObjects.Contains(v.healthComponent)
+                                   select v).FirstOrDefault<HurtBox>();
+                if (hurtBox)
+                {
+                    this.bouncedObjects.Add(hurtBox.healthComponent);
+                }
+                return hurtBox;
+            }
+
+            public float damageValue;
+
+            public GameObject attacker;
+
+            public GameObject inflictor;
+
+            public int bouncesRemaining;
+
+            public List<HealthComponent> bouncedObjects;
+
+            public TeamIndex teamIndex;
+
+            public bool isCrit;
+
+            public ProcChainMask procChainMask;
+
+            public float procCoefficient = 1f;
+
+            public DamageColorIndex damageColorIndex;
+
+            public float baseRange = 20f;
+
+            public float damageCoefficientPerBounce = 1f;
+
+            public DamageType damageType;
+
+            private BullseyeSearch search;
+        }
+    }
     //public class RoundsToken : MonoBehaviour
     //{
     //    public List<CharacterBody> activeBosses;

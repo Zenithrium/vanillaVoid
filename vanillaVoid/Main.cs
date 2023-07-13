@@ -54,7 +54,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.5.3";
+        public const string ModVer = "1.5.6";
 
         public static ExpansionDef sotvDLC;
         public static ExpansionDef sotvDLC2;
@@ -86,9 +86,12 @@ namespace vanillaVoid
         public static ConfigEntry<bool> locusExit;
         public static ConfigEntry<int> LocusBonus;
 
+        public static ConfigEntry<bool> lockVoidsBehindPair;
+
         public static ConfigEntry<int> LotusVariant;
         public static ConfigEntry<float> LotusDuration;
         public static ConfigEntry<float> LotusSlowPercent;
+
         GameObject lotusEffect;
 
         Vector3 heightAdjust = new Vector3(0, 2.212f, 0);
@@ -114,6 +117,8 @@ namespace vanillaVoid
             //orreryCompat = Config.Bind<bool>("Mod Compatability", "Enable Lost Seers Buff", true, "Should generally stay on, but if you're having a strange issue (ex. health bars not showing up on enemies) edit this to be false.");
             locusExit = Config.Bind<bool>("Tweaks: Void Locus", "Exit Portal", true, "If enabled, spawns a portal in the void locus letting you return to normal stages if you want to.");
             LocusBonus = Config.Bind<int>("Tweaks: Void Locus", "Locus Bonus Credits", 0, "If you want to make going to the void locus have a little more of a reward, increase this number. Should be increased in at least multiples of 50ish");
+
+            lockVoidsBehindPair = Config.Bind<bool>("Tweaks: Void Items", "Require Original Item Unlocked", true, "If enabled, makes it so void items are locked until the non-void pair is unlocked. Ex. Pluripotent is locked until the profile has unlocked Dios. Only applies to void items which do not already have unlocks, in the event a mod adds special unlocks for a void item.");
 
             string lotusname = "Crystalline Lotus";
 
@@ -143,7 +148,7 @@ namespace vanillaVoid
             Swapallshaders(MainAssets);
 
             On.RoR2.Items.ContagiousItemManager.Init += AddVoidItemsToDict;
-
+            On.RoR2.ItemCatalog.Init += AddUnlocksToVoidItems;
             On.RoR2.CharacterBody.OnSkillActivated += ExtExhaustFireProjectile;
             On.EntityStates.Mage.Weapon.PrepWall.OnExit += ExtExhaustIceWall;
 
@@ -434,7 +439,21 @@ namespace vanillaVoid
 
         }
 
-        
+        private void AddUnlocksToVoidItems(On.RoR2.ItemCatalog.orig_Init orig)
+        {
+            orig();
+            if (lockVoidsBehindPair.Value)
+            {
+                foreach (var voidpair in ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem])
+                {
+                    if (voidpair.itemDef1.unlockableDef != null && voidpair.itemDef2.unlockableDef == null)
+                    {
+                        Debug.Log("Updating unlock condition for " + voidpair.itemDef2.nameToken + " to " + voidpair.itemDef1.nameToken + "'s.");
+                        voidpair.itemDef2.unlockableDef = voidpair.itemDef1.unlockableDef;
+                    }
+                }
+            }
+        }
 
         private void AddVoidItemsToDict(ContagiousItemManager.orig_Init orig)
         {
@@ -1166,52 +1185,56 @@ namespace vanillaVoid
 
         private void AddLotusOnPickup(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self)
         {
-            if (!lotusSpawned)
+            if (self)
             {
-                int itemCount = 0;
-                TeamIndex teamDex = default;
-                foreach (var player in PlayerCharacterMasterController.instances)
+                orig(self);
+                if (!lotusSpawned)
                 {
-                    itemCount += player.master.inventory.GetItemCount(ItemBase<CrystalLotus>.instance.ItemDef);
-                    teamDex = player.master.teamIndex;
-                }
-                if (itemCount > 0)
-                {
-                    if (teleporterName.Contains("iscLunarTeleporter"))
+                    int itemCount = 0;
+                    TeamIndex teamDex = default;
+                    foreach (var player in PlayerCharacterMasterController.instances)
                     {
-                        Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-                        teleporterPos += celestialAdjust;
+                        itemCount += player.master.inventory.GetItemCount(ItemBase<CrystalLotus>.instance.ItemDef);
+                        teamDex = player.master.teamIndex;
                     }
-                    //if (SceneCatalog.GetSceneDefForCurrentScene().baseSceneName == "skymeadow")
-                    //{
-                    //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-                    //    teleporterPos += celestialAdjust;
-                    //}
-                    string sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
-                    if (sceneName != "arena" && sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
+                    if (itemCount > 0)
                     {
-                        Quaternion rot = Quaternion.Euler(1.52666613f, 180, 9.999999f);
-                        var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
-                        tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
-                        tempLotus.transform.position = teleporterPos + heightAdjust;
-                        NetworkServer.Spawn(tempLotus);
-                        tempLotusObject = tempLotus;
-                        lotusSpawned = true;
-                        voidfields = false;
-
-                        EffectData effectData = new EffectData
+                        if (teleporterName.Contains("iscLunarTeleporter"))
                         {
-                            origin = tempLotus.transform.position
-                        };
-                        effectData.SetNetworkedObjectReference(tempLotus.gameObject);
-                        EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
-                    }else if(sceneName == "arena")
-                    {
-                        voidfields = true;
+                            Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+                            teleporterPos += celestialAdjust;
+                        }
+                        //if (SceneCatalog.GetSceneDefForCurrentScene().baseSceneName == "skymeadow")
+                        //{
+                        //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
+                        //    teleporterPos += celestialAdjust;
+                        //}
+                        string sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
+                        if (sceneName != "arena" && sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
+                        {
+                            Quaternion rot = Quaternion.Euler(1.52666613f, 180, 9.999999f);
+                            var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
+                            tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
+                            tempLotus.transform.position = teleporterPos + heightAdjust;
+                            NetworkServer.Spawn(tempLotus);
+                            tempLotusObject = tempLotus;
+                            lotusSpawned = true;
+                            voidfields = false;
+
+                            EffectData effectData = new EffectData
+                            {
+                                origin = tempLotus.transform.position
+                            };
+                            effectData.SetNetworkedObjectReference(tempLotus.gameObject);
+                            EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
+                        }
+                        else if (sceneName == "arena")
+                        {
+                            voidfields = true;
+                        }
                     }
                 }
             }
-            orig(self);
         }
 
         //Vector3 heightAdjust = new Vector3(0, 1.5f, 0);

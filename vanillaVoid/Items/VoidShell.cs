@@ -225,6 +225,11 @@ namespace vanillaVoid.Items
 
             PortalBattery.transform.position = zero;
 
+            var pinter = PortalBattery.GetComponent<PurchaseInteraction>();
+            pinter.displayNameToken = "VV_SHELL_NAME";
+            pinter.contextToken = "VV_SHELL_CONTEXT";
+            LanguageAPI.Add("VV_SHELL_NAME", "Lost Battery");
+            LanguageAPI.Add("VV_SHELL_CONTEXT", "Activate the Lost Battery..?"); 
             //oidShellDropTable tableController = new VoidShellDropTable();
             //PortalBattery.AddComponent<VoidShellDropTable>();
             var teamFilter = PortalBattery.AddComponent<TeamFilter>();
@@ -282,9 +287,10 @@ namespace vanillaVoid.Items
                 combatdir.shouldSpawnOneWave = false;
                 //combatdir.minSpawnRange
                 combatdir.targetPlayers = true;
-                combatdir.creditMultiplier = 2;
+                combatdir.creditMultiplier = 3;
                 combatdir.ignoreTeamSizeLimit = true;
-                //combatdir.maxSpawnDistance = 75;
+                combatdir.maxSpawnDistance = 999999;
+                combatdir.minSpawnRange = 0;
                 combatdir.skipSpawnIfTooCheap = false;
                 combatdir.teamIndex = TeamIndex.Void;
                 combatdir.monsterSpawnTimer = 0;
@@ -313,6 +319,8 @@ namespace vanillaVoid.Items
                 cd2.monsterSpawnTimer = 5;
                 cd2.maximumNumberToSpawnBeforeSkipping = 1;
                 cd2.enabled = false;
+                cd2.maxSpawnDistance = 999999f;
+                cd2.minSpawnRange = 0;
             }
 
             try
@@ -359,7 +367,8 @@ namespace vanillaVoid.Items
                     combat.transform.position = zero;
                     //var cards = combat.monsterCards;
                     combat.monsterCards = locusCards;
-                    combat.maxSpawnDistance = 25;
+                    combat.maxSpawnDistance = 999999;
+                    combat.minSpawnRange = 0;
                     combat.shouldSpawnOneWave = true;
                     //GameObject.Destroy(combat);
                 }
@@ -368,6 +377,7 @@ namespace vanillaVoid.Items
                 if (camp)
                 {
                     camp.campMaximumRadius = 23.5f;
+                    //camp.campMinimumRadius = 7.5f;
                     //Debug.Log("camp credits: " + camp.baseInteractableCredit);
                     camp.baseInteractableCredit = 25;
                     camp.combatDirector = combat;
@@ -945,7 +955,7 @@ namespace vanillaVoid.Items
                                 combat.enabled = true;
                             }
                             Transform center = self.transform.Find("Model");
-                            Debug.Log("ahhh!! " + center);
+                            //Debug.Log("ahhh!! " + center);
                             if (center)
                             {
                                 var cd2 = center.gameObject.GetComponent<CombatDirector>();
@@ -955,13 +965,13 @@ namespace vanillaVoid.Items
                             }
 
                             var fogcontroller = self.GetComponent<FogDamageController>();
-                            Debug.Log("ahhh!! " + fogcontroller);
+                            //Debug.Log("ahhh!! " + fogcontroller);
                             if (fogcontroller && enableFog.Value)
                             {
                                 var hzc = self.GetComponent<HoldoutZoneController>();
                                 fogcontroller.enabled = true;
                                 fogcontroller.AddSafeZone(hzc);
-                                Debug.Log("ahhh!! " + fogcontroller + " | " + hzc);
+                                //Debug.Log("ahhh!! " + fogcontroller + " | " + hzc);
                                 //fogcontroller.initialSafeZones = 1;
                             }
 
@@ -1196,9 +1206,9 @@ namespace vanillaVoid.Items
         public override PickupIndex GenerateDropPreReplacement(Xoroshiro128Plus rng)
         {
             int num = 0;
-            foreach (CharacterMaster characterMaster in CharacterMaster.readOnlyInstancesList)
+            foreach (var player in PlayerCharacterMasterController.instances)
             {
-                int itemCount = characterMaster.inventory.GetItemCount(DLC1Content.Items.FreeChest);
+                int itemCount = player.master.inventory.GetItemCount(DLC1Content.Items.FreeChest);
                 num += itemCount;
             }
             selector.Clear();

@@ -789,7 +789,7 @@ namespace vanillaVoid.Items
             {
                 //int itemCount = 0;
                 foreach (var player in PlayerCharacterMasterController.instances)
-                {
+                {  
                     int itemCount = player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
                     if (itemCount > 0)
                     {

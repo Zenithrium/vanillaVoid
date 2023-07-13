@@ -282,10 +282,19 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName =  "PauldronR",
-                    localPos = new Vector3(0.5386145f, -0.2152944f, 0.5276036f),
-                    localAngles = new Vector3(304.1717f, 100.8858f, 106.0395f),
-                    localScale = new Vector3(0.12f, 0.12f, 0.12f)
+                    childName = "PauldronR",
+                    localPos = new Vector3(-0.07436F, 0.23489F, 0.05774F),
+                    localAngles = new Vector3(17.86418F, 54.74459F, 68.09351F),
+                    localScale = new Vector3(0.1F, 0.1F, 0.1F)
+                },
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "PauldronR",
+                    localPos = new Vector3(-0.02082F, 0.26788F, 0.00672F),
+                    localAngles = new Vector3(4.96313F, 53.28102F, 42.34581F),
+                    localScale = new Vector3(0.1F, 0.1F, 0.1F)
                 }
             });
             rules.Add("NemesisEnforcerBody", new RoR2.ItemDisplayRule[]
