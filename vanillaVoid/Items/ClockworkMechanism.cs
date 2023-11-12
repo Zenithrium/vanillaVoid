@@ -644,6 +644,30 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.25F, 0.25F, 0.25F)
                 }
             });
+            rules.Add("mdlNemMerc", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "LowerArmL",
+                    localPos = new Vector3(-0.05748191f, 0.2905322f, 0.01414572f),
+                    localAngles = new Vector3(290.123f, 15.52077f, 57.30558f),
+                    localScale = new Vector3(.05f, .05f, .05f)
+                }
+            });
+            //rules.Add("RobDriverBody", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "HandL",
+            //        localPos = new Vector3(0.03259495f, -0.01915513f, 0.001383516f),
+            //        localAngles = new Vector3(88.92389f, 347.7476f, 240.2745f),
+            //        localScale = new Vector3(0.05f, 0.05f, 0.05f)
+            //    }
+            //});
             rules.Add("mdlTeslaTrooper", new RoR2.ItemDisplayRule[]
             {
                 new RoR2.ItemDisplayRule
@@ -699,16 +723,6 @@ namespace vanillaVoid.Items
             //On.RoR2.Stage.RespawnCharacter += StageRewards;
         }
 
-        //private void AddWatchTokenOnPickup(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self)
-        //{
-        //    if (WatchToken)
-        //    {
-        //        self.gameObject.AddComponent<WatchToken>();
-        //    }
-        //
-        //    CharacterBody victimBody = dmgReport.victimBody;
-        //    self.gameObject.AddComponent<ExeToken>();
-        //}
         private void DetermineStage(Stage obj)
         {
             isBazaarStage = false;
@@ -829,14 +843,6 @@ namespace vanillaVoid.Items
                             float num = 360f / (float)rewardCount;
                             Vector3 a = Quaternion.AngleAxis(num * (float)i, Vector3.up) * Vector3.forward;
                             Vector3 position = player.gameObject.transform.position + a * 8f + Vector3.up * 8f;
-                             
-                            //PickupDropletController.CreatePickupDroplet(pickupResult, position, Vector3.zero); // <- this sort of worked? work on it later
-                            //EffectManager.SpawnEffect(Singularity.effectPrefab, new EffectData
-                            //{
-                            //    origin = position,
-                            //    scale = 2f
-                            //}, true);
-                            //this.itemDropCount++;
 
                             player.master.inventory.GiveItem(pickupResult.itemIndex, 1);
                             GenericPickupController.SendPickupMessage(player.master, pickupResult);
@@ -1165,12 +1171,7 @@ namespace vanillaVoid.Items
                         }
                     }
                 }
-                //List<ItemIndex> itemList = new List<ItemIndex>(self.body.inventory.itemAcquisitionOrder);
-                //Util.ShuffleList(itemList, watchVoidRng);
 
-                //self.body.inventory.GiveItem(ItemBase<BrokenClockworkMechanism>.instance.ItemDef, 1);
-                //self.body.inventory.RemoveItem(ItemCatalog.GetItemDef(itemList[0]), 1);
-                //CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, ItemCatalog.GetItemDef(itemList[0]).itemIndex, ItemBase<BrokenClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                 EffectData effectData = new EffectData
                 {
                     origin = self.transform.position

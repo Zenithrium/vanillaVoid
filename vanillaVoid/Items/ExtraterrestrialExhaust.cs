@@ -604,6 +604,30 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.1F, 0.1F, 0.1F)
                 }
             });
+            rules.Add("mdlNemMerc", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Shotgun",
+                    localPos = new Vector3(-0.03222318f, -0.3880526f, -0.6756665f),
+                    localAngles = new Vector3(295.934f, 174.899f, 183.5748f),
+                    localScale = new Vector3(.01f, .01f, .01f)
+                }
+            });
+            //rules.Add("RobDriverBody", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "Pelvis",
+            //        localPos = new Vector3(0, 0, -0),
+            //        localAngles = new Vector3(0, 0, 0),
+            //        localScale = new Vector3(1, 1, 1)
+            //    }
+            //});
             rules.Add("mdlTeslaTrooper", new RoR2.ItemDisplayRule[]
             {
                 new RoR2.ItemDisplayRule

@@ -370,6 +370,7 @@ namespace vanillaVoid.Items
                     combat.maxSpawnDistance = 999999;
                     combat.minSpawnRange = 0;
                     combat.shouldSpawnOneWave = true;
+                    
                     //GameObject.Destroy(combat);
                 }
 
@@ -874,6 +875,31 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.075F, 0.075F, 0.075F)
                 }
             });
+            rules.Add("mdlNemMerc", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(-0.1141284f, -0.01527959f, -0.1664781f),
+                    localAngles = new Vector3(25.04979f, 65.70757f, 156.8913f),
+                    localScale = new Vector3(.02f, .02f, .02f)
+                }
+            });
+            //rules.Add("RobDriverBody", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "Pelvis",
+            //        localPos = new Vector3(0, 0, -0),
+            //        localAngles = new Vector3(0, 0, 0),
+            //        localScale = new Vector3(1, 1, 1)
+            //    }
+            //});
+
             rules.Add("mdlTeslaTrooper", new RoR2.ItemDisplayRule[]
             {
                 new RoR2.ItemDisplayRule

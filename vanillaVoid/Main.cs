@@ -54,7 +54,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.5.6";
+        public const string ModVer = "1.5.7";
 
         public static ExpansionDef sotvDLC;
         public static ExpansionDef sotvDLC2;
@@ -149,8 +149,13 @@ namespace vanillaVoid
 
             On.RoR2.Items.ContagiousItemManager.Init += AddVoidItemsToDict;
             On.RoR2.ItemCatalog.Init += AddUnlocksToVoidItems;
-            On.RoR2.CharacterBody.OnSkillActivated += ExtExhaustFireProjectile;
-            On.EntityStates.Mage.Weapon.PrepWall.OnExit += ExtExhaustIceWall;
+            //On.RoR2.CharacterBody.OnSkillActivated += ExtExhaustFireProjectile;
+
+
+            On.EntityStates.Mage.Weapon.PrepWall.OnExit += ExtExhaustIceWall; //even with the new method of doing this, ice wall is an exception for some reason
+
+            On.RoR2.GenericSkill.DeductStock += ExtExhaustStock;
+            On.RoR2.Skills.SkillDef.OnExecute += ExtExecute;
 
 
             GlobalEventManager.onCharacterDeathGlobal += ExeBladeExtraDeath;
@@ -424,7 +429,7 @@ namespace vanillaVoid
                 }
             }
 
-            //this section automatically scans the project for all elite equipment
+            ///this section automatically scans the project for all elite equipment
             //var EliteEquipmentTypes = Assembly.GetExecutingAssembly().GetTypes().Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(EliteEquipmentBase)));
             //
             //foreach (var eliteEquipmentType in EliteEquipmentTypes)
@@ -451,6 +456,8 @@ namespace vanillaVoid
                         Debug.Log("Updating unlock condition for " + voidpair.itemDef2.nameToken + " to " + voidpair.itemDef1.nameToken + "'s.");
                         voidpair.itemDef2.unlockableDef = voidpair.itemDef1.unlockableDef;
                     }
+                    //Debug.Log("voidpair: " + voidpair.itemDef1 + " | " + voidpair.itemDef2 + " | " + voidpair.ToString());
+                    
                 }
             }
         }
@@ -479,38 +486,6 @@ namespace vanillaVoid
             orig();
 
         }
-
-        //private void Ah2(On.RoR2.GenericSkill.orig_RunRecharge orig, GenericSkill self, float dt)
-        //{
-        //    if (self)
-        //    {
-        //        if (self.characterBody)
-        //        {
-        //            if (self.characterBody.inventory)
-        //            {
-        //                if (self.characterBody.inventory.GetItemCount(DashQuill.instance.ItemDef) > 0)
-        //                {
-        //                    dt *= 2;
-        //                }
-        //            }
-        //        }
-        //    }
-        //    orig(self, dt);
-        //}
-        //
-        //private void Ah(ILContext il)
-        //{
-        //    ILCursor c = new ILCursor(il);
-        //    c.Index = 0;
-        //
-        //    bool ILFound = c.TryGotoNext(MoveType.After,
-        //    x => x.MatchCallOrCallvirt(typeof(System.Type).GetMethod("op_Equality")),
-        //    x => x.MatchBrtrue(out _),
-        //    x => x.MatchLdarg(0)
-        //    ); 
-        //
-        //    //throw new NotImplementedException();
-        //}
 
         /// <summary>
         /// A helper to easily set up and initialize an artifact from your artifact classes if the user has it enabled in their configuration files.
@@ -651,6 +626,57 @@ namespace vanillaVoid
             return false;
         }
 
+        private void ExtExecute(On.RoR2.Skills.SkillDef.orig_OnExecute orig, RoR2.Skills.SkillDef self, GenericSkill skillSlot)
+        {
+            orig(self, skillSlot);
+
+            if (self.stockToConsume >= 1) //if the stock is consumed here, then it won't be consumed later - active rockets now 
+            {
+                var body = skillSlot.characterBody;
+                if (body) //to be safe i guess
+                {
+                    Debug.Log("Firing missiles in onExecute " + self + " | " + self.name + " | " + skillSlot + " | " + self.stockToConsume);
+                    TryExhaust(body, skillSlot);
+                }
+            }
+        }
+
+        private void ExtExhaustStock(On.RoR2.GenericSkill.orig_DeductStock orig, GenericSkill self, int count)
+        {
+            orig(self, count);
+
+            var body = self.characterBody;
+            if (body)
+            {
+                Debug.Log("firing missiles in deduct stock");
+                TryExhaust(body, self); //skill is special and calls deduct stock itself - fire now
+            }
+        }
+
+        private void TryExhaust(CharacterBody body, GenericSkill skill)
+        {
+            int inventoryCount = body.inventory.GetItemCount(ItemBase<ExtraterrestrialExhaust>.instance.ItemDef);
+            if (inventoryCount > 0 && skill.cooldownRemaining > 0 && skill.skillDef.skillNameToken != "MAGE_UTILITY_ICE_NAME") //ice wall is stupid
+            {
+                float skillCD = skill.baseRechargeInterval;
+
+                int missleCount = (int)Math.Ceiling(skillCD / ItemBase<ExtraterrestrialExhaust>.instance.secondsPerRocket.Value);
+
+                if (skill.skillDef.skillNameToken != "SKILL_LUNAR_PRIMARY_REPLACEMENT_NAME" && ItemBase<ExtraterrestrialExhaust>.instance.visionsNerf.Value)
+                {
+                    if (skill.stock % 2 != 0)
+                    {
+                        missleCount = 1;
+                    }
+                    else
+                    {
+                        missleCount = 0;
+                    }
+                }
+                StartCoroutine(delayedRockets(body, missleCount, inventoryCount)); //this can probably be done better
+            }
+        }
+
         private void ExtExhaustIceWall(On.EntityStates.Mage.Weapon.PrepWall.orig_OnExit orig, EntityStates.Mage.Weapon.PrepWall self)
         {
             if (self.goodPlacement)
@@ -662,34 +688,9 @@ namespace vanillaVoid
                     var skill = self.skillLocator.utilityBonusStockSkill;
                     if (inventoryCount > 0 && skill.cooldownRemaining > 0) //maybe make this higher
                     {
-                        //var playerPos = self.GetComponent<CharacterBody>().corePosition;
                         float skillCD = skill.baseRechargeInterval;
 
-                        //Debug.Log("cooldown is " + skillCD);
                         int missleCount = (int)Math.Ceiling(skillCD / ItemBase<ExtraterrestrialExhaust>.instance.secondsPerRocket.Value);
-                        //Debug.Log("rockets firing: " + missleCount);
-                        //Debug.Log("lunar primary: " + skill.stock); 
-
-                        //var voidtier1def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier1);
-                        //GameObject prefab = voidtier1def.highlightPrefab;
-                        //Instantiate(prefab, self.transform);
-                        //Debug.Log("time: " + Time.time);
-                        //if (skill.skillDef.ToString().Contains("LunarPrimaryReplacement"))
-                        //{
-                        //    //if (genericRng == null)
-                        //    //{
-                        //    //    genericRng = new Xoroshiro128Plus(Run.instance.seed);
-                        //    //}
-                        //    //int roll = genericRng.RangeInt(1, 100);
-                        //    if (skill.stock % 2 != 0)
-                        //    {
-                        //        missleCount = 1;
-                        //    }
-                        //    else
-                        //    {
-                        //        missleCount = 0;
-                        //    }
-                        //}
                         
                         StartCoroutine(delayedRockets(self.characterBody, missleCount, inventoryCount)); //this can probably be done better
                     }
@@ -698,8 +699,6 @@ namespace vanillaVoid
             }
             
             orig(self);
-
-            //throw new NotImplementedException();
         }
 
         private void ExtExhaustFireProjectile(On.RoR2.CharacterBody.orig_OnSkillActivated orig, RoR2.CharacterBody self, RoR2.GenericSkill skill)
@@ -707,25 +706,12 @@ namespace vanillaVoid
             var inventoryCount = self.inventory.GetItemCount(ItemBase<ExtraterrestrialExhaust>.instance.ItemDef);
             if (inventoryCount > 0 && skill.cooldownRemaining > 0 && skill.skillDef.skillNameToken != "MAGE_UTILITY_ICE_NAME") //ice wall is handled specially 
             {
-                //var playerPos = self.GetComponent<CharacterBody>().corePosition;
                 float skillCD = skill.baseRechargeInterval;
 
-                //Debug.Log("cooldown is " + skillCD);
                 int missleCount = (int)Math.Ceiling(skillCD / ItemBase<ExtraterrestrialExhaust>.instance.secondsPerRocket.Value);
-                //Debug.Log("rockets firing: " + missleCount);
-                //Debug.Log("lunar primary: " + skill.stock); 
 
-                //var voidtier1def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier1);
-                //GameObject prefab = voidtier1def.highlightPrefab;
-                //Instantiate(prefab, self.transform);
-                //Debug.Log("time: " + Time.time);
                 if (skill.skillDef.skillNameToken != "SKILL_LUNAR_PRIMARY_REPLACEMENT_NAME" && ItemBase<ExtraterrestrialExhaust>.instance.visionsNerf.Value)
                 {
-                    //if (genericRng == null)
-                    //{
-                    //    genericRng = new Xoroshiro128Plus(Run.instance.seed);
-                    //}
-                    //int roll = genericRng.RangeInt(1, 100);
                     if (skill.stock % 2 != 0)
                     {
                         missleCount = 1;
@@ -747,104 +733,18 @@ namespace vanillaVoid
             {
                 
                 yield return new WaitForSeconds(.1f);
-                var playerPos = player.GetComponent<CharacterBody>().corePosition;
-                float random = UnityEngine.Random.Range(-30, 30);
+                //var playerPos = player.GetComponent<CharacterBody>().corePosition;
+                //float random = UnityEngine.Random.Range(-30, 30);
                 //Quaternion UpwardsQuat = Quaternion.Euler(270, random, 0);
                 Vector3 Upwards = new Vector3(UnityEngine.Random.Range(-10, 10), 180 - UnityEngine.Random.Range(-30, 30), UnityEngine.Random.Range(-10, 10));
                 Vector3 upTransform = new Vector3(0, 1, 0);
                 //Debug.Log(((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100));
                 float rocketDamage = player.damage * ((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100);
 
-                //FireProjectileInfo fireProjectileInfo = new FireProjectileInfo()
-                //{
-                //    owner = player.gameObject,
-                //    damage = rocketDamage,
-                //    position = player.corePosition,
-                //    rotation = UpwardsQuat,
-                //    crit = player.RollCrit(),
-                //    projectilePrefab = ExtraterrestrialExhaust.RocketProjectile,
-                //    force = 10f,
-                //
-                //    //useSpeedOverride = true,
-                //    //speedOverride = 1f,
-                //};
-//#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                //ProjectileManager.instance.FireProjectile(fireProjectileInfo);
-//#pragma warning restore Publicizer001 // Accessing a member that was not originally public
                 ProcChainMask procChainMask = default(ProcChainMask);
-                //MissileUtils.FireMissile(fireProjectileInfo
-                //Debug.Log(player.corePosition + " | " + (180 - random));
+               
                 MissileUtils.FireMissile(player.corePosition + upTransform, player, procChainMask, null, rocketDamage, player.RollCrit(), ExtraterrestrialExhaust.RocketProjectile, DamageColorIndex.Item, Upwards, 10f, false);
 
-                //EffectData effectData = new EffectData
-                //{
-                //    origin = player.modelLocator.modelBaseTransform.localPosition,
-                //    rootObject = player.gameObject
-                //};
-                //effectData.SetNetworkedObjectReference(player.modelLocator.modelBaseTransform.gameObject); //pulverizedEffectPrefab
-                //EffectManager.SpawnEffect(exhaustVFX, effectData, transmit: true);
-
-                //EffectData effectData = new EffectData
-                //{
-                //    origin = player.corePosition,
-                //    rootObject = player.gameObject
-                //};
-                //effectData.SetNetworkedObjectReference(player.gameObject); //pulverizedEffectPrefab
-                //EffectManager.SpawnEffect(exhaustVFX, effectData, transmit: true);
-
-
-                //FireProjectileInfo fireProjectileInfo = new FireProjectileInfo()
-                //{
-                //    owner = player.gameObject,
-                //    damage = rocketDamage,
-                //    position = player.corePosition,
-                //    rotation = UpwardsQuat,
-                //    crit = player.RollCrit(),
-                //    projectilePrefab = ExtraterrestrialExhaust.RocketProjectile,
-                //    force = 10f,
-                //    
-                //    
-                //    //useSpeedOverride = true,
-                //    //speedOverride = 1f,
-                //};
-                //var targets = new List<HurtBox>();
-                //var sphereSearch = new SphereSearch
-                //{
-                //    mask = LayerIndex.entityPrecise.mask,
-                //    origin = player.transform.position,
-                //    radius = 200
-                //};
-                //sphereSearch.RefreshCandidates();
-                //sphereSearch.FilterCandidatesByDistinctHurtBoxEntities();
-                //sphereSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetEnemyTeams(player.teamComponent.teamIndex));
-                //sphereSearch.OrderCandidatesByDistance();
-                //sphereSearch.GetHurtBoxes(targets);
-                //Debug.Log("target 1: " + targets[0].gameObject + " | " + targets.Capacity);
-                //for (int j = 0; j > targets.Capacity; j++)
-                //{
-                //    Debug.Log("im in the j loop");
-                //    if (targets[j])
-                //    {
-                //        Debug.Log("bouta fire misle");
-                //        MissileUtils.FireMissile(
-                //            player.corePosition,
-                //            player,
-                //            default,
-                //            targets[j].gameObject,
-                //            rocketDamage,
-                //            player.RollCrit(),
-                //            ExtraterrestrialExhaust.RocketProjectile,
-                //            DamageColorIndex.Item,
-                //            Upwards,
-                //            10f,
-                //            true
-                //        );
-                //        break;
-                //    }
-                //}
-                //#pragma warning disable Publicizer001 // Accessing a member that was not originally public
-                //                ProjectileManager.instance.FireProjectileServer(fireProjectileInfo);
-                //#pragma warning restore Publicizer001 // Accessing a member that was not originally public
             }
         }
 

@@ -561,6 +561,45 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.15F, 0.15F, 0.15F)
                 }
             });
+            rules.Add("mdlNemMerc", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    //localPos = new Vector3(0, 0.2513273f, -0.07947429f),
+                    //localAngles = new Vector3(38.5953f, 125.5157f, 313.415f),
+                    //localScale = new Vector3(.05f, .05f, .05f)
+                    localPos = new Vector3(0.05044648f, 0.2545826f, -0.07543247f),
+                    localAngles = new Vector3(30.45993f, 100.5953f, 303.1842f),
+                    localScale = new Vector3(.05f, .05f, .05f)
+                },
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Head",
+                    //localPos = new Vector3(0, 0.2513273f, -0.07947429f),
+                    //localAngles = new Vector3(38.5953f, 125.5157f, 313.415f),
+                    //localScale = new Vector3(.05f, .05f, .05f)
+                    localPos = new Vector3(-0.05044648f, 0.2545826f, -0.07543247f),
+                    localAngles = new Vector3(54.85155f, 192.6111f, 339.3018f),
+                    localScale = new Vector3(.05f, .05f, .05f)
+                }
+            });
+            //rules.Add("RobDriverBody", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "Pelvis",
+            //        localPos = new Vector3(0, 0, -0),
+            //        localAngles = new Vector3(0, 0, 0),
+            //        localScale = new Vector3(1, 1, 1)
+            //    }
+            //});
             rules.Add("mdlTeslaTrooper", new RoR2.ItemDisplayRule[]
             {
                 new RoR2.ItemDisplayRule

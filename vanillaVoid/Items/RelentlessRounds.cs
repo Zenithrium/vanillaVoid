@@ -13,6 +13,7 @@ using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
 using RoR2.Orbs;
 using System.Linq;
+using RoR2.Projectile;
 
 namespace vanillaVoid.Items
 {
@@ -33,10 +34,10 @@ namespace vanillaVoid.Items
         public override string ItemLangTokenName => "RELROUNDS_ITEM";
 
         public override string ItemPickupDesc => "Killing enemies" +
-            (requireTeleporter.Value ? $" in the teleporter" : "") + $" damages active bosses. <style=cIsVoid>Corrupts all Armor-Piercing Rounds</style>.";
+            (requireTeleporter.Value ? $" near the teleporter" : "") + $" damages active bosses. <style=cIsVoid>Corrupts all Armor-Piercing Rounds</style>.";
 
         public override string ItemFullDescription => $"Killing enemies" +
-            (hitAll.Value ? $" in the teleporter" : "") + $" deals {baseDamage.Value * 100}%"+
+            (hitAll.Value ? $" near the teleporter" : "") + $" deals {baseDamage.Value * 100}%"+
             (stackingDamage.Value != 0 ? $" <style=cStack>(+{stackingDamage.Value * 100}% per stack)</style>" : "") + $" damage to " +
             (hitAll.Value ? $" all active bosses" : " a random active boss") + $". <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
@@ -54,6 +55,18 @@ namespace vanillaVoid.Items
 
         public static DamageAPI.ModdedDamageType relentlessDamageType;
 
+        public static GameObject rentlessProjectile => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("RentlessProjectile.prefab");
+
+        public static GameObject rentlessProjectileGhost => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("RentlessProjectileGhost");
+
+        public static GameObject rentlessEffect => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("RentlessEffect");
+
+        public static GameObject rentlessOrbEffect => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("RelentlessOrbEffect.prefab");
+
+        public static Material rentlessTrail => vanillaVoidPlugin.MainAssets.LoadAsset<Material>("matRentlessTrail");
+
+        //public static Material
+
         public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
 
         //public BuffDef relentlessDef { get; private set; }
@@ -70,7 +83,87 @@ namespace vanillaVoid.Items
             //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
             //CreateDOT();
             activeBosses = new List<CharacterBody>();
+            relentlessDamageType = DamageAPI.ReserveDamageType();
+
+            SetupALot();
             Hooks(); 
+        }
+
+        public void SetupALot()
+        {
+            rentlessProjectile.AddComponent<NetworkIdentity>();
+            rentlessProjectile.AddComponent<TeamFilter>();
+            var contr = rentlessProjectile.AddComponent<ProjectileController>();
+            contr.procCoefficient = 1;
+            rentlessProjectile.AddComponent<ProjectileDamage>();
+            rentlessProjectile.AddComponent<ProjectileTargetComponent>();
+            var transf = rentlessProjectile.AddComponent<ProjectileNetworkTransform>();
+            transf.positionTransmitInterval = .33333f;
+            transf.interpolationFactor = 1;
+            var steer = rentlessProjectile.AddComponent<ProjectileSteerTowardTarget>();
+            steer.rotationSpeed = 720;
+            rentlessProjectile.AddComponent<ProjectileSimple>();
+
+            rentlessProjectileGhost.AddComponent<ProjectileGhostController>().enabled = false;
+            var curve = rentlessProjectileGhost.AddComponent<MoveCurve>();
+            curve.animateX = true;
+            curve.animateY = true;
+            curve.animateZ = true;
+            curve.curveScale = 1;
+            curve.moveCurve.keys = new Keyframe[] {
+            new Keyframe(0, 0),
+            new Keyframe(1, 1)
+            };
+
+            var rpgvfx = rentlessProjectileGhost.transform.Find("VFX");
+            var rpgri = rpgvfx.gameObject.AddComponent<RotateItem>();
+            rpgri.spinSpeed = 30;
+            rpgri.bobHeight = .3f;
+            rpgri.offsetVector = Vector3.zero;
+
+            var effc = rentlessEffect.AddComponent<EffectComponent>();
+            effc.applyScale = true;
+            var vfxatr = rentlessEffect.AddComponent<VFXAttributes>();
+            vfxatr.vfxPriority = VFXAttributes.VFXPriority.Low;
+            vfxatr.vfxIntensity = VFXAttributes.VFXIntensity.Low;
+            var timer = rentlessEffect.AddComponent<DestroyOnTimer>();
+            timer.duration = .3f;
+
+            var effc2 = rentlessOrbEffect.AddComponent<EffectComponent>();
+            effc2.applyScale = true;
+
+            var orb = rentlessOrbEffect.AddComponent<OrbEffect>();
+            orb.startVelocity1 = new Vector3(-4, 3, -4);
+            orb.startVelocity2 = new Vector3(4, 1, 4);
+            orb.endVelocity1 = new Vector3(-4, 3, -4);
+            orb.endVelocity2 = new Vector3(4, 1, 4);
+            
+            orb.movementCurve.keys = new Keyframe[] {
+            new Keyframe(0, 0),
+            new Keyframe(1, 1)
+            };
+
+            orb.startEffectScale = 1;
+            orb.endEffect = rentlessEffect;
+            orb.endEffectScale = 2.5f;
+
+            var vfxatr2 = rentlessOrbEffect.AddComponent<VFXAttributes>();
+            vfxatr2.vfxPriority = VFXAttributes.VFXPriority.Medium;
+            vfxatr2.vfxIntensity = VFXAttributes.VFXIntensity.Medium;
+
+            var bez = rentlessEffect.transform.Find("Bezier").gameObject;
+            bez.GetComponent<LineRenderer>().material = rentlessTrail;
+
+            orb.bezierCurveLine = bez.AddComponent<BezierCurveLine>();
+
+            var asa = bez.AddComponent<AnimateShaderAlpha>();
+            asa.alphaCurve.keys = new Keyframe[] {
+            new Keyframe(0, 0),
+            new Keyframe(.510f, 1.05f),
+            new Keyframe(1, 1)
+            };
+            asa.destroyOnEnd = true;
+
         }
 
         public override void CreateConfig(ConfigFile config)
@@ -514,7 +607,8 @@ namespace vanillaVoid.Items
                     if (attacker.inventory)
                     {
                         bool inTeleporter = teleInstance.holdoutZoneController.IsBodyInChargingRadius(obj.victimBody);
-                        if (attacker.inventory.GetItemCount(ItemDef) > 0 && (inTeleporter || !requireTeleporter.Value))
+                        var count = attacker.inventory.GetItemCount(ItemDef);
+                        if (count > 0 && (inTeleporter || !requireTeleporter.Value))
                         {
                             foreach (var boss in activeBosses)
                             {
@@ -529,6 +623,24 @@ namespace vanillaVoid.Items
                                     damageColorIndex = DamageColorIndex.Item,
                                 };
                                 boss.healthComponent.TakeDamage(damageInfo);
+
+                                RelentlessOrb relOrb = new RelentlessOrb();
+                                relOrb.damageValue = attacker.damage * 2.5f * count;
+                                relOrb.damageType = DamageType.Generic;
+                                relOrb.isCrit = damageInfo.crit;
+                                relOrb.damageColorIndex = DamageColorIndex.Void;
+                                relOrb.procCoefficient = .5f;
+                                relOrb.origin = obj.victimBody.corePosition;
+                                relOrb.teamIndex = attacker.teamComponent.teamIndex;
+                                relOrb.attacker = attacker.gameObject;
+                                relOrb.procChainMask = damageInfo.procChainMask;
+                                HurtBox hurtbox = boss.mainHurtBox;
+                                if (hurtbox)
+                                {
+                                    relOrb.target = hurtbox;
+                                    OrbManager.instance.AddOrb(relOrb);
+                                }
+
                             }
                             //token = attacker.gameObject.AddComponent<RoundsToken>();
 
@@ -577,7 +689,7 @@ namespace vanillaVoid.Items
                 };
                 effectData.SetHurtBoxReference(this.target);
 
-                EffectManager.SpawnEffect(maliceOrbEffectPrefab, effectData, true);
+                EffectManager.SpawnEffect(rentlessOrbEffect, effectData, true);
             }
 
             public override void OnArrival()
@@ -603,76 +715,72 @@ namespace vanillaVoid.Items
                         GlobalEventManager.instance.OnHitEnemy(damageInfo, healthComponent.gameObject);
                         GlobalEventManager.instance.OnHitAll(damageInfo, healthComponent.gameObject);
                     }
-                    if (this.bouncesRemaining > 0)
-                    {
-                        if (this.bouncedObjects != null)
-                        {
-                            this.bouncedObjects.Add(this.target.healthComponent);
-                        }
-                        HurtBox hurtBox = this.PickNextTarget(this.target.transform.position, healthComponent);
-                        if (hurtBox)
-                        {
-                            RelentlessOrb maliceOrb = new RelentlessOrb();
-                            maliceOrb.search = this.search;
-                            maliceOrb.origin = this.target.transform.position;
-                            maliceOrb.target = hurtBox;
-                            maliceOrb.attacker = this.attacker;
-                            maliceOrb.inflictor = this.inflictor;
-                            maliceOrb.teamIndex = this.teamIndex;
-                            maliceOrb.damageValue = this.damageValue * this.damageCoefficientPerBounce;
-                            maliceOrb.bouncesRemaining = this.bouncesRemaining - 1;
-                            maliceOrb.isCrit = this.isCrit;
-                            maliceOrb.bouncedObjects = this.bouncedObjects;
-                            maliceOrb.procChainMask = this.procChainMask;
-                            maliceOrb.procCoefficient = this.procCoefficient;
-                            maliceOrb.damageColorIndex = this.damageColorIndex;
-                            maliceOrb.damageCoefficientPerBounce = this.damageCoefficientPerBounce;
-                            maliceOrb.baseRange = this.baseRange;
-                            maliceOrb.damageType = this.damageType;
-                            OrbManager.instance.AddOrb(maliceOrb);
-                        }
-                    }
+                    //if (this.bouncesRemaining > 0)
+                    //{
+                    //    if (this.bouncedObjects != null)
+                    //    {
+                    //        this.bouncedObjects.Add(this.target.healthComponent);
+                    //    }
+                    //    HurtBox hurtBox = this.PickNextTarget(this.target.transform.position, healthComponent);
+                    //    if (hurtBox)
+                    //    {
+                    //        RelentlessOrb maliceOrb = new RelentlessOrb();
+                    //        maliceOrb.search = this.search;
+                    //        maliceOrb.origin = this.target.transform.position;
+                    //        maliceOrb.target = hurtBox;
+                    //        maliceOrb.attacker = this.attacker;
+                    //        maliceOrb.inflictor = this.inflictor;
+                    //        maliceOrb.teamIndex = this.teamIndex;
+                    //        maliceOrb.damageValue = this.damageValue * this.damageCoefficientPerBounce;
+                    //        maliceOrb.bouncesRemaining = this.bouncesRemaining - 1;
+                    //        maliceOrb.isCrit = this.isCrit;
+                    //        maliceOrb.bouncedObjects = this.bouncedObjects;
+                    //        maliceOrb.procChainMask = this.procChainMask;
+                    //        maliceOrb.procCoefficient = this.procCoefficient;
+                    //        maliceOrb.damageColorIndex = this.damageColorIndex;
+                    //        maliceOrb.damageCoefficientPerBounce = this.damageCoefficientPerBounce;
+                    //        maliceOrb.baseRange = this.baseRange;
+                    //        maliceOrb.damageType = this.damageType;
+                    //        OrbManager.instance.AddOrb(maliceOrb);
+                    //    }
+                    //}
 
                 }
             }
-            public HurtBox PickNextTarget(Vector3 position, HealthComponent currentVictim)
-            {
-                if (this.search == null)
-                {
-                    this.search = new BullseyeSearch();
-                }
-                float range = baseRange;
-                if (currentVictim && currentVictim.body)
-                {
-                    range += currentVictim.body.radius;
-                }
-                this.search.searchOrigin = position;
-                this.search.searchDirection = Vector3.zero;
-                this.search.teamMaskFilter = TeamMask.allButNeutral;
-                this.search.teamMaskFilter.RemoveTeam(this.teamIndex);
-                this.search.filterByLoS = false;
-                this.search.sortMode = BullseyeSearch.SortMode.Distance;
-                this.search.maxDistanceFilter = range;
-                this.search.RefreshCandidates();
-                HurtBox hurtBox = (from v in this.search.GetResults()
-                                   where !this.bouncedObjects.Contains(v.healthComponent)
-                                   select v).FirstOrDefault<HurtBox>();
-                if (hurtBox)
-                {
-                    this.bouncedObjects.Add(hurtBox.healthComponent);
-                }
-                return hurtBox;
-            }
+            //public HurtBox PickNextTarget(Vector3 position, HealthComponent currentVictim)
+            //{
+            //    if (this.search == null)
+            //    {
+            //        this.search = new BullseyeSearch();
+            //    }
+            //    float range = baseRange;
+            //    if (currentVictim && currentVictim.body)
+            //    {
+            //        range += currentVictim.body.radius;
+            //    }
+            //    this.search.searchOrigin = position;
+            //    this.search.searchDirection = Vector3.zero;
+            //    this.search.teamMaskFilter = TeamMask.allButNeutral;
+            //    this.search.teamMaskFilter.RemoveTeam(this.teamIndex);
+            //    this.search.filterByLoS = false;
+            //    this.search.sortMode = BullseyeSearch.SortMode.Distance;
+            //    this.search.maxDistanceFilter = range;
+            //    this.search.RefreshCandidates();
+            //    HurtBox hurtBox = (from v in this.search.GetResults()
+            //                       where !this.bouncedObjects.Contains(v.healthComponent)
+            //                       select v).FirstOrDefault<HurtBox>();
+            //    if (hurtBox)
+            //    {
+            //        this.bouncedObjects.Add(hurtBox.healthComponent);
+            //    }
+            //    return hurtBox;
+            //}
 
             public float damageValue;
 
             public GameObject attacker;
 
             public GameObject inflictor;
-
-            public int bouncesRemaining;
-
-            public List<HealthComponent> bouncedObjects;
 
             public TeamIndex teamIndex;
 
@@ -686,11 +794,8 @@ namespace vanillaVoid.Items
 
             public float baseRange = 20f;
 
-            public float damageCoefficientPerBounce = 1f;
-
             public DamageType damageType;
 
-            private BullseyeSearch search;
         }
     }
     //public class RoundsToken : MonoBehaviour
