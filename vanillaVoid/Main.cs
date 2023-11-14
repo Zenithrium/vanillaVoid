@@ -54,7 +54,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.5.7";
+        public const string ModVer = "1.5.8";
 
         public static ExpansionDef sotvDLC;
         public static ExpansionDef sotvDLC2;
@@ -87,6 +87,7 @@ namespace vanillaVoid
         public static ConfigEntry<int> LocusBonus;
 
         public static ConfigEntry<bool> lockVoidsBehindPair;
+        public static ConfigEntry<bool> doVoidPickupBorders;
 
         public static ConfigEntry<int> LotusVariant;
         public static ConfigEntry<float> LotusDuration;
@@ -119,7 +120,7 @@ namespace vanillaVoid
             LocusBonus = Config.Bind<int>("Tweaks: Void Locus", "Locus Bonus Credits", 0, "If you want to make going to the void locus have a little more of a reward, increase this number. Should be increased in at least multiples of 50ish");
 
             lockVoidsBehindPair = Config.Bind<bool>("Tweaks: Void Items", "Require Original Item Unlocked", true, "If enabled, makes it so void items are locked until the non-void pair is unlocked. Ex. Pluripotent is locked until the profile has unlocked Dios. Only applies to void items which do not already have unlocks, in the event a mod adds special unlocks for a void item.");
-
+            doVoidPickupBorders = Config.Bind<bool>("Tweaks: Void Items", "Improved Pickup Highlights", true, "If enabled, picking up a void item will show tier-appropriate item highlights rather the the default white highlights.");
             string lotusname = "Crystalline Lotus";
 
             LotusVariant = Config.Bind<int>("Item: " + lotusname, "Variant of Item", 0, "Adjust which version of " + lotusname + " you'd prefer to use. Variant 0 releases slowing novas per pulse, which reduce enemy and projectile speed, while Variant 1 provides 50% barrier per pulse.");
@@ -635,7 +636,7 @@ namespace vanillaVoid
                 var body = skillSlot.characterBody;
                 if (body) //to be safe i guess
                 {
-                    Debug.Log("Firing missiles in onExecute " + self + " | " + self.name + " | " + skillSlot + " | " + self.stockToConsume);
+                    //Debug.Log("Firing missiles in onExecute " + self + " | " + self.name + " | " + skillSlot + " | " + self.stockToConsume);
                     TryExhaust(body, skillSlot);
                 }
             }
@@ -648,7 +649,7 @@ namespace vanillaVoid
             var body = self.characterBody;
             if (body)
             {
-                Debug.Log("firing missiles in deduct stock");
+                //Debug.Log("firing missiles in deduct stock");
                 TryExhaust(body, self); //skill is special and calls deduct stock itself - fire now
             }
         }
@@ -1745,7 +1746,7 @@ namespace vanillaVoid
 
         public void ApplyTierHighlights()
         {
-            if (!hasAdjustedTiers)
+            if (!hasAdjustedTiers && doVoidPickupBorders.Value)
             {
                 var voidtier1def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier1);
                 if (voidtier1def)

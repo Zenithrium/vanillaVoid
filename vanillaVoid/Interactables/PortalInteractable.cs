@@ -43,19 +43,20 @@ namespace vanillaVoid.Interactables
         public static CostTypeDef voidCostDef;
         public static int voidCostTypeIndex;
 
-        public bool hasAddedMonolith;
+        public int hasAddedMonolith;
         public static DirectorCard MonolithCard;
         //public Transform symbolTransform;
 
         public override void Init(ConfigFile config)
         {
-            hasAddedMonolith = false;
+            hasAddedMonolith = -1;
             CreateConfig(config);
             CreateLang();
 
             CostTypeCatalog.modHelper.getAdditionalEntries += addVoidCostType;
             On.RoR2.CampDirector.SelectCard += VoidCampAddMonolith;
             On.RoR2.PurchaseInteraction.GetDisplayName += MonolithName;
+            RoR2.SceneDirector.onPrePopulateSceneServer += SetPortalCard;
             //On.RoR2.CampDirector.SelectCard
             //Stage.onServerStageBegin += HopefullyFixIncompat;
             //On.RoR2.SceneDirector.Start += Test;
@@ -66,6 +67,11 @@ namespace vanillaVoid.Interactables
             CreateInteractableSpawnCard();
 
             //Hooks();
+        }
+
+        private void SetPortalCard(SceneDirector obj)
+        {
+            hasAddedMonolith = -1 ;
         }
 
         private void addVoidCostType(List<CostTypeDef> obj)
@@ -292,16 +298,17 @@ namespace vanillaVoid.Interactables
 
         private DirectorCard VoidCampAddMonolith(On.RoR2.CampDirector.orig_SelectCard orig, CampDirector self, WeightedSelection<DirectorCard> deck, int maxCost)
         {
-            hasAddedMonolith = false;
-            
-            if (self.name == "Camp 1 - Void Monsters & Interactables")
+            //hasAddedMonolith = false;
+            //Debug.Log("void camp add monolith start ! " + hasAddedMonolith);
+            if (self.name == "Camp 1 - Void Monsters & Interactables" && hasAddedMonolith == -1)
             {
                 for (int i = deck.Count - 1; i >= 0; i--)
                 {
                     //Debug.Log("name: " + deck.GetChoice(i).value.spawnCard.name + " | cost: " + deck.GetChoice(i).value.cost);
                     if (deck.GetChoice(i).value.spawnCard.name == "iscVoidPortalInteractable")
                     {
-                        hasAddedMonolith = true;
+                        //hasAddedMonolith = 0;
+                        hasAddedMonolith = 0;
                         break;
                     }
                     //Debug.Log("card name: " + deck.GetChoice(i).value.spawnCard.name + " | weight: " + deck.GetChoice(i).weight);
@@ -314,9 +321,11 @@ namespace vanillaVoid.Interactables
                     CreateInteractableSpawnCard();
                 }
                 
-                if (MonolithCard != null && !hasAddedMonolith)
+                if (MonolithCard != null && hasAddedMonolith == -1)
                 {
                     deck.AddChoice(MonolithCard, voidSeedWeight.Value);
+                    hasAddedMonolith = 0;
+                    //Debug.Log("adding monolith");
                     //hasAddedMonolith = true;
                 }
                 else if(MonolithCard == null){
@@ -328,7 +337,38 @@ namespace vanillaVoid.Interactables
                 //    //CreateInteractableSpawnCard();
                 //}
             }
-            return orig(self, deck, maxCost);
+
+            var yeah = orig(self, deck, maxCost);
+            if (yeah != null)
+            {
+                //Debug.Log("yeah: " + yeah + " is available");
+                if (yeah.IsAvailable())
+                {
+                    if (yeah.spawnCard)
+                    {
+                        //Debug.Log("yeah: " + yeah.spawnCard + " exists");
+                        if (yeah.spawnCard.name == MonolithCard.spawnCard.name)
+                        {
+                            for (int i = deck.Count - 1; i >= 0; i--)
+                            {
+                                //Debug.Log("name: " + deck.GetChoice(i).value.spawnCard.name + " | cost: " + deck.GetChoice(i).value.cost);
+                                if (deck.GetChoice(i).value.spawnCard.name == "iscVoidPortalInteractable")
+                                {
+                                    //Debug.Log("removing monolith");
+                                    deck.RemoveChoice(i);
+                                    hasAddedMonolith = 1;
+                                    break;
+                                }
+                                //Debug.Log("card name: " + deck.GetChoice(i).value.spawnCard.name + " | weight: " + deck.GetChoice(i).weight);
+                            }
+                        }
+                    }
+                }
+            }
+            //Debug.Log("yeah: " + yeah + " | " + yeah.spawnCard + " | " + yeah.spawnCard);
+
+
+            return yeah;
         }
 
 

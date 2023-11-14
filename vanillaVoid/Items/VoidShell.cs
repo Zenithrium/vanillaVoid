@@ -178,7 +178,8 @@ namespace vanillaVoid.Items
             var locusCards = Addressables.LoadAssetAsync<DirectorCardCategorySelection>("RoR2/DLC1/voidstage/dccsVoidStageMonsters.asset").WaitForCompletion(); //maybe "RoR2/Base/Common/dccsNullifiersOnly.asset"
             //var nullifierCards = Addressables.LoadAssetAsync<DirectorCardCategorySelection>("RoR2/Base/Common/dccsNullifiersOnly.asset").WaitForCompletion(); 
             
-            DirectorCardCategorySelection voidThreats = new DirectorCardCategorySelection();
+            //DirectorCardCategorySelection voidThreats = new DirectorCardCategorySelection();
+            var voidThreats = ScriptableObject.CreateInstance<DirectorCardCategorySelection>();
             //Debug.Log("Category Selection Made - " + voidThreats);
             //var fodder = newCards.AddCategory("Void Fodder", .9f);
             //var category0 = voidThreats.AddCategory("All", 1);
