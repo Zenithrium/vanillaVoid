@@ -61,8 +61,8 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
-        string tempItemPickupDesc;
-        string tempItemFullDescription;
+        //string tempItemPickupDesc;
+        //string tempItemFullDescription;
 
         public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.Damage, ItemTag.AIBlacklist };
 

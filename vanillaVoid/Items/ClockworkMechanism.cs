@@ -78,6 +78,7 @@ namespace vanillaVoid.Items
         string tempLore;
 
         bool isBazaarStage;
+        bool isValid;
 
         public override void Init(ConfigFile config)
         {
@@ -720,7 +721,172 @@ namespace vanillaVoid.Items
                 }
             }
             RoR2.SceneDirector.onPrePopulateSceneServer += HelpDirector;
+            On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer += HelpSimulacrum;
+            RoR2.SceneDirector.onPostPopulateSceneServer += Variant2Clear;
             //On.RoR2.Stage.RespawnCharacter += StageRewards;
+        }
+
+        private void Variant2Clear(SceneDirector obj)
+        {
+            //Debug.Log("Hej jag är jen");
+            if (isValid && itemVariant.Value == 2) //var 2
+            {
+                //Debug.Log("Jag heter j");
+                int itemCount = 0;
+                int tempItemCount = 0;
+                int playerCount = PlayerCharacterMasterController.instances.Count;
+                //Debug.Log("Jag heter j " + playerCount);
+                //if (playerCount == 0)
+                //{
+                //    playerCount = 1; //don't think this should ever happen but i wnana be sure it doesnt!
+                //}
+                foreach (var player in PlayerCharacterMasterController.instances)
+                {
+                    //itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+                    //Debug.Log("player ");
+                    tempItemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+                    if (tempItemCount > 0)
+                    {
+                        //Debug.Log("the j is r eal");
+                        if (variantBreakAmount.Value < 0)
+                        {
+                            player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+                            player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, tempItemCount);
+                        }
+                        else
+                        {
+                            if (variantBreakAmount.Value > tempItemCount)
+                            {
+                                player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+                                player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, tempItemCount);
+                            }
+                            else
+                            {
+                                player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, variantBreakAmount.Value);
+                                player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, variantBreakAmount.Value);
+                            }
+                        }
+                        //player.body.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+                        //player.body.inventory.GiveItem(ItemBase<BrokenClockworkMechanism>.instance.ItemDef, tempItemCount);
+                        CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                    }
+                    itemCount += tempItemCount;
+                    tempItemCount = 0;
+
+                }
+                //obj.interactableCredit *= (int)(directorMultiplier.Value * (float)itemCount);
+            }
+        }
+
+        private void HelpSimulacrum(On.RoR2.InfiniteTowerRun.orig_OnPrePopulateSceneServer orig, InfiniteTowerRun self, SceneDirector obj)
+        {
+            orig(self, obj);
+            //Debug.Log("SIMU function starting, interactable credits: " + obj.interactableCredit);
+            if ((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariant.Value == 1){ //var 1
+                //Debug.Log("Variant 1 rawring");
+                int itemCount = 0;
+                //int playerCount = 0; // icould probably do this in a better way
+                int playerCount = PlayerCharacterMasterController.instances.Count;
+                if (playerCount == 0)
+                {
+                    playerCount = 1; //don't think this should ever happen but i wnana be sure it doesnt!
+                }
+                foreach (var player in PlayerCharacterMasterController.instances)
+                {
+                    //++playerCount;
+                    itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+                }
+
+                float creditBoost = ((directorBuff.Value + (stackingBuff.Value * (itemCount - 1f))));
+                if (isPerPlayer.Value)
+                {
+                    creditBoost *= playerCount;
+                }
+                obj.interactableCredit += (int)creditBoost;
+            }
+            else if (obj.interactableCredit != 0 && itemVariant.Value == 2) //var 2
+            {
+                //Debug.Log("Variant 2 rawring");
+
+                int itemCount = 0;
+                int tempItemCount = 0;
+                int playerCount = PlayerCharacterMasterController.instances.Count;
+                if (playerCount == 0)
+                {
+                    playerCount = 1; //don't think this should ever happen but i wnana be sure it doesnt!
+                }
+                foreach (var player in PlayerCharacterMasterController.instances)
+                {
+                    //itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+
+                    tempItemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+                    if (tempItemCount > 0)
+                    {
+                        //Debug.Log("enough ");
+                        if (variantBreakAmount.Value < 0)
+                        {
+                            //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+                            //player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, tempItemCount);
+                            float creditMult = directorMultiplier.Value + (directorMultiplierStacking.Value * (float)tempItemCount);
+
+                            if (isPerPlayer.Value)
+                            {
+                                creditMult *= playerCount;
+                            }
+
+                            if (var2Mult.Value)
+                            {
+                                //obj.interactableCredit = (int)(obj.interactableCredit * creditMult);
+                                obj.interactableCredit *= (int)creditMult;
+                            }
+                            else
+                            {
+                                obj.interactableCredit += (int)creditMult;
+                            }
+                        }
+                        else
+                        {
+                            if (variantBreakAmount.Value > tempItemCount)
+                            {
+                                //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+                                //player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, tempItemCount);
+                                float creditMult = directorMultiplier.Value + (directorMultiplierStacking.Value * (float)tempItemCount);
+                                if (var2Mult.Value)
+                                {
+                                    obj.interactableCredit = (int)(obj.interactableCredit * creditMult);
+                                }
+                                else
+                                {
+                                    obj.interactableCredit = (int)(obj.interactableCredit + creditMult);
+                                }
+                            }
+                            else
+                            {
+                                //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, variantBreakAmount.Value);
+                                //player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, variantBreakAmount.Value);
+                                float creditMult = directorMultiplier.Value + (directorMultiplierStacking.Value * (float)variantBreakAmount.Value);
+                                if (var2Mult.Value)
+                                {
+                                    obj.interactableCredit = (int)(obj.interactableCredit * creditMult);
+                                }
+                                else
+                                {
+                                    obj.interactableCredit = (int)(obj.interactableCredit + creditMult);
+                                }
+
+                            }
+                        }
+                        //player.body.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+                        //player.body.inventory.GiveItem(ItemBase<BrokenClockworkMechanism>.instance.ItemDef, tempItemCount);
+                        //CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                    }
+                    itemCount += tempItemCount;
+                    tempItemCount = 0;
+
+                }
+                //obj.interactableCredit *= (int)(directorMultiplier.Value * (float)itemCount);
+            }
+            //Debug.Log("SIMU function ending, interactable credits after: " + obj.interactableCredit);
         }
 
         private void DetermineStage(Stage obj)
@@ -797,9 +963,9 @@ namespace vanillaVoid.Items
 
         private void HelpDirector(SceneDirector obj)
         {
-            
+            isValid = false;
             //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
-            if((bazaarHappen.Value || !isBazaarStage) && itemVariant.Value == 0 && false) //var 0
+            if ((bazaarHappen.Value || !isBazaarStage) && itemVariant.Value == 0 && false) //var 0
             {
                 //int itemCount = 0;
                 foreach (var player in PlayerCharacterMasterController.instances)
@@ -892,8 +1058,8 @@ namespace vanillaVoid.Items
                     {
                         if (variantBreakAmount.Value < 0)
                         {
-                            player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
-                            player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, tempItemCount);
+                            //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+                            //player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, tempItemCount);
                             float creditMult = directorMultiplier.Value + (directorMultiplierStacking.Value * (float)tempItemCount);
 
                             if (isPerPlayer.Value)
@@ -915,8 +1081,8 @@ namespace vanillaVoid.Items
                         {
                             if (variantBreakAmount.Value > tempItemCount)
                             {
-                                player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
-                                player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, tempItemCount);
+                                //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
+                                //player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, tempItemCount);
                                 float creditMult = directorMultiplier.Value + (directorMultiplierStacking.Value * (float)tempItemCount);
                                 if (var2Mult.Value)
                                 {
@@ -929,8 +1095,8 @@ namespace vanillaVoid.Items
                             }
                             else
                             {
-                                player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, variantBreakAmount.Value);
-                                player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, variantBreakAmount.Value);
+                                //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, variantBreakAmount.Value);
+                                //player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, variantBreakAmount.Value);
                                 float creditMult = directorMultiplier.Value + (directorMultiplierStacking.Value * (float)variantBreakAmount.Value);
                                 if (var2Mult.Value)
                                 {
@@ -945,7 +1111,8 @@ namespace vanillaVoid.Items
                         }
                         //player.body.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
                         //player.body.inventory.GiveItem(ItemBase<BrokenClockworkMechanism>.instance.ItemDef, tempItemCount);
-                        CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                        //CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                        isValid = true;
                     }
                     itemCount += tempItemCount;
                     tempItemCount = 0;

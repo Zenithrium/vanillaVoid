@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 560016355
+CRC: 3286047061
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 5d6f616f71cbcc8c0e7bd5f18ac97463
+    Hash: 608d83071cc7a645725976fc305b1c68
   TypeTreeHash:
     serializedVersion: 2
     Hash: 0b41857b7164f96294ebced1c3191aa0
@@ -208,6 +208,7 @@ Assets:
 - Assets/Models/Prefabs/Item/LotusItem/texRampIce4.png
 - Assets/Models/Prefabs/Item/VialsItem/vialMatDisplay.mat
 - Assets/Models/Prefabs/Item/ExtVent/orbFlare2Mat.mat
+- Assets/Models/Misc/VoidItemVFX.prefab
 - Assets/raw/quill/normalbetter.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/shatterStatus.png
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladeWorldObject.prefab

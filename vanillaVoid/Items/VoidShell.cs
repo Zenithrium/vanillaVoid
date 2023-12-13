@@ -283,7 +283,7 @@ namespace vanillaVoid.Items
                 //combatdir.currentActiveEliteDef = DLC1Content.Elites.Void;
                 combatdir.customName = "LostBatteryDirector";
                 combatdir.monsterCards = locusCards;
-                combatdir.eliteBias = 1;
+                combatdir.eliteBias = 0;
                 combatdir.moneyWaveIntervals = new RangeFloat[] { new RangeFloat { min = 1, max = 1 } };
                 combatdir.shouldSpawnOneWave = false;
                 //combatdir.minSpawnRange
@@ -308,7 +308,7 @@ namespace vanillaVoid.Items
                 cd2.monsterCredit = bossMonsterCredits.Value;
                 cd2.customName = "LostBatteryDirectorBoss";
                 cd2.monsterCards = voidThreats;
-                cd2.eliteBias = 1;
+                cd2.eliteBias = 0;
                 //cd2.num
                 //cd2.moneyWaveIntervals = new RangeFloat[] { new RangeFloat { min = 1, max = 1 } };
                 cd2.shouldSpawnOneWave = false;
