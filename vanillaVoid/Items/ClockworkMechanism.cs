@@ -796,13 +796,18 @@ namespace vanillaVoid.Items
                     //++playerCount;
                     itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
                 }
+                Debug.Log("itemCount: " + itemCount);
 
-                float creditBoost = ((directorBuff.Value + (stackingBuff.Value * (itemCount - 1f))));
-                if (isPerPlayer.Value)
+                if (itemCount > 0)
                 {
-                    creditBoost *= playerCount;
+                    float creditBoost = ((directorBuff.Value + (stackingBuff.Value * (itemCount - 1f))));
+                    if (isPerPlayer.Value)
+                    {
+                        creditBoost *= playerCount;
+                    }
+                    obj.interactableCredit += (int)creditBoost;
+                    Debug.Log("creditBoost: " + creditBoost);
                 }
-                obj.interactableCredit += (int)creditBoost;
             }
             else if (obj.interactableCredit != 0 && itemVariant.Value == 2) //var 2
             {
