@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 3286047061
+CRC: 3293997301
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 608d83071cc7a645725976fc305b1c68
+    Hash: b883a95aa2cffa2705efe916378fda1c
   TypeTreeHash:
     serializedVersion: 2
     Hash: 0b41857b7164f96294ebced1c3191aa0
@@ -50,6 +50,7 @@ Assets:
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladeDisplay.prefab
 - Assets/Models/Prefabs/Item/ExtVent/ventOrbMat.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/MessItem/pottexture.mat
+- Assets/Models/Misc/CommandVFX/matGlowItemPickup.mat
 - Assets/Models/Prefabs/Item/CryoItem/preFreezeSlow.png
 - Assets/Models/Prefabs/Item/ExtVent/extSmokeMat.mat
 - Assets/Models/Prefabs/Item/WhorlItem/cornucopiaIcon512.png
@@ -57,6 +58,8 @@ Assets:
 - Assets/Sprites/texUICornerTier1.png
 - Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryPickup.prefab
 - Assets/Models/VFX/texBehemothTileMask.png
+- Assets/Models/Misc/CommandVFX/matGenericFlash.mat
+- Assets/Models/Misc/CommandVFX/matNullifierStarPortalEdge.mat
 - Assets/Models/Prefabs/Item/WhorlItem/texParticlesGalaxy.png
 - Assets/Models/Prefabs/Item/OrreryItem/newOrreryMaterial.mat
 - Assets/Models/Prefabs/Item/CryoItem/cryoMat.mat
@@ -87,6 +90,7 @@ Assets:
 - Assets/Models/Prefabs/Item/ExtVent/extVentMatDisplay.mat
 - Assets/Models/Misc/Interactables/texCloudIce.png
 - Assets/Models/Misc/fbxVoidPlatform.fbx
+- Assets/Models/Misc/CommandVFX/VoidSystem.prefab
 - Assets/Sprites/texUICornerTier4.png
 - Assets/Models/Prefabs/Item/CryoItem/cryoIcon512.png
 - Assets/Models/Prefabs/Item/CryoItem/matDistortion.mat
@@ -100,6 +104,7 @@ Assets:
 - Assets/Models/Prefabs/Item/AbyssalAdze/old/orbCoreTexture.mat
 - Assets/Models/Misc/fbxVoidArch.fbx
 - Assets/Models/Prefabs/Item/WhorlItem/whorlShellMatDisplay.mat
+- Assets/Models/Misc/CommandVFX/matNullifierStarTrail.mat
 - Assets/Models/Prefabs/Item/VialsItem/vialsGlassMat.mat
 - Assets/Sprites/texShrineIconOutlined.png
 - Assets/Models/Prefabs/Item/WhorlItem/whorlIcon512old.png
@@ -151,6 +156,7 @@ Assets:
 - Assets/Models/Prefabs/Item/ClockworkWatch/MessItem/swordtexture.mat
 - Assets/Models/Prefabs/Item/ExtVent/mdlVentDisplay.prefab
 - Assets/Models/Prefabs/Item/BladeItem/bladeIcon512.png
+- Assets/Models/Misc/CommandVFX/matInverseDistortion.mat
 - Assets/Models/Prefabs/Item/BladeItem/bladeMat.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/whiteMat.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/backMatDisplay.mat
@@ -208,8 +214,9 @@ Assets:
 - Assets/Models/Prefabs/Item/LotusItem/texRampIce4.png
 - Assets/Models/Prefabs/Item/VialsItem/vialMatDisplay.mat
 - Assets/Models/Prefabs/Item/ExtVent/orbFlare2Mat.mat
-- Assets/Models/Misc/VoidItemVFX.prefab
+- Assets/Models/Misc/VoidCommandVFX.prefab
 - Assets/raw/quill/normalbetter.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/shatterStatus.png
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladeWorldObject.prefab
+- Assets/Models/Misc/CommandVFX/matTracerBright.mat
 Dependencies: []

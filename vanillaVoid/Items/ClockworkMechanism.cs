@@ -657,6 +657,18 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(.05f, .05f, .05f)
                 }
             });
+            rules.Add("mdlChirr", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "ShoulderR",
+                    localPos = new Vector3(0.02588F, 0.62864F, -0.16148F),
+                    localAngles = new Vector3(296.3986F, 266.609F, 70.40233F),
+                    localScale = new Vector3(0.1F, 0.1F, 0.1F)
+                }
+            });
             //rules.Add("RobDriverBody", new RoR2.ItemDisplayRule[]
             //{
             //    new RoR2.ItemDisplayRule
@@ -796,7 +808,7 @@ namespace vanillaVoid.Items
                     //++playerCount;
                     itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
                 }
-                Debug.Log("itemCount: " + itemCount);
+                //Debug.Log("itemCount: " + itemCount);
 
                 if (itemCount > 0)
                 {
@@ -806,7 +818,7 @@ namespace vanillaVoid.Items
                         creditBoost *= playerCount;
                     }
                     obj.interactableCredit += (int)creditBoost;
-                    Debug.Log("creditBoost: " + creditBoost);
+                    //Debug.Log("creditBoost: " + creditBoost);
                 }
             }
             else if (obj.interactableCredit != 0 && itemVariant.Value == 2) //var 2
@@ -820,6 +832,7 @@ namespace vanillaVoid.Items
                 {
                     playerCount = 1; //don't think this should ever happen but i wnana be sure it doesnt!
                 }
+
                 foreach (var player in PlayerCharacterMasterController.instances)
                 {
                     //itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);

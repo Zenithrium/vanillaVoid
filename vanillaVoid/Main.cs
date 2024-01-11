@@ -54,7 +54,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.5.11";
+        public const string ModVer = "1.5.12";
 
         public static ExpansionDef sotvDLC;
         public static ExpansionDef sotvDLC2;
@@ -83,11 +83,13 @@ namespace vanillaVoid
         public Xoroshiro128Plus genericRng;
 
         //public static ConfigEntry<bool> orreryCompat;
+        public static ConfigEntry<bool> locusEarlyExit;
         public static ConfigEntry<bool> locusExit;
         public static ConfigEntry<int> LocusBonus;
 
         public static ConfigEntry<bool> lockVoidsBehindPair;
         public static ConfigEntry<bool> doVoidPickupBorders;
+        public static ConfigEntry<bool> doVoidCommandVFX;
 
         public static ConfigEntry<int> LotusVariant;
         public static ConfigEntry<float> LotusDuration;
@@ -110,6 +112,7 @@ namespace vanillaVoid
         GameObject tier3Clone;
         GameObject tier4Clone;
         bool hasAdjustedTiers;
+        bool hasAddedCommand;
 
         public static BuffDef lotusSlow { get; private set; }
 
@@ -117,10 +120,13 @@ namespace vanillaVoid
         {
             //orreryCompat = Config.Bind<bool>("Mod Compatability", "Enable Lost Seers Buff", true, "Should generally stay on, but if you're having a strange issue (ex. health bars not showing up on enemies) edit this to be false.");
             locusExit = Config.Bind<bool>("Tweaks: Void Locus", "Exit Portal", true, "If enabled, spawns a portal in the void locus letting you return to normal stages if you want to.");
+            locusEarlyExit = Config.Bind<bool>("Tweaks: Void Locus", "Early Exit Portal", false, "If enabled, spawns the exit portal in void locus immediately upon entering the stage. Requires the exit portal to actually be enabled.");
             LocusBonus = Config.Bind<int>("Tweaks: Void Locus", "Locus Bonus Credits", 0, "If you want to make going to the void locus have a little more of a reward, increase this number. Should be increased in at least multiples of 50ish");
 
             lockVoidsBehindPair = Config.Bind<bool>("Tweaks: Void Items", "Require Original Item Unlocked", true, "If enabled, makes it so void items are locked until the non-void pair is unlocked. Ex. Pluripotent is locked until the profile has unlocked Dios. Only applies to void items which do not already have unlocks, in the event a mod adds special unlocks for a void item.");
             doVoidPickupBorders = Config.Bind<bool>("Tweaks: Void Items", "Improved Pickup Highlights", true, "If enabled, picking up a void item will show tier-appropriate item highlights rather the the default white highlights.");
+            doVoidCommandVFX = Config.Bind<bool>("Tweaks: Void Items", "Improved Command VFX", true, "If enabled, void command cubes will have appropriate void vfx in the style of typical command VFX based on the actual void item VFX.");
+
             string lotusname = "Crystalline Lotus";
 
             LotusVariant = Config.Bind<int>("Item: " + lotusname, "Variant of Item", 0, "Adjust which version of " + lotusname + " you'd prefer to use. Variant 0 releases slowing novas per pulse, which reduce enemy and projectile speed, while Variant 1 provides 50% barrier per pulse.");
@@ -169,6 +175,7 @@ namespace vanillaVoid
             On.RoR2.SceneDirector.PlaceTeleporter += PrimoridalTeleporterCheck;
 
             Stage.onServerStageBegin += AddLocusStuff;
+            On.RoR2.VoidStageMissionController.OnBatteryActivated += SpawnLocusPortal;
             RoR2.SceneDirector.onPrePopulateSceneServer += LocusDirectorHelp;
             //On.RoR2.Projectile.SlowDownProjectiles.OnTriggerEnter += fuck;
             RecalculateStatsAPI.GetStatCoefficients += LotusSlowStatsHook;
@@ -281,6 +288,25 @@ namespace vanillaVoid
             CreateLotusBuff();
 
             SetupVoidTierHighlights();
+
+            //GameObject commandCube = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Command/CommandCube.prefab").WaitForCompletion();
+            ////commandCube.transform.Find("PickupDisplay");
+            //
+            //GameObject voidsys = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("VoidSystem.prefab");
+            //
+            //voidsys.transform.SetParent(commandCube.transform.Find("PickupDisplay"));
+
+            //GameObject holder = new GameObject("VoidTierSystem");
+            //holder.transform.SetParent(commandCube.transform.Find("PickupDisplay"));
+            //holder.layer = 10;
+
+            //GameObject loops = new GameObject("Loops");
+            //loops.transform.SetParent(holder.transform);
+
+            //GameObject distant = new GameObject("DistantSoftGlow");
+            //loops.transform.SetParent(loops.transform);
+
+
 
             //var voidtier1def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier1);
             //GameObject v1prefab = voidtier1def.highlightPrefab;
@@ -1643,6 +1669,14 @@ namespace vanillaVoid
             }
 
             hasAdjustedTiers = false;
+            if (!doVoidCommandVFX.Value)
+            {
+                hasAddedCommand = true;
+            }
+            else
+            {
+                hasAddedCommand = false;
+            }
         }
 
         public void ApplyTierHighlights()
@@ -1689,23 +1723,129 @@ namespace vanillaVoid
 
         private void AddLocusStuff(Stage obj)
         {
-            //Debug.Log("dlc enabled, obviously");
-            //Debug.Log(obj.sceneDef + " " + obj.sceneDef.cachedName + " ");
-            //Debug.Log("item: " + ClockworkMechanism.instance.ItemLangTokenName);
 
             ApplyTierHighlights();
+            if (!hasAddedCommand && doVoidCommandVFX.Value)
+            {
+                hasAddedCommand = true;
+                GameObject commandCube = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Command/CommandCube.prefab").WaitForCompletion();
+                //commandCube.transform.Find("PickupDisplay");
+
+                GameObject voidsys = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("VoidSystem.prefab");
+
+                if (commandCube)
+                {
+                    if (commandCube.transform)
+                    {
+                        var trans = commandCube.transform.Find("PickupDisplay");
+                        if (trans)
+                        {
+                            var se = voidsys.AddComponent<ShakeEmitter>();
+                            var wave = new Wave();
+                            wave.amplitude = 1;
+                            wave.frequency = 60;
+                            wave.cycleOffset = 0;
+                            se.wave = wave;
+                            se.shakeOnStart = true;
+                            se.shakeOnEnable = false;
+                            se.duration = .1f;
+                            se.radius = 30;
+                            se.scaleShakeRadiusWithLocalScale = false;
+                            se.amplitudeTimeDecay = true;
+                            
+                            //something something vanillavoid something "the shit way" TWO
+                            var bright = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/VFX/matTracerBright.mat").WaitForCompletion();
+                            var flash = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/VFX/matGenericFlash.mat").WaitForCompletion();
+
+                            voidsys.transform.Find("Loops").Find("DistantSoftGlow").gameObject.GetComponent<ParticleSystemRenderer>().material = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/matGlowItemPickup.mat").WaitForCompletion();
+                            var swirls = voidsys.transform.Find("Loops").Find("Swirls").gameObject.GetComponent<ParticleSystemRenderer>();
+                            List<Material> mats1 = new List<Material>();
+                            mats1.Add(Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/VFX/matGlow2Soft.mat").WaitForCompletion());
+                            mats1.Add(bright);
+                            swirls.SetMaterials(mats1);
+                            
+                            voidsys.transform.Find("Loops").Find("Glowies").gameObject.GetComponent<ParticleSystemRenderer>().material = flash;
+
+                            voidsys.transform.Find("Burst").Find("Vacuum Stars, Distortion").gameObject.GetComponent<ParticleSystemRenderer>().material = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/VFX/matInverseDistortion.mat").WaitForCompletion();
+                            var particle = voidsys.transform.Find("Burst").Find("Vacuum Stars, Trails").gameObject.GetComponent<ParticleSystemRenderer>();
+                            List<Material> mats = new List<Material>();
+                            mats.Add(bright);
+                            mats.Add(Addressables.LoadAssetAsync<Material>("RoR2/Base/Nullifier/matNullifierStarTrail.mat").WaitForCompletion());
+                            particle.SetMaterials(mats);
+
+                            voidsys.transform.Find("Burst").Find("Flash").gameObject.GetComponent<ParticleSystemRenderer>().material = flash;
+                            voidsys.transform.Find("Burst").Find("Vacuum Radial").gameObject.GetComponent<ParticleSystemRenderer>().material = Addressables.LoadAssetAsync<Material>("RoR2/Base/Nullifier/matNullifierStarPortalEdge.mat").WaitForCompletion();
+
+                            voidsys.transform.Find("HarshGlow").gameObject.GetComponent<ParticleSystemRenderer>().material = flash;
+
+                            //var flicker = voidsys.transform.Find("Loops").Find("Point Light").gameObject;
+                            //var light = flicker.GetComponent<Light>();
+                            //var fl = flicker.GetComponent<FlickerLight>();
+                            //fl.light = light;
+                            //var w1 = new Wave();
+                            //w1.period = .1f;
+                            //w1.amplitude = .2f;
+                            //w1.frequency = 10;
+                            //w1.cycleOffset = 5.894044f;
+                            //
+                            //var w2 = new Wave();
+                            //w2.period = 0.3333333f;
+                            //w2.amplitude = .2f;
+                            //w2.frequency = 3;
+                            //w2.cycleOffset = 5.394044f;
+                            //
+                            //var w3 = new Wave();
+                            //w3.period = .125f;
+                            //w3.amplitude = .2f;
+                            //w3.frequency = 8;
+                            //w3.cycleOffset = 6.894044f;
+                            //
+                            //fl.sinWaves.AddItem(w1);
+                            //fl.sinWaves.AddItem(w2);
+                            //fl.sinWaves.AddItem(w3);
+
+                            voidsys.gameObject.SetActive(false);
+                            
+                            voidsys.transform.SetParent(trans);
+
+                            trans.GetComponent<PickupDisplay>().voidParticleEffect = voidsys;
+
+                            voidsys.transform.position = new Vector3(0, 0, 0);
+
+
+
+                        }
+                    }
+                }
+            }
+
+            //voidsys.transform.SetParent(commandCube.transform.Find("PickupDisplay"));
+
 
             if (obj.sceneDef == SceneCatalog.GetSceneDefFromSceneName("voidstage") && locusExit.Value)
             {
                 //Debug.Log("attempting");
-            
-                GameObject portal = UnityEngine.Object.Instantiate<GameObject>(portalObject, new Vector3(-37.5f, 19.5f, -284.05f), new Quaternion(0, 70, 0, 0));
-                NetworkServer.Spawn(portal);
+
+                if (locusEarlyExit.Value)
+                {
+                    GameObject portal = UnityEngine.Object.Instantiate<GameObject>(portalObject, new Vector3(-37.5f, 19.5f, -284.05f), new Quaternion(0, 70, 0, 0));
+                    NetworkServer.Spawn(portal);
+                }
                 GameObject platform = UnityEngine.Object.Instantiate<GameObject>(platformObject, new Vector3(-37.5f, 15.25f, -273.5f), new Quaternion(0, 0, 0, 0));
                 NetworkServer.Spawn(platform);
                 
             }
             
+        }
+
+        private void SpawnLocusPortal(On.RoR2.VoidStageMissionController.orig_OnBatteryActivated orig, VoidStageMissionController self)
+        {
+            orig(self);
+            if(self.numBatteriesActivated >= self.numBatteriesSpawned && !locusEarlyExit.Value)
+            {
+                GameObject portal = UnityEngine.Object.Instantiate<GameObject>(portalObject, new Vector3(-37.5f, 19.5f, -284.05f), new Quaternion(0, 70, 0, 0));
+                NetworkServer.Spawn(portal);
+            } 
         }
 
         private void LocusDirectorHelp(SceneDirector obj)
@@ -1840,7 +1980,7 @@ namespace vanillaVoid
             Material[] allMaterials = bundle.LoadAllAssets<Material>();
             foreach (Material mat in allMaterials)
             {
-                //Debug.Log("material: " + mat.name + " | with shader: " + mat.shader.name);
+                Debug.Log("material: " + mat.name + " | with shader: " + mat.shader.name);
                 switch (mat.shader.name)
                 {
                     case "Stubbed Hopoo Games/Deferred/Standard":
@@ -1850,9 +1990,11 @@ namespace vanillaVoid
                         mat.shader = Resources.Load<Shader>("shaders/deferred/hgsnowtopped");
                         break;
                     case "Stubbed Hopoo Games/FX/Cloud Remap":
-                        //Debug.Log("Switching material: " + mat.name);
+                        Debug.Log("Switching material: " + mat.name);
                         mat.shader = Resources.Load<Shader>("shaders/fx/hgcloudremap");
+                        Debug.Log("Swapped: " + mat.shader);
                         break;
+
                     case "Stubbed Hopoo Games/FX/Cloud Intersection Remap":
                         mat.shader = Resources.Load<Shader>("shaders/fx/hgintersectioncloudremap");
                         break;

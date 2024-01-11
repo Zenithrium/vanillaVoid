@@ -60,6 +60,8 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<bool> specialHappen;
 
+        public ConfigEntry<bool> multiplayerScaling;
+
         //public ConfigEntry<string> voidPair;
 
         public override string ItemName => "Ceaseless Cornucopia";
@@ -156,6 +158,8 @@ namespace vanillaVoid.Items
             showLaser = config.Bind<bool>("Item: " + ItemName, "Show Laser", true, "Adjust whether the special delivery should be marked with a laser.");
 
             specialHappen = config.Bind<bool>("Item: " + ItemName, "Spawn in Special Stages", true, "Adjust whether the special delivery should spawn in Commencement and Gold Shores. Every other special environment (such as bazaar or limbo) are already banned.");
+
+            multiplayerScaling = config.Bind<bool>("Item: " + ItemName, "Potential Per Player", false, "Adjust if the battery should drop an item for each player. Rarity of the items dependant on the total number of Cornucopias the entire team has.");
 
             //stackingBuff = config.Bind<float>("Item: " + ItemName, "Percent Damage Increase per Stack", .4f, "Adjust the percent of extra damage dealt per stack.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "FreeChest", "Adjust which item this is the void pair of.");
@@ -371,7 +375,7 @@ namespace vanillaVoid.Items
                     combat.maxSpawnDistance = 999999;
                     combat.minSpawnRange = 0;
                     combat.shouldSpawnOneWave = true;
-                    
+                    //combat.eliteBias = 0;
                     //GameObject.Destroy(combat);
                 }
 
@@ -888,6 +892,18 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(.02f, .02f, .02f)
                 }
             });
+            rules.Add("mdlChirr", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(-0.23808F, -0.05379F, -0.31237F),
+                    localAngles = new Vector3(341.6718F, 30.94658F, 334.0133F),
+                    localScale = new Vector3(0.045F, 0.045F, 0.045F)
+                }
+            });
             //rules.Add("RobDriverBody", new RoR2.ItemDisplayRule[]
             //{
             //    new RoR2.ItemDisplayRule
@@ -1055,7 +1071,6 @@ namespace vanillaVoid.Items
                                 fogcontroller.enabled = false;
                             }
 
-
                             if (voidCellRng == null)
                             {
                                 voidCellRng = new Xoroshiro128Plus(Run.instance.seed);
@@ -1063,6 +1078,8 @@ namespace vanillaVoid.Items
 
                             //int validPlayers = 0;
                             List<int> validPlayerList = new List<int>();
+                            int total = 0;
+                            int players = 0;
                             foreach (var player in PlayerCharacterMasterController.instances)
                             {
                                 int itemCount = player.master.inventory.GetItemCount(ItemBase<VoidShell>.instance.ItemDef);
@@ -1070,51 +1087,89 @@ namespace vanillaVoid.Items
                                 {
                                     //++validPlayers;
                                     validPlayerList.Add(itemCount);
+                                    total += itemCount;
                                 }
+                                ++players;
                             }
 
-                            //int num = validPlayerList.Count;
-                            float angle = 360f / (float)validPlayerList.Count;
-                            Vector3 vector = Quaternion.AngleAxis((float)UnityEngine.Random.Range(0, 360), Vector3.up) * (Vector3.up * (float)20f + Vector3.forward * 5f);
-                            Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
-                            Vector3 position = self.transform.position + (1.5f * Vector3.up);
-                            VoidShellDropTable dropTable = new VoidShellDropTable();
-                            //int i = 0;
-                            foreach(int player in validPlayerList)
+
+                            if (multiplayerScaling.Value)
                             {
-                                //int adjust = player - 1;
-                                //Debug.Log("player " + adjust);
-                                //PickupDropTable dropTable;
-                                //dropTable.Add(Run.instance.availableTier1DropList, .79f);
-                                //WeightedSelection<PickupIndex> options = new WeightedSelection<PickupIndex>();
-
-                                //BasicPickupDropTable newTable = table;
-                                //newTable.voidTier1Weight = 6f + (adjust * .6f);
-                                //newTable.voidTier2Weight = 3f + (adjust * 1.25f);
-                                //newTable.voidTier3Weight = .75f + (adjust * 1.75f);
-                                //newTable.tier1Weight = 7.5f;
-                                //newTable.tier2Weight = 4 + (adjust * .4f);
-                                //newTable.tier3Weight = 1f + (adjust * .8f);
-
-                                VoidShellTriple triple = dropTable.GenerateDropPreReplacementForPlayer(voidCellRng, player);
-                                PickupPickerController.Option[] options = new PickupPickerController.Option[3];
-
-                                options[0].pickupIndex = triple.slot1;
-                                options[1].pickupIndex = triple.slot2;
-                                options[2].pickupIndex = triple.slot3;
-
-                                options[0].available = true;
-                                options[1].available = true;
-                                options[2].available = true;
-
-                                PickupDropletController.CreatePickupDroplet(new GenericPickupController.CreatePickupInfo
+                                //int num = validPlayerList.Count;
+                                float angle = 360f / (float)players;
+                                Vector3 vector = Quaternion.AngleAxis((float)UnityEngine.Random.Range(0, 360), Vector3.up) * (Vector3.up * (float)20f + Vector3.forward * 5f);
+                                Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
+                                Vector3 position = self.transform.position + (1.5f * Vector3.up);
+                                VoidShellDropTable dropTable = new VoidShellDropTable();
+                                //int i = 0;
+                                for (int i = 0; i < players; ++i)
                                 {
-                                    pickerOptions = options,
-                                    rotation = Quaternion.identity,
-                                    prefabOverride = voidPotentialPrefab,
-                                    pickupIndex = PickupCatalog.FindPickupIndex(ItemTier.VoidTier1),
-                                }, position, vector);
-                                vector = rotation * vector;
+                                    VoidShellTriple triple = dropTable.GenerateDropPreReplacementForPlayer(voidCellRng, total);
+                                    PickupPickerController.Option[] options = new PickupPickerController.Option[3];
+
+                                    options[0].pickupIndex = triple.slot1;
+                                    options[1].pickupIndex = triple.slot2;
+                                    options[2].pickupIndex = triple.slot3;
+
+                                    options[0].available = true;
+                                    options[1].available = true;
+                                    options[2].available = true;
+
+                                    PickupDropletController.CreatePickupDroplet(new GenericPickupController.CreatePickupInfo
+                                    {
+                                        pickerOptions = options,
+                                        rotation = Quaternion.identity,
+                                        prefabOverride = voidPotentialPrefab,
+                                        pickupIndex = PickupCatalog.FindPickupIndex(ItemTier.VoidTier1),
+                                    }, position, vector);
+                                    vector = rotation * vector;
+                                }
+                            }
+                            else
+                            {
+                                //int num = validPlayerList.Count;
+                                float angle = 360f / (float)validPlayerList.Count;
+                                Vector3 vector = Quaternion.AngleAxis((float)UnityEngine.Random.Range(0, 360), Vector3.up) * (Vector3.up * (float)20f + Vector3.forward * 5f);
+                                Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
+                                Vector3 position = self.transform.position + (1.5f * Vector3.up);
+                                VoidShellDropTable dropTable = new VoidShellDropTable();
+                                //int i = 0;
+                                foreach (int player in validPlayerList)
+                                {
+                                    //int adjust = player - 1;
+                                    //Debug.Log("player " + adjust);
+                                    //PickupDropTable dropTable;
+                                    //dropTable.Add(Run.instance.availableTier1DropList, .79f);
+                                    //WeightedSelection<PickupIndex> options = new WeightedSelection<PickupIndex>();
+
+                                    //BasicPickupDropTable newTable = table;
+                                    //newTable.voidTier1Weight = 6f + (adjust * .6f);
+                                    //newTable.voidTier2Weight = 3f + (adjust * 1.25f);
+                                    //newTable.voidTier3Weight = .75f + (adjust * 1.75f);
+                                    //newTable.tier1Weight = 7.5f;
+                                    //newTable.tier2Weight = 4 + (adjust * .4f);
+                                    //newTable.tier3Weight = 1f + (adjust * .8f);
+
+                                    VoidShellTriple triple = dropTable.GenerateDropPreReplacementForPlayer(voidCellRng, player);
+                                    PickupPickerController.Option[] options = new PickupPickerController.Option[3];
+
+                                    options[0].pickupIndex = triple.slot1;
+                                    options[1].pickupIndex = triple.slot2;
+                                    options[2].pickupIndex = triple.slot3;
+
+                                    options[0].available = true;
+                                    options[1].available = true;
+                                    options[2].available = true;
+
+                                    PickupDropletController.CreatePickupDroplet(new GenericPickupController.CreatePickupInfo
+                                    {
+                                        pickerOptions = options,
+                                        rotation = Quaternion.identity,
+                                        prefabOverride = voidPotentialPrefab,
+                                        pickupIndex = PickupCatalog.FindPickupIndex(ItemTier.VoidTier1),
+                                    }, position, vector);
+                                    vector = rotation * vector;
+                                }
                             }
                             return false;
                         }

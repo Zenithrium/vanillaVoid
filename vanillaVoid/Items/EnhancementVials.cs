@@ -562,6 +562,18 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(.03f, .03f, .03f)
                 }
             });
+            rules.Add("mdlChirr", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(-0.00048F, -0.38048F, -0.35526F),
+                    localAngles = new Vector3(34.06303F, 40.75247F, 350.1196F),
+                    localScale = new Vector3(0.055F, 0.055F, 0.055F)
+                }
+            });
             //rules.Add("RobDriverBody", new RoR2.ItemDisplayRule[]
             //{
             //    new RoR2.ItemDisplayRule
