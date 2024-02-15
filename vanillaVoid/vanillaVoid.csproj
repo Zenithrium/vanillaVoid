@@ -26,6 +26,7 @@
 		<Compile Remove="Items\UrchinTide.cs" />
 		<Compile Remove="Items\WhorlShell.cs" />
 		<Compile Remove="Items\WickedStaff.cs" />
+		<Compile Remove="Items\yeah.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

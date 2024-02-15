@@ -631,7 +631,7 @@ namespace vanillaVoid.Items
             On.RoR2.HealthComponent.UpdateLastHitTime += BreakItem;
 
             //for broken item
-            RoR2.SceneDirector.onPrePopulateSceneServer += RefreshVials;
+            //RoR2.SceneDirector.onPrePopulateSceneServer += RefreshVials;
         }
 
         private void RefreshVials(SceneDirector obj)
@@ -650,21 +650,21 @@ namespace vanillaVoid.Items
                     {
                         player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, itemCount);
                         player.master.inventory.RemoveItem(brokenItemDef, itemCount);
-                        CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, brokenItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
+                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, brokenItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
 
                     }
                     else if (itemCount > 0 && itemCount > refreshAmnt)
                     {
                         player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, refreshAmnt);
                         player.master.inventory.RemoveItem(brokenItemDef, refreshAmnt);
-                        CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, brokenItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
+                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, brokenItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
 
                     }
                     else if (itemCount > 0 && itemCount <= refreshAmnt)
                     {
                         player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, itemCount);
                         player.master.inventory.RemoveItem(brokenItemDef, itemCount);
-                        CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, brokenItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
+                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, brokenItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
                     }
                 }
             }
@@ -732,7 +732,7 @@ namespace vanillaVoid.Items
 
                         self.body.inventory.RemoveItem(itemIndex, oldItemCount);
                         self.body.inventory.GiveItem(itemResult, oldItemCount);
-                        CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, itemResult, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
+                        CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, itemResult, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
                         potionLeftCount -= oldItemCount;
                         if(potionLeftCount < 1)
                         {
@@ -746,7 +746,7 @@ namespace vanillaVoid.Items
                 }
                 self.body.inventory.RemoveItem(ItemBase<EnhancementVials>.instance.ItemDef, potionCount);
                 self.body.inventory.GiveItem(brokenItemDef, potionCount);
-                CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, brokenItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
+                CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, brokenItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
                 EffectData effectData = new EffectData
                 {
                     origin = self.transform.position

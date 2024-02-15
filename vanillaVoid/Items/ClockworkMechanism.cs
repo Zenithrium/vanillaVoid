@@ -780,7 +780,7 @@ namespace vanillaVoid.Items
                         }
                         //player.body.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
                         //player.body.inventory.GiveItem(ItemBase<BrokenClockworkMechanism>.instance.ItemDef, tempItemCount);
-                        CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                     }
                     itemCount += tempItemCount;
                     tempItemCount = 0;
@@ -896,7 +896,7 @@ namespace vanillaVoid.Items
                         }
                         //player.body.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
                         //player.body.inventory.GiveItem(ItemBase<BrokenClockworkMechanism>.instance.ItemDef, tempItemCount);
-                        //CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                        //CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                     }
                     itemCount += tempItemCount;
                     tempItemCount = 0;
@@ -970,7 +970,7 @@ namespace vanillaVoid.Items
 
                             player.master.inventory.GiveItem(pickupResult.itemIndex, 1);
                             GenericPickupController.SendPickupMessage(player.master, pickupResult);
-                            //CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, itemResult, CharacterMasterNotificationQueue.TransformationType.Default);
+                            //CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, itemResult, CharacterMasterNotificationQueue.TransformationType.Default);
 
                         }
                     }
@@ -1030,7 +1030,7 @@ namespace vanillaVoid.Items
 
                             player.master.inventory.GiveItem(pickupResult.itemIndex, 1);
                             GenericPickupController.SendPickupMessage(player.master, pickupResult);
-                            //CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, itemResult, CharacterMasterNotificationQueue.TransformationType.Default);
+                            //CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, itemResult, CharacterMasterNotificationQueue.TransformationType.Default);
 
                         }
                     }
@@ -1129,7 +1129,7 @@ namespace vanillaVoid.Items
                         }
                         //player.body.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
                         //player.body.inventory.GiveItem(ItemBase<BrokenClockworkMechanism>.instance.ItemDef, tempItemCount);
-                        //CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                        //CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                         isValid = true;
                     }
                     itemCount += tempItemCount;
@@ -1166,7 +1166,7 @@ namespace vanillaVoid.Items
 
                     self.body.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, toLose);
                     self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, toLose);
-                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                    CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
 
                 }
                 else
@@ -1276,23 +1276,23 @@ namespace vanillaVoid.Items
                                     {
                                         case 1:
                                             self.body.inventory.GiveItem(RoR2Content.Items.ScrapWhite);
-                                            CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapWhite.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                            CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapWhite.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                                             break;
                                         case 2:
                                             self.body.inventory.GiveItem(RoR2Content.Items.ScrapGreen);
-                                            CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapGreen.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                            CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapGreen.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                                             break;
                                         case 3:
                                             self.body.inventory.GiveItem(RoR2Content.Items.ScrapRed);
-                                            CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapRed.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                            CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapRed.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                                             break;
                                         case 4:
                                             self.body.inventory.GiveItem(RoR2Content.Items.ScrapYellow);
-                                            CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapYellow.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                            CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapYellow.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                                             break;
                                         case 5:
                                             self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef);
-                                            CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                            CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                                             break;
                                         default:
                                             Debug.LogError("Clockwork Mechanism didn't properly select an item to destroy, unable to give correct scrap.");
@@ -1302,7 +1302,7 @@ namespace vanillaVoid.Items
                                 else
                                 {
                                     self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef);
-                                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                    CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                                 }
                                 ++tempCount;
                                 if(tempCount >= ItemBase<ClockworkMechanism>.instance.GetCount(self.body))
@@ -1326,23 +1326,23 @@ namespace vanillaVoid.Items
                             {
                                 case 1:
                                     self.body.inventory.GiveItem(RoR2Content.Items.ScrapWhite);
-                                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapWhite.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                    CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapWhite.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                                     break;
                                 case 2:
                                     self.body.inventory.GiveItem(RoR2Content.Items.ScrapGreen);
-                                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapGreen.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                    CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapGreen.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                                     break;
                                 case 3:
                                     self.body.inventory.GiveItem(RoR2Content.Items.ScrapRed);
-                                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapRed.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                    CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapRed.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                                     break;
                                 case 4:
                                     self.body.inventory.GiveItem(RoR2Content.Items.ScrapYellow);
-                                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapYellow.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                    CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, RoR2Content.Items.ScrapYellow.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                                     break;
                                 case 5:
                                     self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef);
-                                    CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                                    CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                                     break;
                                 default:
                                     Debug.LogError("Clockwork Mechanism didn't properly select an item to destroy, unable to give correct scrap.");
@@ -1352,7 +1352,7 @@ namespace vanillaVoid.Items
                         else
                         {
                             self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef);
-                            CharacterMasterNotificationQueue.PushItemTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                            CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                         }
                     }
                 }

@@ -54,7 +54,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.5.12";
+        public const string ModVer = "1.5.13";
 
         public static ExpansionDef sotvDLC;
         public static ExpansionDef sotvDLC2;
@@ -1756,64 +1756,47 @@ namespace vanillaVoid
                             //something something vanillavoid something "the shit way" TWO
                             var bright = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/VFX/matTracerBright.mat").WaitForCompletion();
                             var flash = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/VFX/matGenericFlash.mat").WaitForCompletion();
+                            try
+                            {
+                                voidsys.transform.Find("Loops").Find("DistantSoftGlow").gameObject.GetComponent<ParticleSystemRenderer>().material = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/matGlowItemPickup.mat").WaitForCompletion();
+                                var swirls = voidsys.transform.Find("Loops").Find("Swirls").gameObject.GetComponent<ParticleSystemRenderer>();
+                                if (swirls)
+                                {
+                                    List<Material> mats1 = new List<Material>();
+                                    mats1.Add(Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/VFX/matGlow2Soft.mat").WaitForCompletion());
+                                    mats1.Add(bright);
+                                    swirls.SetMaterials(mats1);
+                                }
 
-                            voidsys.transform.Find("Loops").Find("DistantSoftGlow").gameObject.GetComponent<ParticleSystemRenderer>().material = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/matGlowItemPickup.mat").WaitForCompletion();
-                            var swirls = voidsys.transform.Find("Loops").Find("Swirls").gameObject.GetComponent<ParticleSystemRenderer>();
-                            List<Material> mats1 = new List<Material>();
-                            mats1.Add(Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/VFX/matGlow2Soft.mat").WaitForCompletion());
-                            mats1.Add(bright);
-                            swirls.SetMaterials(mats1);
-                            
-                            voidsys.transform.Find("Loops").Find("Glowies").gameObject.GetComponent<ParticleSystemRenderer>().material = flash;
+                                voidsys.transform.Find("Loops").Find("Glowies").gameObject.GetComponent<ParticleSystemRenderer>().material = flash;
 
-                            voidsys.transform.Find("Burst").Find("Vacuum Stars, Distortion").gameObject.GetComponent<ParticleSystemRenderer>().material = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/VFX/matInverseDistortion.mat").WaitForCompletion();
-                            var particle = voidsys.transform.Find("Burst").Find("Vacuum Stars, Trails").gameObject.GetComponent<ParticleSystemRenderer>();
-                            List<Material> mats = new List<Material>();
-                            mats.Add(bright);
-                            mats.Add(Addressables.LoadAssetAsync<Material>("RoR2/Base/Nullifier/matNullifierStarTrail.mat").WaitForCompletion());
-                            particle.SetMaterials(mats);
+                                voidsys.transform.Find("Burst").Find("Vacuum Stars, Distortion").gameObject.GetComponent<ParticleSystemRenderer>().material = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/VFX/matInverseDistortion.mat").WaitForCompletion();
+                                var particle = voidsys.transform.Find("Burst").Find("Vacuum Stars, Trails").gameObject.GetComponent<ParticleSystemRenderer>();
+                                if (particle)
+                                {
+                                    List<Material> mats = new List<Material>();
+                                    mats.Add(bright);
+                                    mats.Add(Addressables.LoadAssetAsync<Material>("RoR2/Base/Nullifier/matNullifierStarTrail.mat").WaitForCompletion());
+                                    particle.SetMaterials(mats);
 
-                            voidsys.transform.Find("Burst").Find("Flash").gameObject.GetComponent<ParticleSystemRenderer>().material = flash;
-                            voidsys.transform.Find("Burst").Find("Vacuum Radial").gameObject.GetComponent<ParticleSystemRenderer>().material = Addressables.LoadAssetAsync<Material>("RoR2/Base/Nullifier/matNullifierStarPortalEdge.mat").WaitForCompletion();
+                                }
 
-                            voidsys.transform.Find("HarshGlow").gameObject.GetComponent<ParticleSystemRenderer>().material = flash;
+                                voidsys.transform.Find("Burst").Find("Flash").gameObject.GetComponent<ParticleSystemRenderer>().material = flash;
+                                voidsys.transform.Find("Burst").Find("Vacuum Radial").gameObject.GetComponent<ParticleSystemRenderer>().material = Addressables.LoadAssetAsync<Material>("RoR2/Base/Nullifier/matNullifierStarPortalEdge.mat").WaitForCompletion();
 
-                            //var flicker = voidsys.transform.Find("Loops").Find("Point Light").gameObject;
-                            //var light = flicker.GetComponent<Light>();
-                            //var fl = flicker.GetComponent<FlickerLight>();
-                            //fl.light = light;
-                            //var w1 = new Wave();
-                            //w1.period = .1f;
-                            //w1.amplitude = .2f;
-                            //w1.frequency = 10;
-                            //w1.cycleOffset = 5.894044f;
-                            //
-                            //var w2 = new Wave();
-                            //w2.period = 0.3333333f;
-                            //w2.amplitude = .2f;
-                            //w2.frequency = 3;
-                            //w2.cycleOffset = 5.394044f;
-                            //
-                            //var w3 = new Wave();
-                            //w3.period = .125f;
-                            //w3.amplitude = .2f;
-                            //w3.frequency = 8;
-                            //w3.cycleOffset = 6.894044f;
-                            //
-                            //fl.sinWaves.AddItem(w1);
-                            //fl.sinWaves.AddItem(w2);
-                            //fl.sinWaves.AddItem(w3);
+                                voidsys.transform.Find("HarshGlow").gameObject.GetComponent<ParticleSystemRenderer>().material = flash;
 
-                            voidsys.gameObject.SetActive(false);
-                            
-                            voidsys.transform.SetParent(trans);
+                                voidsys.gameObject.SetActive(false);
 
-                            trans.GetComponent<PickupDisplay>().voidParticleEffect = voidsys;
+                                voidsys.transform.SetParent(trans);
 
-                            voidsys.transform.position = new Vector3(0, 0, 0);
+                                trans.GetComponent<PickupDisplay>().voidParticleEffect = voidsys;
 
-
-
+                                voidsys.transform.position = new Vector3(0, 0, 0);
+                            }catch(Exception e)
+                            {
+                                Debug.Log("VV Exception (Command VFX): " + e);
+                            }
                         }
                     }
                 }

@@ -83,21 +83,21 @@ namespace vanillaVoid.Items
                     {
                         player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, itemCount);
                         player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, itemCount);
-                        CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
+                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
 
                     }
                     else if (itemCount > 0 && itemCount > refreshAmnt)
                     {
                         player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, refreshAmnt);
                         player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, refreshAmnt);
-                        CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
+                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
 
                     }
                     else if(itemCount > 0 && itemCount <= refreshAmnt)
                     {
                         player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, itemCount);
                         player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, itemCount);
-                        CharacterMasterNotificationQueue.PushItemTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
+                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
                     }
                 }  
             }
