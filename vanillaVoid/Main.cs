@@ -497,6 +497,8 @@ namespace vanillaVoid
             {
                 if (item.ItemDef.deprecatedTier != ItemTier.NoTier) //safe assumption i think
                 {
+                    Debug.Log("adding pair " + item);
+                    Debug.Log("itemname: " + item.ItemLangTokenName);
                     item.AddVoidPair(newVoidPairs);
                 }
                 else

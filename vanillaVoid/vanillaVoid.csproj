@@ -20,6 +20,7 @@
 		<Compile Remove="Equipment\ExampleEquipment.cs" />
 		<Compile Remove="Equipment\ExampleEquipWithTargeting.cs" />
 		<Compile Remove="Items\CoatOfScars.cs" />
+		<Compile Remove="Items\CorrosiveCore.cs" />
 		<Compile Remove="Items\EmptyShell.cs" />
 		<Compile Remove="Items\ExampleItem.cs" />
 		<Compile Remove="Items\RelentlessRounds.cs" />
