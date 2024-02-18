@@ -24,6 +24,7 @@
 		<Compile Remove="Items\EmptyShell.cs" />
 		<Compile Remove="Items\ExampleItem.cs" />
 		<Compile Remove="Items\RelentlessRounds.cs" />
+		<Compile Remove="Items\the.cs" />
 		<Compile Remove="Items\UrchinTide.cs" />
 		<Compile Remove="Items\WhorlShell.cs" />
 		<Compile Remove="Items\WickedStaff.cs" />
