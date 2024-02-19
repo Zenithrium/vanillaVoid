@@ -618,10 +618,10 @@ namespace vanillaVoid.Items
                 float a;
                 c.Index += 5;
                 c.Emit(OpCodes.Ldloc, 76);
-                c.EmitDelegate<Func<RoR2.CharacterBody, float, float>>((self, slowAmount) => { //wrong
+                c.EmitDelegate<Func<float, RoR2.CharacterBody.RecalculateStats, float>>((slowAmount, self) => { //wrong
                 //}
-                Debug.Log("slow amount: " + slowAmount);
-                Debug.Log("self: " + self);
+                    Debug.Log("slow amount: " + slowAmount);
+                    Debug.Log("self: " + self);
                     return slowAmount;
                     
                 });

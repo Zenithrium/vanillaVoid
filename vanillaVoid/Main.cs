@@ -674,6 +674,8 @@ namespace vanillaVoid
         {
             orig(self, count);
 
+            Debug.Log("stock cont: " + self.stock);
+
             var body = self.characterBody;
             if (body)
             {

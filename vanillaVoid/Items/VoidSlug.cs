@@ -27,7 +27,7 @@ namespace vanillaVoid.Items
 
         public override string ItemFullDescription => $"yeag. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemLore => $"<style=cMono>//-- AUTO-TRANSCRIPTION FROM CARGO BAY 6 OF UES [Redacted] --//</style>" + 
+        public override string ItemLore => $"<style=cMono>//-- AUTO-TRANSCRIPTION FROM CARGO BAY 6 OF UES [Redacted] --//</style>" +
             "\n\n\"slug was born with a special power\"";
 
         public override ItemTier Tier => ItemTier.VoidTier1;
@@ -54,7 +54,7 @@ namespace vanillaVoid.Items
 
 
 
-            Hooks(); 
+            Hooks();
         }
 
         //public override string VoidPair()
@@ -67,12 +67,12 @@ namespace vanillaVoid.Items
         {
             baseRegen = config.Bind<float>("Item: " + ItemName, "Base Regen per Buff Stack", .75f, "Adjust the amount of regeneration for every stack of the first item");
             baseRegenPerStack = config.Bind<float>("Item: " + ItemName, "Base J per J per J", .75f, "Adjust the amount of J in each stack of J");
-            voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "Cautious Slug", "Adjust which item this is the void pair of.");
+            voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "HealWhileSafe", "Adjust which item this is the void pair of.");
         }
 
         public override ItemDisplayRuleDict CreateItemDisplayRules()
         {
-            
+
             ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlAdzeDisplay.prefab");
             //string orbTransp = "RoR2/DLC1/voidraid/matVoidRaidPlanetPurpleWave.mat"; 
             //string orbCore = "RoR2/DLC1/voidstage/matVoidCoralPlatformPurple.mat";
@@ -597,25 +597,70 @@ namespace vanillaVoid.Items
             return rules;
         }
 
-        public override void Hooks()
+        public override void Hooks() //classic more complicated than anticipated item
         {
+            RecalculateStatsAPI.GetStatCoefficients += CalculateStatsVoidSlugRegen;
+
             On.RoR2.GenericSkill.DeductStock += VoidSlugDeductStock;
             On.RoR2.Skills.SkillDef.OnExecute += VoidSlugAlsoDeductStock;
-            RecalculateStatsAPI.GetStatCoefficients += CalculateStatsVoidSlugRegen;
-            On.RoR2.GenericSkill.RestockSteplike += VoidSlugAddStock;
+
+            On.RoR2.GenericSkill.RestockSteplike += VoidSlugRestock;
+            On.RoR2.GenericSkill.AddOneStock += VoidSlugAddOne;
+            On.RoR2.GenericSkill.ApplyAmmoPack += VoidSlugPack;
+            On.RoR2.GenericSkill.Reset += VoidSlugReset;
+            On.EntityStates.Railgunner.Reload.Reloading.OnExit += GodDamnItRailgunner;
+            On.EntityStates.Railgunner.Backpack.Reboot.OnEnter += RebootEnter;
+            On.EntityStates.Railgunner.Backpack.UseCryo.OnEnter += CryoEnter;
+            //passivvely gains stocks whiel zoomed in with backup mag. why? this game sucks! (probably because you're tecchnically "casting" scope while you're scoped and it's a 1 of. just ban it from giving stoccks probably
+            /// aaa fucking spikestrip raillguner scope fuck 
+            /// captains special should probably count - therefore bandit shotgun and nemc m2 should also NAH
+            /// executioner's m1 going off cooldown gives a stack FIXED by >. also the m2 does not interact at all
+            /// chirr's util gives an extra stack - ignore Drop completely FIXED by >
+            /// rex m2 should get it (not biased)
+            /// llook into retool and rockets for mult 
+            On.RoR2.CharacterBody.OnInventoryChanged += VoidSlugInventoryChanged;  
+            //todo: make it do the above on body spawn / stage start ?  whicchiever is less dumb 
+            //probably do it on bodystart because if you ever swap characters during a stage (rare but some mods are stupid) it would probably bug a bit. have it update there 
         }
 
+        private void CryoEnter(On.EntityStates.Railgunner.Backpack.UseCryo.orig_OnEnter orig, EntityStates.Railgunner.Backpack.UseCryo self)
+        {
+            orig(self);
+            if (GetCount(self.characterBody) > 0)
+            {
+                self.characterBody.AddBuff(voidSlugRegen);
+            }
+        }
+
+        private void RebootEnter(On.EntityStates.Railgunner.Backpack.Reboot.orig_OnEnter orig, EntityStates.Railgunner.Backpack.Reboot self)
+        {
+            orig(self);
+            if (GetCount(self.characterBody) > 0)
+            {
+                self.characterBody.AddBuff(voidSlugRegen);
+            }
+        }
+
+        private void GodDamnItRailgunner(On.EntityStates.Railgunner.Reload.Reloading.orig_OnExit orig, EntityStates.Railgunner.Reload.Reloading self)
+        {
+            orig(self);
+            if(GetCount(self.characterBody) > 0)
+            {
+                self.characterBody.AddBuff(voidSlugRegen);
+            }
+        }
 
         public void CreateBuff()
         {
             voidSlugRegen = ScriptableObject.CreateInstance<BuffDef>();
-            voidSlugRegen.buffColor = Color.cyan;
+            voidSlugRegen.buffColor = new Color(136, 101, 207);
             voidSlugRegen.canStack = true;
             voidSlugRegen.isDebuff = false;
             voidSlugRegen.name = "DmVV" + "voidSlugRegen";
-            voidSlugRegen.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("preFreezeSlow");
+            voidSlugRegen.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("whorlRegenBuffIcon");
             ContentAddition.AddBuffDef(voidSlugRegen);
         }
+
         private void CalculateStatsVoidSlugRegen(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
         {
             if (sender)
@@ -639,7 +684,7 @@ namespace vanillaVoid.Items
         {
             orig(self, count);
             Debug.Log("after stock count; " + self.stock);
-            if (self.stock == 0)
+            if (self.stock == 0 && self.baseRechargeInterval > .5)
             {
                 if (self.characterBody.GetBuffCount(voidSlugRegen) >= 1)
                 {
@@ -651,25 +696,116 @@ namespace vanillaVoid.Items
         private void VoidSlugAlsoDeductStock(On.RoR2.Skills.SkillDef.orig_OnExecute orig, RoR2.Skills.SkillDef self, GenericSkill skill)
         {
             orig(self, skill);
-            if (self.stockToConsume > 0 && skill.stock == 0)
+            if (GetCount(skill.characterBody) > 0)
             {
-                if (skill.characterBody.GetBuffCount(voidSlugRegen) >= 1)
+                if (self.stockToConsume > 0 && skill.stock == 0 && skill.baseRechargeInterval > .5)
                 {
-                    skill.characterBody.RemoveBuff(voidSlugRegen);
+                    if (skill.characterBody.GetBuffCount(voidSlugRegen) >= 1)
+                    {
+                        skill.characterBody.RemoveBuff(voidSlugRegen);
+                    }
                 }
             }
         }
-        private void VoidSlugAddStock(On.RoR2.GenericSkill.orig_RestockSteplike orig, GenericSkill self)
+
+        private void VoidSlugRestock(On.RoR2.GenericSkill.orig_RestockSteplike orig, GenericSkill self)
         {
             orig(self);
-            if (GetCount(self.characterBody) > 0)
+            if (GetCount(self.characterBody) > 0) 
             {
-                if (self.stock == 1)
+                if (self.stock == 1 && self.baseRechargeInterval > .5)
                 {
                     self.characterBody.AddBuff(voidSlugRegen);
                 }
             }
         }
+
+        private void VoidSlugAddOne(On.RoR2.GenericSkill.orig_AddOneStock orig, GenericSkill self)
+        {
+            orig(self);
+            if (GetCount(self.characterBody) > 0)
+            {
+                if (self.stock == 1 && self.baseRechargeInterval > .5)
+                {
+                    self.characterBody.AddBuff(voidSlugRegen);
+                }
+            }
+        }
+
+        private void VoidSlugPack(On.RoR2.GenericSkill.orig_ApplyAmmoPack orig, GenericSkill self)
+        {
+            if (GetCount(self.characterBody) > 0)
+            {
+                if (self.stock == 0 && self.baseRechargeInterval > .5)
+                {
+                    self.characterBody.AddBuff(voidSlugRegen);
+                }
+            }
+            orig(self);
+
+        }
+
+        private void VoidSlugReset(On.RoR2.GenericSkill.orig_Reset orig, GenericSkill self)
+        {
+            if (GetCount(self.characterBody) > 0)
+            {
+                if (self.stock == 0 && self.baseRechargeInterval > .5)
+                {
+                    self.characterBody.AddBuff(voidSlugRegen);
+                }
+            }
+            orig(self);
+        }
+
+        private void VoidSlugInventoryChanged(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self)
+        {
+            orig(self);
+            if (GetCount(self) > 0)
+            {
+                if (!self.GetComponent<VoidSlugToken>())
+                {
+                    self.gameObject.AddComponent<VoidSlugToken>();
+                    //var primary = self.skillLocator.primary;
+                    //if (primary.stock > 0 && primary.baseRechargeInterval >= .5)
+                    //{
+                    //
+                    //}
+                    //
+                    //var secondary = self.skillLocator.secondary;
+                    //if (secondary.stock > 0 && secondary.baseRechargeInterval >= .5)
+                    //{
+                    //
+                    //}
+                    //
+                    //var util = self.skillLocator.utility;
+                    //if (secondary.stock > 0 && secondary.baseRechargeInterval >= .5)
+                    //{
+                    //
+                    //}
+                    //
+                    //var special = self.skillLocator.special;
+                    //if (secondary.stock > 0 && secondary.baseRechargeInterval >= .5)
+                    //{
+                    //
+                    //}
+
+                    var amount = ((self.skillLocator.primary.stock > 0 && self.skillLocator.primary.baseRechargeInterval > .5) ? 1 : 0) + ((self.skillLocator.secondary.stock > 0 && self.skillLocator.secondary.baseRechargeInterval > .5) ? 1 : 0) + ((self.skillLocator.utility.stock > 0 && self.skillLocator.utility.baseRechargeInterval > .5) ? 1 : 0) + ((self.skillLocator.special.stock > 0 && self.skillLocator.special.baseRechargeInterval > .5) ? 1 : 0);
+                    Debug.Log("yeah : " + amount);
+                    for (int i = 0; i < amount; ++i)
+                    {
+                        self.AddBuff(voidSlugRegen);
+                    }
+                }
+            }
+        }
+
+
+
+        public class VoidSlugToken : MonoBehaviour
+        {
+
+        }
+
     }
 
 }
