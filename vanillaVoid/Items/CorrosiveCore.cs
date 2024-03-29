@@ -28,7 +28,7 @@ namespace vanillaVoid.Items
 
         public override string ItemPickupDesc => $"Slowed enemies take damage over time. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemFullDescription => $"Deal up to <style=cIsDamage>+{baseDamageBuff.Value * 100}%</style>" + (stackingBuff.Value != 0 ? $" <style=cStack>(+{stackingBuff.Value * 100}% per stack)</style>" : "") + $" damage to enemies with lower health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+        public override string ItemFullDescription => $"Deal up to <style=cIsDamage>+%</style> damage to enemies with lower health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemLore => $"The horngus of a dongfish is attached by a scungle to a kind of dillsack (the nutte sac).";
 
@@ -53,7 +53,7 @@ namespace vanillaVoid.Items
 
 
 
-            Hooks(); 
+            Hooks();
         }
 
         //public override string VoidPair()
@@ -61,17 +61,19 @@ namespace vanillaVoid.Items
         //    return voidPair.Value;
         //}
 
+        //whenever a buff is added, check if it's a slow. if it is, adjust the dot the enemy is taking
+        //whenever a hit lands, check the current slow of an enemy, then adjust the dot
 
         public override void CreateConfig(ConfigFile config)
         {
             //baseDamageBuff = config.Bind<float>("Item: " + ItemName, "Base Percent Damage Increase", .3f, "Adjust the percent of extra damage dealt on the first stack.");
             //stackingBuff = config.Bind<float>("Item: " + ItemName, "Stacking Percent Damage Increase", .3f, "Adjust the percent of extra damage dealt per stack.");
-            voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "Crowbar", "Adjust which item this is the void pair of.");
+            voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "StrengthenBurn", "Adjust which item this is the void pair of.");
         }
 
         public override ItemDisplayRuleDict CreateItemDisplayRules()
         {
-            
+
             ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlAdzeDisplay.prefab");
             //string orbTransp = "RoR2/DLC1/voidraid/matVoidRaidPlanetPurpleWave.mat"; 
             //string orbCore = "RoR2/DLC1/voidstage/matVoidCoralPlatformPurple.mat";
@@ -92,7 +94,7 @@ namespace vanillaVoid.Items
             var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
             itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);
 
-            
+
 
             ItemDisplayRuleDict rules = new ItemDisplayRuleDict();
             rules.Add("mdlCommandoDualies", new RoR2.ItemDisplayRule[]{
@@ -181,7 +183,7 @@ namespace vanillaVoid.Items
                     localAngles = new Vector3(0f, 0f, 0f),
                     localScale = new Vector3(1f, 1f, 1f)
                 }
-                
+
             });
             rules.Add("mdlMerc", new RoR2.ItemDisplayRule[]
             {
@@ -600,8 +602,6 @@ namespace vanillaVoid.Items
         {
             On.RoR2.CharacterBody.OnBuffFirstStackGained += CheckForSlow;
             IL.RoR2.CharacterBody.RecalculateStats += CheckSlowAmount;
-            //whenever a buff is added, check if it's a slow. if it is, adjust the dot the enemy is taking
-            //whenever a hit lands, check the current slow of an enemy, then adjust the dot
         }
 
         private void CheckSlowAmount(ILContext il)
@@ -614,86 +614,23 @@ namespace vanillaVoid.Items
             x => x.MatchConvR4(),
             x => x.MatchLdcR4(1)
             );
-            if(ILFound){
+
+            if (ILFound)
+            {
                 float a;
-                c.Index += 5;
+                c.Index += 1;
                 c.Emit(OpCodes.Ldloc, 76);
-                c.EmitDelegate<Func<float, RoR2.CharacterBody.RecalculateStats, float>>((slowAmount, self) => { //wrong
-                //}
+                c.Emit(OpCodes.Ldarg_0);
+                c.EmitDelegate<Action<float, CharacterBody>>((slowAmount, self) =>
+                {
                     Debug.Log("slow amount: " + slowAmount);
                     Debug.Log("self: " + self);
-                    return slowAmount;
-                    
                 });
-                //c.Emit(OpCodes.Ldarg, 0);
-                //c.EmitDelegate<Func<float, On.RoR2.CharacterBody.RecalculateStats>>((slowAmount, self) => { //wrong
-                //}
             }
             else
             {
                 Debug.Log("ah fuck");
             }
-
-
-
-            //bool ILFound2 = c.TryGotoNext(MoveType.Before,
-            //x => x.MatchLdarg(0),
-            //x => x.MatchLdfld<EntityStates.DeepVoidPortalBattery.Charging>(nameof(EntityStates.DeepVoidPortalBattery.Charging.holdoutZoneController)),
-            //x => x.MatchStfld<RoR2.UI.ChargeIndicatorController>(nameof(RoR2.UI.ChargeIndicatorController.holdoutZoneController)),
-            //x => x.MatchCallOrCallvirt<NetworkServer>("get_" + nameof(NetworkServer.active))
-            //);
-            //if (ILFound2)
-            //{
-            //    c.Index += 4;
-            //    c.Emit(OpCodes.Ldarg, 0);
-            //    c.EmitDelegate<Func<bool, EntityStates.DeepVoidPortalBattery.Charging, bool>>((boolean, self) =>
-            //    {
-            //        if (boolean)
-            //        {
-            //            var token = self.GetComponent<VoidShellIdentifierToken>();
-            //            if (token)
-            //            {
-            //                var vfx = self.transform.Find("VoidShellVFX");
-            //                if (vfx) 
-            //                {
-            //                    vfx.gameObject.SetActive(false);
-            //                }
-            //                var combat = self.GetComponent<CombatDirector>();
-            //                if (combat)
-            //                {
-            //                    combat.enabled = true;
-            //                }
-            //                Transform center = self.transform.Find("Model");
-            //                //Debug.Log("ahhh!! " + center);
-            //                if (center)
-            //                {
-            //                    var cd2 = center.gameObject.GetComponent<CombatDirector>();
-            //                    cd2.enabled = true;
-            //                    cd2.monsterSpawnTimer = 0;
-            //                    //cd2.SetNextSpawnAsBoss();
-            //                }
-            //
-            //                var fogcontroller = self.GetComponent<FogDamageController>();
-            //                //Debug.Log("ahhh!! " + fogcontroller);
-            //                if (fogcontroller && enableFog.Value)
-            //                {
-            //                    var hzc = self.GetComponent<HoldoutZoneController>();
-            //                    fogcontroller.enabled = true;
-            //                    fogcontroller.AddSafeZone(hzc);
-            //                    //Debug.Log("ahhh!! " + fogcontroller + " | " + hzc);
-            //                    //fogcontroller.initialSafeZones = 1;
-            //                }
-            //
-            //                return false;
-            //            }
-            //        }
-            //        return boolean;
-            //    });
-            //}
-            //else
-            //{
-            //    Debug.Log("charging hook failed");
-            //}
         }
 
         private void CheckForSlow(On.RoR2.CharacterBody.orig_OnBuffFirstStackGained orig, CharacterBody self, BuffDef buffDef)
@@ -704,7 +641,8 @@ namespace vanillaVoid.Items
 
         }
 
-        private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
+        private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
+        {
             //CharacterBody victimBody = self.body;
 
             float initialDmg = damageInfo.damage;
@@ -736,15 +674,15 @@ namespace vanillaVoid.Items
                     }
                 }
             }
-            
+
             orig(self, damageInfo);
-            
+
             if (adjusted)
             {
                 damageInfo.damage /= (1 + mult);
                 //damageInfo.damage = initialDmg; //this also works
             }
-            
+
         }
     }
 
