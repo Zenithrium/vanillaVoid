@@ -34,9 +34,9 @@ namespace vanillaVoid.Items
 
         public override ItemTier Tier => ItemTier.VoidTier2;
 
-        public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlAdzePickup.prefab");
+        public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlCoreFinalPickup.prefab");
 
-        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("adzeIcon512.png");
+        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("coreIcon512.png");
 
 
         public static GameObject ItemBodyModelPrefab;
@@ -74,7 +74,7 @@ namespace vanillaVoid.Items
         public override ItemDisplayRuleDict CreateItemDisplayRules()
         {
 
-            ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlAdzeDisplay.prefab");
+            ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlCoreDisplay.prefab");
             //string orbTransp = "RoR2/DLC1/voidraid/matVoidRaidPlanetPurpleWave.mat"; 
             //string orbCore = "RoR2/DLC1/voidstage/matVoidCoralPlatformPurple.mat";
 
@@ -600,7 +600,7 @@ namespace vanillaVoid.Items
 
         public override void Hooks()
         {
-            On.RoR2.CharacterBody.OnBuffFirstStackGained += CheckForSlow;
+            //On.RoR2.CharacterBody.OnBuffFirstStackGained += CheckForSlow;
             IL.RoR2.CharacterBody.RecalculateStats += CheckSlowAmount;
         }
 
@@ -623,8 +623,16 @@ namespace vanillaVoid.Items
                 c.Emit(OpCodes.Ldarg_0);
                 c.EmitDelegate<Action<float, CharacterBody>>((slowAmount, self) =>
                 {
+
                     Debug.Log("slow amount: " + slowAmount);
                     Debug.Log("self: " + self);
+                    var token = self.gameObject.GetComponent<CorrosiveCounter>();
+                    if (!token)
+                    {
+                        token = self.gameObject.AddComponent<CorrosiveCounter>();
+                    }
+                    token.slowAmount = slowAmount;
+
                 });
             }
             else
@@ -684,6 +692,12 @@ namespace vanillaVoid.Items
             }
 
         }
+    }
+
+
+    public class CorrosiveCounter : MonoBehaviour
+    {
+        public float slowAmount;
     }
 
 }

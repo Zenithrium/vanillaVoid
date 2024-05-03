@@ -27,7 +27,7 @@ namespace vanillaVoid.Items
 
         public ConfigEntry<bool> requireTeleporter;
 
-//public ConfigEntry<string> voidPair;
+        //public ConfigEntry<string> voidPair;
 
         public override string ItemName => "Relentless Rounds";
 
@@ -37,7 +37,7 @@ namespace vanillaVoid.Items
             (requireTeleporter.Value ? $" near the teleporter" : "") + $" damages active bosses. <style=cIsVoid>Corrupts all Armor-Piercing Rounds</style>.";
 
         public override string ItemFullDescription => $"Killing enemies" +
-            (hitAll.Value ? $" near the teleporter" : "") + $" deals {baseDamage.Value * 100}%"+
+            (hitAll.Value ? $" near the teleporter" : "") + $" deals {baseDamage.Value * 100}%" +
             (stackingDamage.Value != 0 ? $" <style=cStack>(+{stackingDamage.Value * 100}% per stack)</style>" : "") + $" damage to " +
             (hitAll.Value ? $" all active bosses" : " a random active boss") + $". <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
@@ -47,7 +47,7 @@ namespace vanillaVoid.Items
 
         public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlAdzePickup.prefab");
 
-        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("adzeIcon512.png");
+        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("roundsIcon512.png");
 
         public static GameObject ItemBodyModelPrefab;
 
@@ -86,35 +86,39 @@ namespace vanillaVoid.Items
             relentlessDamageType = DamageAPI.ReserveDamageType();
 
             SetupALot();
-            Hooks(); 
+            Hooks();
         }
 
         public void SetupALot()
         {
-            rentlessProjectile.AddComponent<NetworkIdentity>();
+            //rentlessProjectile.AddComponent<NetworkIdentity>();
             rentlessProjectile.AddComponent<TeamFilter>();
+
             var contr = rentlessProjectile.AddComponent<ProjectileController>();
             contr.procCoefficient = 1;
             rentlessProjectile.AddComponent<ProjectileDamage>();
             rentlessProjectile.AddComponent<ProjectileTargetComponent>();
-            var transf = rentlessProjectile.AddComponent<ProjectileNetworkTransform>();
-            transf.positionTransmitInterval = .33333f;
-            transf.interpolationFactor = 1;
+
+            //var transf = rentlessProjectile.AddComponent<ProjectileNetworkTransform>();
+            //transf.positionTransmitInterval = .33333f;
+            //transf.interpolationFactor = 1;
+
             var steer = rentlessProjectile.AddComponent<ProjectileSteerTowardTarget>();
             steer.rotationSpeed = 720;
             rentlessProjectile.AddComponent<ProjectileSimple>();
 
-            rentlessProjectileGhost.AddComponent<ProjectileGhostController>().enabled = false;
+            rentlessProjectileGhost.AddComponent<ProjectileGhostController>();
             var curve = rentlessProjectileGhost.AddComponent<MoveCurve>();
             curve.animateX = true;
             curve.animateY = true;
             curve.animateZ = true;
             curve.curveScale = 1;
+            curve.moveCurve = new AnimationCurve();
             curve.moveCurve.keys = new Keyframe[] {
-            new Keyframe(0, 0),
-            new Keyframe(1, 1)
+                new Keyframe(0, 0),
+                new Keyframe(1, 1)
             };
-            
+
             var rpgvfx = rentlessProjectileGhost.transform.Find("VFX");
             var rpgri = rpgvfx.gameObject.AddComponent<RotateItem>();
             rpgri.spinSpeed = 30;
@@ -123,11 +127,14 @@ namespace vanillaVoid.Items
 
             var effc = rentlessEffect.AddComponent<EffectComponent>();
             effc.applyScale = true;
+
             var vfxatr = rentlessEffect.AddComponent<VFXAttributes>();
             vfxatr.vfxPriority = VFXAttributes.VFXPriority.Low;
             vfxatr.vfxIntensity = VFXAttributes.VFXIntensity.Low;
+
             var timer = rentlessEffect.AddComponent<DestroyOnTimer>();
             timer.duration = .3f;
+
 
             var effc2 = rentlessOrbEffect.AddComponent<EffectComponent>();
             effc2.applyScale = true;
@@ -137,12 +144,11 @@ namespace vanillaVoid.Items
             orb.startVelocity2 = new Vector3(4, 1, 4);
             orb.endVelocity1 = new Vector3(-4, 3, -4);
             orb.endVelocity2 = new Vector3(4, 1, 4);
-            
+            orb.movementCurve = new AnimationCurve();
             orb.movementCurve.keys = new Keyframe[] {
-            new Keyframe(0, 0),
-            new Keyframe(1, 1)
+                new Keyframe(0, 0),
+                new Keyframe(1, 1)
             };
-
             orb.startEffectScale = 1;
             orb.endEffect = rentlessEffect;
             orb.endEffectScale = 2.5f;
@@ -151,19 +157,23 @@ namespace vanillaVoid.Items
             vfxatr2.vfxPriority = VFXAttributes.VFXPriority.Medium;
             vfxatr2.vfxIntensity = VFXAttributes.VFXIntensity.Medium;
 
-            var bez = rentlessEffect.transform.Find("Bezier").gameObject;
+            var bez = rentlessOrbEffect.transform.Find("Bezier").gameObject;
             bez.GetComponent<LineRenderer>().material = rentlessTrail;
 
             orb.bezierCurveLine = bez.AddComponent<BezierCurveLine>();
 
             var asa = bez.AddComponent<AnimateShaderAlpha>();
+            asa.alphaCurve = new AnimationCurve();
             asa.alphaCurve.keys = new Keyframe[] {
-            new Keyframe(0, 0),
-            new Keyframe(.510f, 1.05f),
-            new Keyframe(1, 1)
+                new Keyframe(0, 0),
+                new Keyframe(.510f, 1.05f),
+                new Keyframe(1, 1)
             };
             asa.destroyOnEnd = true;
 
+            PrefabAPI.RegisterNetworkPrefab(rentlessProjectile);
+            //ProjectileAPI.Add(Projectile);
+            ContentAddition.AddNetworkedObject(rentlessProjectile);
         }
 
         public override void CreateConfig(ConfigFile config)
@@ -233,10 +243,9 @@ namespace vanillaVoid.Items
         //    });
         //}
 
-
         public override ItemDisplayRuleDict CreateItemDisplayRules()
         {
-            
+
             ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlAdzeDisplay.prefab");
             //string orbTransp = "RoR2/DLC1/voidraid/matVoidRaidPlanetPurpleWave.mat"; 
             //string orbCore = "RoR2/DLC1/voidstage/matVoidCoralPlatformPurple.mat";
@@ -344,7 +353,7 @@ namespace vanillaVoid.Items
                     localAngles = new Vector3(0f, 0f, 0f),
                     localScale = new Vector3(1f, 1f, 1f)
                 }
-                
+
             });
             rules.Add("mdlMerc", new RoR2.ItemDisplayRule[]
             {
@@ -792,7 +801,7 @@ namespace vanillaVoid.Items
                     //var token = attacker.GetComponent<RoundsToken>();
                     //if (token)
                     //{
-                    
+
                     //}
                     if (attacker.inventory)
                     {
@@ -812,7 +821,7 @@ namespace vanillaVoid.Items
                                     damageType = DamageType.Generic,
                                     damageColorIndex = DamageColorIndex.Item,
                                 };
-                                boss.healthComponent.TakeDamage(damageInfo);
+                                //boss.healthComponent.TakeDamage(damageInfo);
 
                                 RelentlessOrb relOrb = new RelentlessOrb();
                                 relOrb.damageValue = attacker.damage * 2.5f * count;
@@ -901,10 +910,12 @@ namespace vanillaVoid.Items
                         damageInfo.damageColorIndex = this.damageColorIndex;
                         damageInfo.damageType = this.damageType;
                         damageInfo.AddModdedDamageType(relentlessDamageType);
+
                         healthComponent.TakeDamage(damageInfo);
                         GlobalEventManager.instance.OnHitEnemy(damageInfo, healthComponent.gameObject);
                         GlobalEventManager.instance.OnHitAll(damageInfo, healthComponent.gameObject);
                     }
+
                     //if (this.bouncesRemaining > 0)
                     //{
                     //    if (this.bouncedObjects != null)

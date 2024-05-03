@@ -24,7 +24,7 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "SLUG_ITEM";
 
-        public override string ItemPickupDesc => $"Gain health regeneration for every charged ability. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+        public override string ItemPickupDesc => $"Gain health increased regeneration for every charged ability. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemFullDescription => $"yeag. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
@@ -35,7 +35,7 @@ namespace vanillaVoid.Items
 
         public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlAdzePickup.prefab");
 
-        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("adzeIcon512.png");
+        public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("slugIcon512.png");
 
 
         public static GameObject ItemBodyModelPrefab;
@@ -609,23 +609,30 @@ namespace vanillaVoid.Items
             On.RoR2.GenericSkill.AddOneStock += VoidSlugAddOne;
             On.RoR2.GenericSkill.ApplyAmmoPack += VoidSlugPack;
             On.RoR2.GenericSkill.Reset += VoidSlugReset;
-            On.EntityStates.Railgunner.Reload.Reloading.OnExit += GodDamnItRailgunner;
-            On.EntityStates.Railgunner.Backpack.Reboot.OnEnter += RebootEnter;
-            On.EntityStates.Railgunner.Backpack.UseCryo.OnEnter += CryoEnter;
+
+            On.RoR2.GenericSkill.SetSkillInternal += SetSkillInternalSlug;
 
             On.RoR2.CharacterBody.OnInventoryChanged += VoidSlugInventoryChanged;
-
             CharacterBody.onBodyStartGlobal += VoidSlugCheckStocks;
 
-            On.EntityStates.Toolbot.ToolbotDualWieldBase.OnEnter += Hate;
-            On.EntityStates.Toolbot.ToolbotDualWieldStart.OnEnter += This;
-            On.EntityStates.Toolbot.ToolbotDualWieldEnd.OnEnter += stupid;
-            On.EntityStates.Toolbot.ToolbotDualWield.OnEnter += character;
+            //On.RoR2.GenericSkill.SetSkillOverride += SetOverrideSlug;
+            //On.RoR2.GenericSkill.UnsetSkillOverride += UnsetOverrideSlug;
+            //
+            //
+            //
+            //On.EntityStates.Railgunner.Reload.Reloading.OnExit += GodDamnItRailgunner;
+            //On.EntityStates.Railgunner.Backpack.Reboot.OnEnter += RebootEnter;
+            //On.EntityStates.Railgunner.Backpack.UseCryo.OnEnter += CryoEnter;
+            //
+            //CharacterBody.onBodyStartGlobal += VoidSlugCheckStocks;
+            //
+            //On.EntityStates.Toolbot.ToolbotDualWieldBase.OnEnter += Hate;
+            //On.EntityStates.Toolbot.ToolbotDualWieldStart.OnEnter += This;
+            //On.EntityStates.Toolbot.ToolbotDualWieldEnd.OnEnter += stupid;
+            //On.EntityStates.Toolbot.ToolbotDualWield.OnEnter += character;
 
             //On.RoR2.GenericSkill.SetSkillInternal += SetSkillInternalSlug;
 
-            On.RoR2.GenericSkill.SetSkillOverride += SetOverrideSlug;
-            On.RoR2.GenericSkill.UnsetSkillOverride += UnsetOverrideSlug;
             /// SetSkillOverride
 
             // !!!!passivvely gains stocks whiel zoomed in with backup mag. why? this game sucks! (probably because you're tecchnically "casting" scope while you're scoped and it's a 1 of. just ban it from giving stoccks probably
@@ -648,142 +655,75 @@ namespace vanillaVoid.Items
             //RAILGUNNER_SNIPE_HEAVY_NAME // RAILGUNNER_SNIPE_LIGHT_NAME
         }
 
-        private void UnsetOverrideSlug(On.RoR2.GenericSkill.orig_UnsetSkillOverride orig, GenericSkill self, object source, SkillDef newSkill, GenericSkill.SkillOverridePriority priority)
+        private void CheckStockCounts(CharacterBody body)
         {
-            if (GetCount(self.characterBody) > 0)
-            {
-                Debug.Log("UNSET OVERRIDE SLUG:");
-                Debug.Log(self.skillName + " | " + self.skillNameToken + " | self.recharge: " + self.baseRechargeInterval + " | self.stock: " + self.stock);
-                Debug.Log(newSkill.skillName + " | " + newSkill.skillNameToken + " |  new.recharge: " + newSkill.baseRechargeInterval + " | new.restock: " + newSkill.fullRestockOnAssign);
+            int intended = 0; //read skills and decide what the final buff count should be
+            var locator = body.skillLocator;
 
-                if (self.baseRechargeInterval > .5 && self.stock > 0 && newSkill.baseRechargeInterval < .5)
-                { //if HAD stock, but new skill isn't appliciable, remove a stack
-                    Debug.Log("Removing stock because nwe skill invalid");
-                    if (self.characterBody.GetBuffCount(voidSlugRegen) >= 1)
+            Debug.Log(locator.allSkills.Length + " , " + locator.allSkills + " | ");
+
+            if (locator)
+            {
+                if (locator.primary)
+                {
+                    Debug.Log(locator.primary.skillNameToken);
+                    if (locator.primary.IsReady() && locator.primary.baseRechargeInterval > .5)
                     {
-                        self.characterBody.RemoveBuff(voidSlugRegen);
+                        ++intended;
                     }
                 }
-                else if (self.baseRechargeInterval < .5 && newSkill.baseRechargeInterval > .5 && newSkill.fullRestockOnAssign)
-                { //old skill does not count, new one does and should be insta charged
-                    self.characterBody.AddBuff(voidSlugRegen);
-                    Debug.Log("Giving stock - old skill invalid");
-                }
-                else if (self.baseRechargeInterval > .5 && self.stock == 0 && newSkill.baseRechargeInterval > .5 && newSkill.fullRestockOnAssign)
-                { //old skill did count, but isn't charged, and new one does
-                    self.characterBody.AddBuff(voidSlugRegen);
-                    Debug.Log("Giving stock - valid skill on cooldown");
-                }
-                else
+
+                if (locator.secondary)
                 {
-                    Debug.Log("Not Interacting - Conditions not met");
-                }
 
-            }
-
-            orig(self, source, newSkill, priority);
-        }
-
-        private void SetOverrideSlug(On.RoR2.GenericSkill.orig_SetSkillOverride orig, GenericSkill self, object source, SkillDef newSkill, GenericSkill.SkillOverridePriority priority)
-        {
-            if (GetCount(self.characterBody) > 0)
-            {
-                Debug.Log("SET OVERRIDE SLUG:");
-                Debug.Log(self.skillName + " | " + self.skillNameToken + " | self.recharge: " + self.baseRechargeInterval + " | self.stock: " + self.stock);
-                Debug.Log(newSkill.skillName + " | " + newSkill.skillNameToken + " |  new.recharge: " + newSkill.baseRechargeInterval + " | new.restock: " + newSkill.fullRestockOnAssign);
-
-                if (self.baseRechargeInterval > .5 && self.stock > 0 && newSkill.baseRechargeInterval < .5)
-                { //if HAD stock, but new skill isn't appliciable, remove a stack
-                    Debug.Log("Removing stock because nwe skill invalid");
-                    if (self.characterBody.GetBuffCount(voidSlugRegen) >= 1)
+                    Debug.Log(locator.secondary.skillNameToken + locator.secondary.IsReady() + locator.secondary.baseRechargeInterval);
+                    if (locator.secondary.IsReady() && (locator.secondary.baseRechargeInterval > .5 || locator.secondary.skillNameToken == "TREEBOT_SECONDARY_NAME" || locator.secondary.skillNameToken == "SS2_EXECUTIONER_IONBURST_NAME"))
                     {
-                        self.characterBody.RemoveBuff(voidSlugRegen);
+                        ++intended;
                     }
                 }
-                else if (self.baseRechargeInterval < .5 && newSkill.baseRechargeInterval > .5 && newSkill.fullRestockOnAssign)
-                { //old skill does not count, new one does and should be insta charged
-                    self.characterBody.AddBuff(voidSlugRegen);
-                    Debug.Log("Giving stock - old skill invalid");
-                }
-                else if (self.baseRechargeInterval > .5 && self.stock == 0 && newSkill.baseRechargeInterval > .5 && newSkill.fullRestockOnAssign)
-                { //old skill did count, but isn't charged, and new one does
-                    self.characterBody.AddBuff(voidSlugRegen);
-                    Debug.Log("Giving stock - valid skill on cooldown");
-                }
-                else
+
+                if (locator.utility)
                 {
-                    Debug.Log("Not Interacting - Conditions not met");
+                    Debug.Log(locator.utility.skillNameToken);
+                    if (locator.utility.IsReady() && locator.utility.baseRechargeInterval > .5)
+                    {
+                        ++intended;
+                    }
                 }
 
+                if (locator.special)
+                {
+                    Debug.Log(locator.special.skillNameToken);
+                    if (locator.special.IsReady() && locator.special.baseRechargeInterval > .5)
+                    {
+                        ++intended;
+                    }
+                }
             }
 
-            orig(self, source, newSkill, priority);
+            int current = body.GetBuffCount(voidSlugRegen);
+            while (current < intended)
+            {
+                body.AddBuff(voidSlugRegen);
+                ++current;
+            }
+            while (current > intended)
+            {
+                body.RemoveBuff(voidSlugRegen);
+                --current;
+            }
         }
+
+
 
         private void SetSkillInternalSlug(On.RoR2.GenericSkill.orig_SetSkillInternal orig, GenericSkill self, SkillDef newSkill)
         {
-
-
+            orig(self, newSkill);
             if (GetCount(self.characterBody) > 0)
             {
-                Debug.Log("-----");
-                Debug.Log("self.recharge: " + self.baseRechargeInterval + " | self.stock: " + self.stock + " |  new.recharge" + newSkill.baseRechargeInterval + " | new.restock: " + newSkill.fullRestockOnAssign);
-
-                //if (self.baseRechargeInterval > .5 && self.stock > 0 && newSkill.baseRechargeInterval < .5){ //if HAD stock, but new skill isn't appliciable, remove a stack
-                //    Debug.Log("Removing stock because nwe skill invalid");
-                //    if (self.characterBody.GetBuffCount(voidSlugRegen) >= 1){
-                //        self.characterBody.RemoveBuff(voidSlugRegen);
-                //    }
-                //}else if (self.baseRechargeInterval < .5 && newSkill.baseRechargeInterval > .5 && newSkill.fullRestockOnAssign){ //old skill does not count, new one does and should be insta charged
-                //    self.characterBody.AddBuff(voidSlugRegen);
-                //    Debug.Log("Giving stock - old skill invalid");
-                //}else if(self.baseRechargeInterval > .5 && self.stock == 0 && newSkill.baseRechargeInterval > .5 && newSkill.fullRestockOnAssign){ //old skill did count, but isn't charged, and new one does
-                //    self.characterBody.AddBuff(voidSlugRegen);
-                //    Debug.Log("Giving stock - valid skill on cooldown");
-                //}
-                //else
-                //{
-                //    Debug.Log("Not Interacting - Conditions not met");
-                //}
-                Debug.Log("Self: " + self.skillNameToken + " | " + self.skillDef.fullRestockOnAssign + " | " + self.skillDef.baseRechargeInterval + " | " + self.stock + " | " + self.baseStock);
-                Debug.Log("newskill: " + newSkill.skillNameToken + " | " + newSkill.fullRestockOnAssign + " | " + newSkill.baseRechargeInterval);
+                CheckStockCounts(self.characterBody);
             }
-
-            orig(self, newSkill);
-        }
-
-        private void Hate(On.EntityStates.Toolbot.ToolbotDualWieldBase.orig_OnEnter orig, EntityStates.Toolbot.ToolbotDualWieldBase self)
-        {
-            Debug.Log("yeah BASE: " + self.allowPrimarySkills + " | " + self.shouldAllowPrimarySkills);
-            //Debug.Log(self.characterBody.skillLocator.primary.name + "'s primary stock: " + self.characterBody.skillLocator.primary.stock);
-            //Debug.Log(self.characterBody.skillLocator.secondary.name + "'s secondary stock: " + self.characterBody.skillLocator.secondary.stock);
-            orig(self);
-
-        }
-
-        private void stupid(On.EntityStates.Toolbot.ToolbotDualWieldEnd.orig_OnEnter orig, EntityStates.Toolbot.ToolbotDualWieldEnd self)
-        {
-
-            Debug.Log("yeah WIELD END ");
-
-
-            //Debug.Log(self.skillLocator.secondary.stock + " | " + self.skillLocator.secondary.skillNameToken + " | " + self.skillLocator.primary.stock + " | " + self.skillLocator.primary.skillNameToken);
-
-            orig(self);
-        }
-
-        private void character(On.EntityStates.Toolbot.ToolbotDualWield.orig_OnEnter orig, EntityStates.Toolbot.ToolbotDualWield self)
-        {
-            Debug.Log("yeah WIELD");
-            orig(self);
-        }
-
-        private void This(On.EntityStates.Toolbot.ToolbotDualWieldStart.orig_OnEnter orig, EntityStates.Toolbot.ToolbotDualWieldStart self)
-        {
-            //if (self.skillLocator.secondary.stock == 0){
-            //    self.characterBody.AddBuff(voidSlugRegen);
-            //}
-            orig(self);
         }
 
         public void CreateBuff()
@@ -819,117 +759,55 @@ namespace vanillaVoid.Items
         private void VoidSlugDeductStock(On.RoR2.GenericSkill.orig_DeductStock orig, GenericSkill self, int count)
         {
             orig(self, count);
-            Debug.Log("VoidSlugDeductStock; " + self.skillNameToken);
-            if (self.stock == 0 && (self.baseRechargeInterval > .5 || self.skillNameToken == "TREEBOT_SECONDARY_NAME" || self.skillNameToken == "SS2_EXECUTIONER_IONCHARGE_NAME"))
+            if (GetCount(self.characterBody) > 0)
             {
-                if (self.characterBody.GetBuffCount(voidSlugRegen) >= 1)
-                {
-                    self.characterBody.RemoveBuff(voidSlugRegen);
-                }
+                CheckStockCounts(self.characterBody);
             }
-
-
         }
+
         private void VoidSlugAlsoDeductStock(On.RoR2.Skills.SkillDef.orig_OnExecute orig, RoR2.Skills.SkillDef self, GenericSkill skill)
         {
             orig(self, skill);
-            Debug.Log("VoidSlugAlsoDeductStock; " + self.skillNameToken);
             if (GetCount(skill.characterBody) > 0)
             {
-                if (self.stockToConsume > 0 && skill.stock == 0 && (self.baseRechargeInterval > .5 || self.skillNameToken == "TREEBOT_SECONDARY_NAME"))
-                {
-                    if (skill.characterBody.GetBuffCount(voidSlugRegen) >= 1)
-                    {
-                        skill.characterBody.RemoveBuff(voidSlugRegen);
-                    }
-                }
+                CheckStockCounts(skill.characterBody);
             }
         }
 
         private void VoidSlugRestock(On.RoR2.GenericSkill.orig_RestockSteplike orig, GenericSkill self)
         {
-            Debug.Log("VoidSlugRestock; " + self.skillNameToken);
+            orig(self);
             if (GetCount(self.characterBody) > 0)
             {
-                if (self.stock == 0 && (self.baseRechargeInterval > .5 || self.skillNameToken == "TREEBOT_SECONDARY_NAME"))
-                {
-                    self.characterBody.AddBuff(voidSlugRegen);
-                }
+                CheckStockCounts(self.characterBody);
             }
-            orig(self);
-            //Debug.Log("VoidSlugRestock; " + self.skillNameToken);
-            //if (GetCount(self.characterBody) > 0) 
-            //{
-            //    if (self.stock == 1 && (self.baseRechargeInterval > .5 || self.skillNameToken == "TREEBOT_SECONDARY_NAME"))
-            //    {
-            //        self.characterBody.AddBuff(voidSlugRegen);
-            //    }
-            //}
         }
 
         private void VoidSlugAddOne(On.RoR2.GenericSkill.orig_AddOneStock orig, GenericSkill self)
         {
             orig(self);
-            Debug.Log("VoidSlugAddOne; " + self.skillNameToken);
             if (GetCount(self.characterBody) > 0)
             {
-                if (self.stock == 1 && (self.baseRechargeInterval > .5 || self.skillNameToken == "TREEBOT_SECONDARY_NAME"))
-                {
-                    self.characterBody.AddBuff(voidSlugRegen);
-                }
+                CheckStockCounts(self.characterBody);
             }
         }
 
         private void VoidSlugPack(On.RoR2.GenericSkill.orig_ApplyAmmoPack orig, GenericSkill self)
         {
+            orig(self);
             if (GetCount(self.characterBody) > 0)
             {
-                if (self.stock == 0 && (self.baseRechargeInterval > .5 || self.skillNameToken == "TREEBOT_SECONDARY_NAME"))
-                {
-                    self.characterBody.AddBuff(voidSlugRegen);
-                }
+                CheckStockCounts(self.characterBody);
             }
-            orig(self);
 
         }
 
         private void VoidSlugReset(On.RoR2.GenericSkill.orig_Reset orig, GenericSkill self)
         {
-            Debug.Log("VoidSlugReset; " + self.skillNameToken);
-            if (GetCount(self.characterBody) > 0)
-            {
-                if (self.stock == 0 && self.baseRechargeInterval > .5)
-                {
-                    self.characterBody.AddBuff(voidSlugRegen);
-                }
-            }
-            orig(self);
-        }
-
-        private void CryoEnter(On.EntityStates.Railgunner.Backpack.UseCryo.orig_OnEnter orig, EntityStates.Railgunner.Backpack.UseCryo self)
-        {
             orig(self);
             if (GetCount(self.characterBody) > 0)
             {
-                self.characterBody.AddBuff(voidSlugRegen);
-            }
-        }
-
-        private void RebootEnter(On.EntityStates.Railgunner.Backpack.Reboot.orig_OnEnter orig, EntityStates.Railgunner.Backpack.Reboot self)
-        {
-            orig(self);
-            if (GetCount(self.characterBody) > 0)
-            {
-                self.characterBody.AddBuff(voidSlugRegen);
-            }
-        }
-
-        private void GodDamnItRailgunner(On.EntityStates.Railgunner.Reload.Reloading.orig_OnExit orig, EntityStates.Railgunner.Reload.Reloading self)
-        {
-            orig(self);
-            if (GetCount(self.characterBody) > 0)
-            {
-                self.characterBody.AddBuff(voidSlugRegen);
+                CheckStockCounts(self.characterBody);
             }
         }
 
@@ -938,40 +816,7 @@ namespace vanillaVoid.Items
             orig(self);
             if (GetCount(self) > 0)
             {
-                if (!self.GetComponent<VoidSlugToken>())
-                {
-                    self.gameObject.AddComponent<VoidSlugToken>();
-                    //var primary = self.skillLocator.primary;
-                    //if (primary.stock > 0 && primary.baseRechargeInterval >= .5)
-                    //{
-                    //
-                    //}
-                    //
-                    //var secondary = self.skillLocator.secondary;
-                    //if (secondary.stock > 0 && secondary.baseRechargeInterval >= .5)
-                    //{
-                    //
-                    //}
-                    //
-                    //var util = self.skillLocator.utility;
-                    //if (secondary.stock > 0 && secondary.baseRechargeInterval >= .5)
-                    //{
-                    //
-                    //}
-                    //
-                    //var special = self.skillLocator.special;
-                    //if (secondary.stock > 0 && secondary.baseRechargeInterval >= .5)
-                    //{
-                    //
-                    //}
-
-                    var amount = ((self.skillLocator.primary.stock > 0 && self.skillLocator.primary.baseRechargeInterval > .5) ? 1 : 0) + ((self.skillLocator.secondary.stock > 0 && (self.skillLocator.secondary.baseRechargeInterval > .5 || self.skillLocator.secondary.skillNameToken == "TREEBOT_SECONDARY_NAME" || self.skillLocator.secondary.skillNameToken == "SS2_EXECUTIONER_IONCHARGE_NAME")) ? 1 : 0) + ((self.skillLocator.utility.stock > 0 && self.skillLocator.utility.baseRechargeInterval > .5) ? 1 : 0) + ((self.skillLocator.special.stock > 0 && self.skillLocator.special.baseRechargeInterval > .5) ? 1 : 0);
-                    Debug.Log("yeah : " + amount);
-                    for (int i = 0; i < amount; ++i)
-                    {
-                        self.AddBuff(voidSlugRegen);
-                    }
-                }
+                CheckStockCounts(self);
             }
         }
 
@@ -984,17 +829,7 @@ namespace vanillaVoid.Items
 
             if (GetCount(self) > 0)
             {
-                if (!self.GetComponent<VoidSlugToken>())
-                {
-                    self.gameObject.AddComponent<VoidSlugToken>();
-
-                    var amount = ((self.skillLocator.primary.stock > 0 && self.skillLocator.primary.baseRechargeInterval > .5) ? 1 : 0) + ((self.skillLocator.secondary.stock > 0 && (self.skillLocator.secondary.baseRechargeInterval > .5 || self.skillLocator.secondary.skillNameToken == "TREEBOT_SECONDARY_NAME" || self.skillLocator.secondary.skillNameToken == "SS2_EXECUTIONER_IONCHARGE_NAME")) ? 1 : 0) + ((self.skillLocator.utility.stock > 0 && self.skillLocator.utility.baseRechargeInterval > .5) ? 1 : 0) + ((self.skillLocator.special.stock > 0 && self.skillLocator.special.baseRechargeInterval > .5) ? 1 : 0);
-                    Debug.Log("yeah : " + amount);
-                    for (int i = 0; i < amount; ++i)
-                    {
-                        self.AddBuff(voidSlugRegen);
-                    }
-                }
+                CheckStockCounts(self);
             }
         }
 
