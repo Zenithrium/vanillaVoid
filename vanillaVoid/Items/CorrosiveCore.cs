@@ -13,14 +13,15 @@ using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
 using MonoMod.Cil;
 using Mono.Cecil.Cil;
+using static R2API.DamageAPI;
 
 namespace vanillaVoid.Items
 {
     public class CorrosiveCore : ItemBase<CorrosiveCore>
     {
-        public ConfigEntry<float> baseDamageBuff;
+        public ConfigEntry<float> baseDamageDot;
 
-        public ConfigEntry<float> stackingBuff;
+        public ConfigEntry<float> stackingDamageDot;
 
         public override string ItemName => "Corrosive Core";
 
@@ -28,7 +29,7 @@ namespace vanillaVoid.Items
 
         public override string ItemPickupDesc => $"Slowed enemies take damage over time. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemFullDescription => $"Deal up to <style=cIsDamage>+%</style> damage to enemies with lower health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+        public override string ItemFullDescription => $"Slow effects apply drown, dealing <style=cIsDamage>{baseDamageDot.Value * 100}%</style> (+{stackingDamageDot.Value * 100}% per stack) damage per 10% slow. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemLore => $"The horngus of a dongfish is attached by a scungle to a kind of dillsack (the nutte sac).";
 
@@ -43,31 +44,82 @@ namespace vanillaVoid.Items
 
         public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
 
+        public BuffDef drownBuff { get; private set; }
+        public DotController.DotIndex drownDotIndex;
+        ModdedDamageType drownDamage;
+
         public override void Init(ConfigFile config)
         {
             CreateConfig(config);
             CreateLang();
             CreateItem();
+            CreateBuff();
+
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
-            //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
-
-
-
             Hooks();
         }
 
-        //public override string VoidPair()
-        //{
-        //    return voidPair.Value;
-        //}
+        public void CreateBuff()
+        {
+            drownDamage = ReserveDamageType();
+            drownBuff = ScriptableObject.CreateInstance<BuffDef>();
+            drownBuff.buffColor = Color.magenta;
+            drownBuff.canStack = false;
+            drownBuff.isDebuff = false;
+            drownBuff.name = "DmVV" + "drownDot";
+            drownBuff.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("drownDot");
+            ContentAddition.AddBuffDef(drownBuff);
 
-        //whenever a buff is added, check if it's a slow. if it is, adjust the dot the enemy is taking
-        //whenever a hit lands, check the current slow of an enemy, then adjust the dot
+            DotAPI.CustomDotBehaviour drownDotBehavior = DrownDotBehavior;
+            drownDotIndex = DotAPI.RegisterDotDef(0.2f, (1 * 0.2f), DamageColorIndex.Void, drownBuff, DrownDotBehavior, null);
+        }
+
+        public void DrownDotBehavior(DotController self, DotController.DotStack dotStack)
+        {
+            if (dotStack.dotIndex == drownDotIndex){
+                CharacterBody attacker = dotStack.attackerObject.GetComponent<CharacterBody>();
+                int count = 1;
+                if (attacker.inventory){
+                    count = GetCount(attacker);
+                }
+
+                float mult = 0;
+                var comp = self.victimBody.gameObject.GetComponent<CorrosiveCounter>();
+                if (comp){
+                    mult = comp.slowAmount;
+                }
+
+                if(mult > 1){
+                    Debug.Log("Removing old debuff");
+
+                    for(int i = 0; i < self.dotStackList.Count; ++i){
+                        if(self.dotStackList[i].dotIndex == drownDotIndex){
+                            self.RemoveDotStackAtServer(i);
+                            break;
+                        }
+                    }
+                    //self.RemoveDotStackAtServer()
+
+                    Debug.Log("The j: " + baseDamageDot.Value * attacker.damage + (stackingDamageDot.Value * (count - 1)));
+                    dotStack.damage = mult * (baseDamageDot.Value * attacker.damage + (stackingDamageDot.Value * (count - 1)));
+                    dotStack.AddModdedDamageType(drownDamage);
+                }
+                else
+                {
+                    Debug.Log("Mult is not high enough");
+                }
+
+                //float baseDotDamage = self.victimBody.maxHealth * burnDamagePercent.Value / 100f / burnDamageDuration.Value * myDotDef.interval;
+                //float dotDamage = Math.Max(burnDamageMin.Value * attackerCharacterBody.damage, Math.Min(burnDamageMax.Value * attackerCharacterBody.damage, baseDotDamage)) / burnDamageDuration.Value * inventoryCount;
+                //dotStack.damage = dotDamage;
+            }
+        }
+
 
         public override void CreateConfig(ConfigFile config)
         {
-            //baseDamageBuff = config.Bind<float>("Item: " + ItemName, "Base Percent Damage Increase", .3f, "Adjust the percent of extra damage dealt on the first stack.");
-            //stackingBuff = config.Bind<float>("Item: " + ItemName, "Stacking Percent Damage Increase", .3f, "Adjust the percent of extra damage dealt per stack.");
+            baseDamageDot = config.Bind<float>("Item: " + ItemName, "Base Dot Damage", .3f, "Adjust the percent of base damage drown does per 10% slow.");
+            stackingDamageDot = config.Bind<float>("Item: " + ItemName, "Stacking Dot Damage", .3f, "Adjust the damage percent drown does per 10% slow per stack.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "StrengthenBurn", "Adjust which item this is the void pair of.");
         }
 
@@ -599,13 +651,64 @@ namespace vanillaVoid.Items
         }
 
         public override void Hooks()
-        {
-            //On.RoR2.CharacterBody.OnBuffFirstStackGained += CheckForSlow;
+        { 
             IL.RoR2.CharacterBody.RecalculateStats += CheckSlowAmount;
+            On.RoR2.HealthComponent.TakeDamage += ApplySlowDot;
+
+            On.RoR2.CharacterBody.OnBuffFinalStackLost += LostUpdateSlow;
+            On.RoR2.CharacterBody.OnBuffFirstStackGained += GainUpdateSlow;
         }
 
-        private void CheckSlowAmount(ILContext il)
+        private void GainUpdateSlow(On.RoR2.CharacterBody.orig_OnBuffFirstStackGained orig, CharacterBody self, BuffDef buffDef)
         {
+            orig(self, buffDef);
+
+            //CharacterBody victimBody = self.body;
+            //if ()
+            //{
+            //    CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
+            //
+            //    if (attackerBody && attackerBody.inventory)
+            //    {
+            //        var stackCount = GetCount(attackerBody);
+            //
+            //        if (stackCount > 0)
+            //        {
+            //            var comp = self.body.gameObject.GetComponent<CorrosiveCounter>();
+            //            if (comp.slowAmount != comp.slowAmountCurrent)
+            //            {
+            //                comp.slowAmountCurrent = comp.slowAmount;
+            //                var dotInfo = new InflictDotInfo
+            //                {
+            //                    attackerObject = damageInfo.attacker,
+            //                    victimObject = self.body.gameObject,
+            //                    damageMultiplier = 1f,
+            //                    dotIndex = drownDotIndex,
+            //                    duration = 999999
+            //                };
+            //
+            //                DotController.InflictDot(ref dotInfo);
+            //            }
+            //        }
+            //    }
+            //}
+        }
+
+        private void LostUpdateSlow(On.RoR2.CharacterBody.orig_OnBuffFinalStackLost orig, CharacterBody self, BuffDef buffDef)
+        {
+            var token = self.gameObject.GetComponent<CorrosiveCounter>();
+            if (token){
+                Debug.Log("Before " + token.slowAmount);
+            }
+
+            orig(self, buffDef);
+
+            if (token){
+                Debug.Log("After " + token.slowAmount);
+            }
+        }
+
+        private void CheckSlowAmount(ILContext il){
             ILCursor c = new ILCursor(il);
 
             bool ILFound = c.TryGotoNext(MoveType.Before,
@@ -615,8 +718,7 @@ namespace vanillaVoid.Items
             x => x.MatchLdcR4(1)
             );
 
-            if (ILFound)
-            {
+            if (ILFound){
                 float a;
                 c.Index += 1;
                 c.Emit(OpCodes.Ldloc, 76);
@@ -624,72 +726,104 @@ namespace vanillaVoid.Items
                 c.EmitDelegate<Action<float, CharacterBody>>((slowAmount, self) =>
                 {
 
-                    Debug.Log("slow amount: " + slowAmount);
-                    Debug.Log("self: " + self);
+                    //Debug.Log("slow amount: " + slowAmount);
+                    //Debug.Log("self: " + self);
                     var token = self.gameObject.GetComponent<CorrosiveCounter>();
-                    if (!token)
-                    {
+                    if (!token){
                         token = self.gameObject.AddComponent<CorrosiveCounter>();
                     }
                     token.slowAmount = slowAmount;
 
+                    if(token.slowAmount == 1)
+                    {
+                        var dotCtrl = DotController.FindDotController(self.gameObject);
+                        if (dotCtrl){
+                            for (int i = 0; i < dotCtrl.dotStackList.Count; ++i){
+                                if (dotCtrl.dotStackList[i].dotIndex == drownDotIndex){
+                                    dotCtrl.RemoveDotStackAtServer(i);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    Debug.Log("slow amount: " + slowAmount + " | " + self);
                 });
-            }
-            else
-            {
+            }else{
                 Debug.Log("ah fuck");
             }
         }
 
-        private void CheckForSlow(On.RoR2.CharacterBody.orig_OnBuffFirstStackGained orig, CharacterBody self, BuffDef buffDef)
+
+        private void ApplySlowDot(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
         {
-            orig(self, buffDef);
+            orig(self, damageInfo);
 
-
-
-        }
-
-        private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
-        {
-            //CharacterBody victimBody = self.body;
-
-            float initialDmg = damageInfo.damage;
-            float mult = 0;
-            bool adjusted = false;
-            if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
-            {
+            if (damageInfo.attacker){
                 CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
-                if (attackerBody.inventory)
-                {
+
+                if(attackerBody && attackerBody.inventory){
                     var stackCount = GetCount(attackerBody);
 
-                    if (stackCount > 0)
-                    {
-                        var healthFraction = Mathf.Clamp((1 - self.combinedHealthFraction), 0f, 1f);
-                        mult = healthFraction * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
+                    if(stackCount > 0){
+                        var comp = self.body.gameObject.GetComponent<CorrosiveCounter>();
+                        
+                        if (comp && (comp.slowAmount != comp.slowAmountCurrent || GetCount(comp.recentPlayer) < GetCount(attackerBody)))
+                        {
+                            if(GetCount(comp.recentPlayer) < GetCount(attackerBody)){
+                                comp.recentPlayer = attackerBody;
+                            }
 
-                        damageInfo.damage *= (1 + mult);
-                        float maxDamage = initialDmg + (initialDmg * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1))));
-                        //Debug.Log("max damage: " + maxDamage + " | actual damage: " + damageInfo.damage + " | original damage: " + initialDmg);
-                        //damageInfo.damage = damageInfo.damage * (1 + (victimBody.GetBuffCount(adzeDebuff) * dmgPerDebuff.Value));
-                        //if(damageInfo.damage > maxDamage)
-                        //{
-                        //    //Debug.Log("damage was too high! oopsies!!!");
-                        //    damageInfo.damage = maxDamage; // i don't know if this is a needed check, but i *think* i was noticing insanely high damage numbers with adze on the end score screen. maybe this'll fix that? or maybe it was another mod entirely
-                        //}
-                        damageInfo.damage = Mathf.Min(damageInfo.damage, maxDamage);
-                        adjusted = true;
+                            comp.slowAmountCurrent = comp.slowAmount;
+
+                            var dotCtrl = DotController.FindDotController(self.gameObject);
+                            if (dotCtrl){
+                                for (int i = 0; i < dotCtrl.dotStackList.Count; ++i){
+                                    if (dotCtrl.dotStackList[i].dotIndex == drownDotIndex){
+                                        dotCtrl.RemoveDotStackAtServer(i);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            var dotInfo = new InflictDotInfo{
+                                attackerObject = comp.recentPlayer.gameObject,
+                                victimObject = self.body.gameObject,
+                                damageMultiplier = 1f,
+                                dotIndex = drownDotIndex,
+                                duration = 999999
+                            };
+
+                            DotController.InflictDot(ref dotInfo);
+                        }
                     }
                 }
             }
-
-            orig(self, damageInfo);
-
-            if (adjusted)
-            {
-                damageInfo.damage /= (1 + mult);
-                //damageInfo.damage = initialDmg; //this also works
-            }
+            //float initialDmg = damageInfo.damage;
+            //float mult = 0;
+            //bool adjusted = false;
+            //
+            //if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>()){
+            //    CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
+            //    if (attackerBody.inventory){
+            //        var stackCount = GetCount(attackerBody);
+            //
+            //        if (stackCount > 0){
+            //            var healthFraction = Mathf.Clamp((1 - self.combinedHealthFraction), 0f, 1f);
+            //            mult = healthFraction * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
+            //
+            //            damageInfo.damage *= (1 + mult);
+            //            float maxDamage = initialDmg + (initialDmg * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1))));
+            //
+            //            damageInfo.damage = Mathf.Min(damageInfo.damage, maxDamage);
+            //            adjusted = true;
+            //        }
+            //    }
+            //}
+            //
+            //if (adjusted){
+            //    damageInfo.damage /= (1 + mult);
+            //    //damageInfo.damage = initialDmg; //this also works
+            //}
 
         }
     }
@@ -697,7 +831,14 @@ namespace vanillaVoid.Items
 
     public class CorrosiveCounter : MonoBehaviour
     {
-        public float slowAmount;
+        public float slowAmount = 1;
+        public float slowAmountCurrent = 1;
+
+        public CharacterBody highestCountPlayer;
+
+        public CharacterBody recentPlayer;
+        public CharacterBody currentPlayer;
+
     }
 
 }

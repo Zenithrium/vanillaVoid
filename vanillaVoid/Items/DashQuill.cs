@@ -712,8 +712,7 @@ namespace vanillaVoid.Items
                     
                 }else if (token)
                 {
-                    //Destroy(token.gameObject); it wont let me do this so uhhh
-                    token.timeToDie = true;
+                    GameObject.Destroy(token.gameObject);
                 }
                 
             }
@@ -727,7 +726,6 @@ namespace vanillaVoid.Items
             int previousCount = 0;
             public float timer;
             public float lastJumpTime;
-            public bool timeToDie;
             public CharacterBody body; //the player it's attached to
 
             
@@ -737,16 +735,10 @@ namespace vanillaVoid.Items
                 timer = 0f;
                 dashCurrent = dashMax;
                 count = 0;
-                timeToDie = false;
             }
 
             private void FixedUpdate()
             {
-                if (timeToDie)
-                {
-                    Destroy(this);
-                }
-
                 if (!body)
                 {
                     return;
@@ -808,11 +800,6 @@ namespace vanillaVoid.Items
 
                 previousCount = body.characterMotor.jumpCount;
 
-            }
-
-            public void detonateToken()
-            {
-                Destroy(this);
             }
         }
 

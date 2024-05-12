@@ -53,7 +53,7 @@ namespace vanillaVoid.Items
 
         public List<CharacterBody> activeBosses;
 
-        public static DamageAPI.ModdedDamageType relentlessDamageType;
+        //public static DamageAPI.ModdedDamageType relentlessDamageType;
 
         public static GameObject rentlessProjectile => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("RentlessProjectile.prefab");
 
@@ -83,9 +83,9 @@ namespace vanillaVoid.Items
             //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
             //CreateDOT();
             activeBosses = new List<CharacterBody>();
-            relentlessDamageType = DamageAPI.ReserveDamageType();
+            //relentlessDamageType = DamageAPI.ReserveDamageType();
 
-            SetupALot();
+            //SetupALot();
             Hooks();
         }
 
@@ -171,9 +171,6 @@ namespace vanillaVoid.Items
             };
             asa.destroyOnEnd = true;
 
-            PrefabAPI.RegisterNetworkPrefab(rentlessProjectile);
-            //ProjectileAPI.Add(Projectile);
-            ContentAddition.AddNetworkedObject(rentlessProjectile);
         }
 
         public override void CreateConfig(ConfigFile config)
@@ -787,63 +784,83 @@ namespace vanillaVoid.Items
 
         private void RelentlessDeathDamage(DamageReport obj)
         {
-            if (obj.victimIsBoss)
-            {
+            if (obj.victimIsBoss){
                 var success = activeBosses.Remove(obj.victimBody);
                 //Debug.Log(success + " for removing " + obj.victimBody.name);
             }
-            var teleInstance = TeleporterInteraction.instance;
-            if (teleInstance)
-            {
-                var attacker = obj.attackerBody;
-                if (attacker && !obj.victimIsBoss)
-                {
-                    //var token = attacker.GetComponent<RoundsToken>();
-                    //if (token)
-                    //{
 
-                    //}
-                    if (attacker.inventory)
-                    {
+            var teleInstance = TeleporterInteraction.instance;
+            if (teleInstance){
+                var attacker = obj.attackerBody;
+                if (attacker && !obj.victimIsBoss){
+                    if (attacker.inventory){
                         bool inTeleporter = teleInstance.holdoutZoneController.IsBodyInChargingRadius(obj.victimBody);
                         var count = attacker.inventory.GetItemCount(ItemDef);
-                        if (count > 0 && (inTeleporter || !requireTeleporter.Value))
-                        {
-                            foreach (var boss in activeBosses)
-                            {
-                                DamageInfo damageInfo = new DamageInfo
-                                {
-                                    attacker = attacker.gameObject,
-                                    crit = attacker.RollCrit(),
-                                    damage = attacker.damage * 2.5f,
-                                    position = attacker.transform.position,
-                                    procCoefficient = 1,
-                                    damageType = DamageType.Generic,
-                                    damageColorIndex = DamageColorIndex.Item,
-                                };
-                                //boss.healthComponent.TakeDamage(damageInfo);
 
-                                RelentlessOrb relOrb = new RelentlessOrb();
-                                relOrb.damageValue = attacker.damage * 2.5f * count;
-                                relOrb.damageType = DamageType.Generic;
-                                relOrb.isCrit = damageInfo.crit;
-                                relOrb.damageColorIndex = DamageColorIndex.Void;
-                                relOrb.procCoefficient = .5f;
-                                relOrb.origin = obj.victimBody.corePosition;
-                                relOrb.teamIndex = attacker.teamComponent.teamIndex;
-                                relOrb.attacker = attacker.gameObject;
-                                relOrb.procChainMask = damageInfo.procChainMask;
-                                HurtBox hurtbox = boss.mainHurtBox;
-                                if (hurtbox)
-                                {
-                                    relOrb.target = hurtbox;
-                                    OrbManager.instance.AddOrb(relOrb);
-                                }
-
-                            }
-                            //token = attacker.gameObject.AddComponent<RoundsToken>();
-
+                        if (!NetworkServer.active){
+                            return;
                         }
+
+                        if (count > 0 && (inTeleporter || !requireTeleporter.Value)){
+                            foreach (var boss in activeBosses){
+                                GenericDamageOrb genericDamageOrb = new RentlessOrb();
+                                genericDamageOrb.damageValue = attacker.damage * 1;
+                                genericDamageOrb.isCrit = attacker.RollCrit();
+                                genericDamageOrb.teamIndex = attacker.teamComponent.teamIndex;
+                                genericDamageOrb.attacker = attacker.gameObject;
+                                genericDamageOrb.procCoefficient = 0;
+                                HurtBox hurtBox = boss.hurtBoxGroup.mainHurtBox;
+
+                                if (hurtBox){
+                                    //Transform transform = this.childLocator.FindChild(this.muzzleString);
+                                    //EffectManager.SimpleMuzzleFlash(this.muzzleflashEffectPrefab, base.gameObject, this.muzzleString, true);
+                                    genericDamageOrb.origin = obj.victimBody.corePosition;
+                                    genericDamageOrb.target = hurtBox;
+                                    OrbManager.instance.AddOrb(genericDamageOrb);
+                                }
+                            }
+                        }
+
+                        //if (count > 0 && (inTeleporter || !requireTeleporter.Value))
+                        //{
+                        //    foreach (var boss in activeBosses)
+                        //    {
+                        //        DamageInfo damageInfo = new DamageInfo
+                        //        {
+                        //            attacker = attacker.gameObject,
+                        //            crit = attacker.RollCrit(),
+                        //            damage = attacker.damage * 2.5f,
+                        //            position = attacker.transform.position,
+                        //            procCoefficient = 1,
+                        //            damageType = DamageType.Generic,
+                        //            damageColorIndex = DamageColorIndex.Item,
+                        //        };
+                        //        //boss.healthComponent.TakeDamage(damageInfo);
+                        //
+                        //        RelentlessOrb relOrb = new RelentlessOrb();
+                        //        relOrb.damageValue = attacker.damage * 2.5f * count;
+                        //        relOrb.damageType = DamageType.Generic;
+                        //        relOrb.isCrit = damageInfo.crit;
+                        //        relOrb.damageColorIndex = DamageColorIndex.Void;
+                        //        relOrb.procCoefficient = .5f;
+                        //        relOrb.origin = obj.victimBody.corePosition;
+                        //        relOrb.teamIndex = attacker.teamComponent.teamIndex;
+                        //        relOrb.attacker = attacker.gameObject;
+                        //        relOrb.procChainMask = damageInfo.procChainMask;
+                        //        HurtBox hurtbox = boss.mainHurtBox;
+                        //        if (hurtbox)
+                        //        {
+                        //            relOrb.target = hurtbox;
+                        //            OrbManager.instance.AddOrb(relOrb);
+                        //        }
+                        //
+                        //    }
+                        //    //token = attacker.gameObject.AddComponent<RoundsToken>();
+                        //
+                        //}
+
+
+
                     }
                 }
             }
@@ -875,129 +892,153 @@ namespace vanillaVoid.Items
         //    }
         //
         //}
-        public class RelentlessOrb : Orb
+
+        public class RentlessOrb : GenericDamageOrb
         {
+            // Token: 0x06004097 RID: 16535 RVA: 0x0010B789 File Offset: 0x00109989
             public override void Begin()
             {
-                base.duration = 0.2f;
-
-                EffectData effectData = new EffectData
-                {
-                    origin = this.origin,
-                    genericFloat = base.duration
-                };
-                effectData.SetHurtBoxReference(this.target);
-
-                EffectManager.SpawnEffect(rentlessOrbEffect, effectData, true);
+                this.speed = 80;
+                // base.duration = 0.2f;
+                base.Begin();
             }
 
-            public override void OnArrival()
+            // Token: 0x06004098 RID: 16536 RVA: 0x0010B79C File Offset: 0x0010999C
+            public override GameObject GetOrbEffect()
             {
-                if (this.target)
+                if (this.isCrit)
                 {
-                    HealthComponent healthComponent = this.target.healthComponent;
-                    if (healthComponent)
-                    {
-                        DamageInfo damageInfo = new DamageInfo();
-                        damageInfo.damage = this.damageValue;
-                        damageInfo.attacker = this.attacker;
-                        damageInfo.inflictor = this.inflictor;
-                        damageInfo.force = Vector3.zero;
-                        damageInfo.crit = this.isCrit;
-                        damageInfo.procChainMask = this.procChainMask;
-                        damageInfo.procCoefficient = this.procCoefficient;
-                        damageInfo.position = this.target.transform.position;
-                        damageInfo.damageColorIndex = this.damageColorIndex;
-                        damageInfo.damageType = this.damageType;
-                        damageInfo.AddModdedDamageType(relentlessDamageType);
-
-                        healthComponent.TakeDamage(damageInfo);
-                        GlobalEventManager.instance.OnHitEnemy(damageInfo, healthComponent.gameObject);
-                        GlobalEventManager.instance.OnHitAll(damageInfo, healthComponent.gameObject);
-                    }
-
-                    //if (this.bouncesRemaining > 0)
-                    //{
-                    //    if (this.bouncedObjects != null)
-                    //    {
-                    //        this.bouncedObjects.Add(this.target.healthComponent);
-                    //    }
-                    //    HurtBox hurtBox = this.PickNextTarget(this.target.transform.position, healthComponent);
-                    //    if (hurtBox)
-                    //    {
-                    //        RelentlessOrb maliceOrb = new RelentlessOrb();
-                    //        maliceOrb.search = this.search;
-                    //        maliceOrb.origin = this.target.transform.position;
-                    //        maliceOrb.target = hurtBox;
-                    //        maliceOrb.attacker = this.attacker;
-                    //        maliceOrb.inflictor = this.inflictor;
-                    //        maliceOrb.teamIndex = this.teamIndex;
-                    //        maliceOrb.damageValue = this.damageValue * this.damageCoefficientPerBounce;
-                    //        maliceOrb.bouncesRemaining = this.bouncesRemaining - 1;
-                    //        maliceOrb.isCrit = this.isCrit;
-                    //        maliceOrb.bouncedObjects = this.bouncedObjects;
-                    //        maliceOrb.procChainMask = this.procChainMask;
-                    //        maliceOrb.procCoefficient = this.procCoefficient;
-                    //        maliceOrb.damageColorIndex = this.damageColorIndex;
-                    //        maliceOrb.damageCoefficientPerBounce = this.damageCoefficientPerBounce;
-                    //        maliceOrb.baseRange = this.baseRange;
-                    //        maliceOrb.damageType = this.damageType;
-                    //        OrbManager.instance.AddOrb(maliceOrb);
-                    //    }
-                    //}
-
+                    return LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/OrbEffects/FlurryArrowCritOrbEffect");
                 }
+                return LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/OrbEffects/FlurryArrowOrbEffect");
+                //return LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/OrbEffects/ArrowOrbEffect");
             }
-            //public HurtBox PickNextTarget(Vector3 position, HealthComponent currentVictim)
-            //{
-            //    if (this.search == null)
-            //    {
-            //        this.search = new BullseyeSearch();
-            //    }
-            //    float range = baseRange;
-            //    if (currentVictim && currentVictim.body)
-            //    {
-            //        range += currentVictim.body.radius;
-            //    }
-            //    this.search.searchOrigin = position;
-            //    this.search.searchDirection = Vector3.zero;
-            //    this.search.teamMaskFilter = TeamMask.allButNeutral;
-            //    this.search.teamMaskFilter.RemoveTeam(this.teamIndex);
-            //    this.search.filterByLoS = false;
-            //    this.search.sortMode = BullseyeSearch.SortMode.Distance;
-            //    this.search.maxDistanceFilter = range;
-            //    this.search.RefreshCandidates();
-            //    HurtBox hurtBox = (from v in this.search.GetResults()
-            //                       where !this.bouncedObjects.Contains(v.healthComponent)
-            //                       select v).FirstOrDefault<HurtBox>();
-            //    if (hurtBox)
-            //    {
-            //        this.bouncedObjects.Add(hurtBox.healthComponent);
-            //    }
-            //    return hurtBox;
-            //}
-
-            public float damageValue;
-
-            public GameObject attacker;
-
-            public GameObject inflictor;
-
-            public TeamIndex teamIndex;
-
-            public bool isCrit;
-
-            public ProcChainMask procChainMask;
-
-            public float procCoefficient = 1f;
-
-            public DamageColorIndex damageColorIndex;
-
-            public float baseRange = 20f;
-
-            public DamageType damageType;
-
         }
+
+
+        //public class RelentlessOrb : Orb
+        //{
+        //    public override void Begin()
+        //    {
+        //        base.duration = 0.2f;
+        //
+        //        EffectData effectData = new EffectData
+        //        {
+        //            origin = this.origin,
+        //            genericFloat = base.duration
+        //        };
+        //        effectData.SetHurtBoxReference(this.target);
+        //
+        //        EffectManager.SpawnEffect(rentlessOrbEffect, effectData, true);
+        //    }
+        //
+        //    public override void OnArrival()
+        //    {
+        //        if (this.target)
+        //        {
+        //            HealthComponent healthComponent = this.target.healthComponent;
+        //            if (healthComponent)
+        //            {
+        //                DamageInfo damageInfo = new DamageInfo();
+        //                damageInfo.damage = this.damageValue;
+        //                damageInfo.attacker = this.attacker;
+        //                damageInfo.inflictor = this.inflictor;
+        //                damageInfo.force = Vector3.zero;
+        //                damageInfo.crit = this.isCrit;
+        //                damageInfo.procChainMask = this.procChainMask;
+        //                damageInfo.procCoefficient = this.procCoefficient;
+        //                damageInfo.position = this.target.transform.position;
+        //                damageInfo.damageColorIndex = this.damageColorIndex;
+        //                damageInfo.damageType = this.damageType;
+        //                damageInfo.AddModdedDamageType(relentlessDamageType);
+        //
+        //                healthComponent.TakeDamage(damageInfo);
+        //                GlobalEventManager.instance.OnHitEnemy(damageInfo, healthComponent.gameObject);
+        //                GlobalEventManager.instance.OnHitAll(damageInfo, healthComponent.gameObject);
+        //            }
+        //
+        //            //if (this.bouncesRemaining > 0)
+        //            //{
+        //            //    if (this.bouncedObjects != null)
+        //            //    {
+        //            //        this.bouncedObjects.Add(this.target.healthComponent);
+        //            //    }
+        //            //    HurtBox hurtBox = this.PickNextTarget(this.target.transform.position, healthComponent);
+        //            //    if (hurtBox)
+        //            //    {
+        //            //        RelentlessOrb maliceOrb = new RelentlessOrb();
+        //            //        maliceOrb.search = this.search;
+        //            //        maliceOrb.origin = this.target.transform.position;
+        //            //        maliceOrb.target = hurtBox;
+        //            //        maliceOrb.attacker = this.attacker;
+        //            //        maliceOrb.inflictor = this.inflictor;
+        //            //        maliceOrb.teamIndex = this.teamIndex;
+        //            //        maliceOrb.damageValue = this.damageValue * this.damageCoefficientPerBounce;
+        //            //        maliceOrb.bouncesRemaining = this.bouncesRemaining - 1;
+        //            //        maliceOrb.isCrit = this.isCrit;
+        //            //        maliceOrb.bouncedObjects = this.bouncedObjects;
+        //            //        maliceOrb.procChainMask = this.procChainMask;
+        //            //        maliceOrb.procCoefficient = this.procCoefficient;
+        //            //        maliceOrb.damageColorIndex = this.damageColorIndex;
+        //            //        maliceOrb.damageCoefficientPerBounce = this.damageCoefficientPerBounce;
+        //            //        maliceOrb.baseRange = this.baseRange;
+        //            //        maliceOrb.damageType = this.damageType;
+        //            //        OrbManager.instance.AddOrb(maliceOrb);
+        //            //    }
+        //            //}
+        //
+        //        }
+        //    }
+        //    //public HurtBox PickNextTarget(Vector3 position, HealthComponent currentVictim)
+        //    //{
+        //    //    if (this.search == null)
+        //    //    {
+        //    //        this.search = new BullseyeSearch();
+        //    //    }
+        //    //    float range = baseRange;
+        //    //    if (currentVictim && currentVictim.body)
+        //    //    {
+        //    //        range += currentVictim.body.radius;
+        //    //    }
+        //    //    this.search.searchOrigin = position;
+        //    //    this.search.searchDirection = Vector3.zero;
+        //    //    this.search.teamMaskFilter = TeamMask.allButNeutral;
+        //    //    this.search.teamMaskFilter.RemoveTeam(this.teamIndex);
+        //    //    this.search.filterByLoS = false;
+        //    //    this.search.sortMode = BullseyeSearch.SortMode.Distance;
+        //    //    this.search.maxDistanceFilter = range;
+        //    //    this.search.RefreshCandidates();
+        //    //    HurtBox hurtBox = (from v in this.search.GetResults()
+        //    //                       where !this.bouncedObjects.Contains(v.healthComponent)
+        //    //                       select v).FirstOrDefault<HurtBox>();
+        //    //    if (hurtBox)
+        //    //    {
+        //    //        this.bouncedObjects.Add(hurtBox.healthComponent);
+        //    //    }
+        //    //    return hurtBox;
+        //    //}
+        //
+        //    public float damageValue;
+        //
+        //    public GameObject attacker;
+        //
+        //    public GameObject inflictor;
+        //
+        //    public TeamIndex teamIndex;
+        //
+        //    public bool isCrit;
+        //
+        //    public ProcChainMask procChainMask;
+        //
+        //    public float procCoefficient = 1f;
+        //
+        //    public DamageColorIndex damageColorIndex;
+        //
+        //    public float baseRange = 20f;
+        //
+        //    public DamageType damageType;
+        //
+        //}
     }
     //public class RoundsToken : MonoBehaviour
     //{

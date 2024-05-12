@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 1329444073
+CRC: 2206867454
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 0e77a849988ddd39818ef8ef67a5380c
+    Hash: ffa81d659a1986133a84f03ea2b21156
   TypeTreeHash:
     serializedVersion: 2
     Hash: deced1111d7f32add334a6903ad5d410
@@ -144,6 +144,7 @@ Assets:
 - Assets/zendesigns/StaffItem/mdlStaffDisplay.prefab
 - Assets/Models/Prefabs/Item/ExtVent/extVentGuardMatDisplay.mat
 - Assets/Models/Prefabs/Item/ExtVent/orbFlare1Mat.mat
+- Assets/Textures/Icons/Buffs/drownDot.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/pillarMat.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/MessItem/mdlMessPickup.prefab
 - Assets/Models/Prefabs/Item/OrreryItem/newOrreryMatDisplay.mat

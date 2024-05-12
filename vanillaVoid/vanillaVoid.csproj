@@ -20,10 +20,8 @@
 		<Compile Remove="Equipment\ExampleEquipment.cs" />
 		<Compile Remove="Equipment\ExampleEquipWithTargeting.cs" />
 		<Compile Remove="Items\CoatOfScars.cs" />
-		<Compile Remove="Items\CorrosiveCore.cs" />
 		<Compile Remove="Items\EmptyShell.cs" />
 		<Compile Remove="Items\ExampleItem.cs" />
-		<Compile Remove="Items\RelentlessRounds.cs" />
 		<Compile Remove="Items\the.cs" />
 		<Compile Remove="Items\UrchinTide.cs" />
 		<Compile Remove="Items\WhorlShell.cs" />
@@ -53,16 +51,16 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="BepInEx.Core" Version="5.4.21" />
-		<PackageReference Include="R2API.ContentManagement" Version="1.0.2" />
-		<PackageReference Include="R2API.Core" Version="5.0.10" />
+		<PackageReference Include="R2API.ContentManagement" Version="1.0.4" />
+		<PackageReference Include="R2API.Core" Version="5.0.12" />
 		<PackageReference Include="R2API.DamageType" Version="1.0.4" />
-		<PackageReference Include="R2API.Director" Version="1.1.2" />
+		<PackageReference Include="R2API.Director" Version="2.1.0" />
 		<PackageReference Include="R2API.Dot" Version="1.0.1" />
 		<PackageReference Include="R2API.Items" Version="1.0.3" />
 		<PackageReference Include="R2API.Language" Version="1.0.1" />
 		<PackageReference Include="R2API.Networking" Version="1.0.2" />
 		<PackageReference Include="R2API.Prefab" Version="1.0.3" />
-		<PackageReference Include="R2API.RecalculateStats" Version="1.2.0" />
+		<PackageReference Include="R2API.RecalculateStats" Version="1.3.0" />
 		<PackageReference Include="RiskOfRain2.GameLibs" Version="1.2.4-r.0" />
 		<PackageReference Include="UnityEngine.Modules" Version="2019.4.26" />
 	</ItemGroup>

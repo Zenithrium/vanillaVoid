@@ -58,11 +58,16 @@ namespace vanillaVoid.Items
             Hooks();
         }
 
-        //public override string VoidPair()
-        //{
-        //    return voidPair.Value;
-        //}
-
+        public void CreateBuff()
+        {
+            voidSlugRegen = ScriptableObject.CreateInstance<BuffDef>();
+            voidSlugRegen.buffColor = new Color(136, 101, 207);
+            voidSlugRegen.canStack = true;
+            voidSlugRegen.isDebuff = false;
+            voidSlugRegen.name = "DmVV" + "voidSlugRegen"; //cutie !!
+            voidSlugRegen.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("whorlRegenBuffIcon");
+            ContentAddition.AddBuffDef(voidSlugRegen);
+        }
 
         public override void CreateConfig(ConfigFile config)
         {
@@ -615,13 +620,16 @@ namespace vanillaVoid.Items
             On.RoR2.CharacterBody.OnInventoryChanged += VoidSlugInventoryChanged;
             CharacterBody.onBodyStartGlobal += VoidSlugCheckStocks;
 
+
+            On.EntityStates.Railgunner.Backpack.Offline.OnEnter += OfflineEnter;
+            On.EntityStates.Railgunner.Backpack.Reboot.OnEnter += RebootEnter;
+            On.EntityStates.Merc.Assaulter.OnExit += AssualterExit;
+            On.EntityStates.Merc.Assaulter2.OnExit += AssualterExit2;
+
             //On.RoR2.GenericSkill.SetSkillOverride += SetOverrideSlug;
             //On.RoR2.GenericSkill.UnsetSkillOverride += UnsetOverrideSlug;
-            //
-            //
-            //
+
             //On.EntityStates.Railgunner.Reload.Reloading.OnExit += GodDamnItRailgunner;
-            //On.EntityStates.Railgunner.Backpack.Reboot.OnEnter += RebootEnter;
             //On.EntityStates.Railgunner.Backpack.UseCryo.OnEnter += CryoEnter;
             //
             //CharacterBody.onBodyStartGlobal += VoidSlugCheckStocks;
@@ -634,9 +642,6 @@ namespace vanillaVoid.Items
             //On.RoR2.GenericSkill.SetSkillInternal += SetSkillInternalSlug;
 
             /// SetSkillOverride
-
-            // !!!!passivvely gains stocks whiel zoomed in with backup mag. why? this game sucks! (probably because you're tecchnically "casting" scope while you're scoped and it's a 1 of. just ban it from giving stoccks probably
-
 
             /// !!!!!!aaa fucking spikestrip raillguner scope fuck 
             /// captains special should probably count - therefore bandit shotgun and nemc m2 should also NAH
@@ -653,88 +658,10 @@ namespace vanillaVoid.Items
             //TREEBOT_SECONDARY_NAME 
             //SS2_EXECUTIONER2_IONCHARGE_NAME // SS2_EXECUTIONER2_IONBURST_NAME
             //RAILGUNNER_SNIPE_HEAVY_NAME // RAILGUNNER_SNIPE_LIGHT_NAME
-        }
-
-        private void CheckStockCounts(CharacterBody body)
-        {
-            int intended = 0; //read skills and decide what the final buff count should be
-            var locator = body.skillLocator;
-
-            Debug.Log(locator.allSkills.Length + " , " + locator.allSkills + " | ");
-
-            if (locator)
-            {
-                if (locator.primary)
-                {
-                    Debug.Log(locator.primary.skillNameToken);
-                    if (locator.primary.IsReady() && locator.primary.baseRechargeInterval > .5)
-                    {
-                        ++intended;
-                    }
-                }
-
-                if (locator.secondary)
-                {
-
-                    Debug.Log(locator.secondary.skillNameToken + locator.secondary.IsReady() + locator.secondary.baseRechargeInterval);
-                    if (locator.secondary.IsReady() && (locator.secondary.baseRechargeInterval > .5 || locator.secondary.skillNameToken == "TREEBOT_SECONDARY_NAME" || locator.secondary.skillNameToken == "SS2_EXECUTIONER_IONBURST_NAME"))
-                    {
-                        ++intended;
-                    }
-                }
-
-                if (locator.utility)
-                {
-                    Debug.Log(locator.utility.skillNameToken);
-                    if (locator.utility.IsReady() && locator.utility.baseRechargeInterval > .5)
-                    {
-                        ++intended;
-                    }
-                }
-
-                if (locator.special)
-                {
-                    Debug.Log(locator.special.skillNameToken);
-                    if (locator.special.IsReady() && locator.special.baseRechargeInterval > .5)
-                    {
-                        ++intended;
-                    }
-                }
-            }
-
-            int current = body.GetBuffCount(voidSlugRegen);
-            while (current < intended)
-            {
-                body.AddBuff(voidSlugRegen);
-                ++current;
-            }
-            while (current > intended)
-            {
-                body.RemoveBuff(voidSlugRegen);
-                --current;
-            }
-        }
 
 
-
-        private void SetSkillInternalSlug(On.RoR2.GenericSkill.orig_SetSkillInternal orig, GenericSkill self, SkillDef newSkill)
-        {
-            orig(self, newSkill);
-            if (GetCount(self.characterBody) > 0)
-            {
-                CheckStockCounts(self.characterBody);
-            }
-        }
-
-        public void CreateBuff()
-        {
-            voidSlugRegen = ScriptableObject.CreateInstance<BuffDef>();
-            voidSlugRegen.buffColor = new Color(136, 101, 207);
-            voidSlugRegen.canStack = true;
-            voidSlugRegen.isDebuff = false;
-            voidSlugRegen.name = "DmVV" + "voidSlugRegen"; //cutie !!
-            voidSlugRegen.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("whorlRegenBuffIcon");
-            ContentAddition.AddBuffDef(voidSlugRegen);
+            //[Info   : Unity Log] SS2_NEMESIS_MERCENARY_UTILITY_BLINK_NAME
+            //[Info   : Unity Log] SS2_EXECUTIONER2_IONCHARGE_NAMETrue0
         }
 
         private void CalculateStatsVoidSlugRegen(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
@@ -750,17 +677,84 @@ namespace vanillaVoid.Items
                     {
                         stackCount = 1;
                     }
+
                     var regenAmount = (baseRegen.Value + (baseRegenPerStack.Value * (stackCount - 1)));
                     args.baseRegenAdd += (regenAmount + ((regenAmount / 5) * sender.level)) * buffCount;
                 }
             }
         }
 
+        private void CheckStockCounts(CharacterBody body)
+        {
+            int intended = 0; //read skills and decide what the final buff count should be
+            var locator = body.skillLocator;
+
+            Debug.Log(locator.allSkills.Length + " , " + locator.allSkills + " | ");
+
+            if (locator){
+                if (locator.primary){
+                    Debug.Log(locator.primary.skillNameToken);//locator.primary.IsReady() &&
+                    if(locator.primary.skillNameToken == "LOADER_PRIMARY_NAME"){
+                        //loader,,
+                    }else if (locator.primary.IsReady() && locator.primary.baseRechargeInterval > .5){
+                        ++intended;
+                    }
+                }
+
+                if (locator.secondary){
+                    Debug.Log(locator.secondary.skillNameToken + locator.secondary.IsReady() + locator.secondary.baseRechargeInterval + " | " + locator.secondary.stock); //locator.secondary.IsReady() &&
+                    if (locator.secondary.IsReady() && (locator.secondary.baseRechargeInterval > .5 || locator.secondary.skillNameToken == "TREEBOT_SECONDARY_NAME" || locator.secondary.skillNameToken == "SS2_EXECUTIONER_IONBURST_NAME")){
+                        ++intended;
+                    }else if(locator.secondary.stock > 0 && (locator.secondary.skillNameToken == "SS2_EXECUTIONER2_IONCHARGE_NAME" || locator.secondary.skillNameToken == "HUNTRESS_SECONDARY_NAME")){ 
+                        ++intended;
+                    }
+                }
+
+                if (locator.utility){
+                    Debug.Log(locator.utility.skillNameToken + locator.utility.IsReady() + locator.utility.baseRechargeInterval + " | " + locator.utility.stock); //locator.secondary.IsReady() &&
+                    if (locator.utility.IsReady() && (locator.utility.baseRechargeInterval > .5 || locator.utility.skillNameToken == "SS2_NEMESIS_MERCENARY_UTILITY_BLINK_NAME")){
+                        ++intended;
+                    }
+                }
+
+                if (locator.special){
+                    Debug.Log(locator.special.skillNameToken);
+                    if (locator.special.IsReady() && locator.special.baseRechargeInterval > .5){
+                        ++intended;
+                    }else if (locator.special.skillNameToken == "SS2_CHIRR_BEFRIEND_NAME" && locator.special.stock > 0){
+                        ++intended;
+                    }
+                }
+
+
+            }
+
+            int current = body.GetBuffCount(voidSlugRegen);
+            while (current < intended){
+                body.AddBuff(voidSlugRegen);
+                ++current;
+            }
+
+            while (current > intended){
+                body.RemoveBuff(voidSlugRegen);
+                --current;
+            }
+        }
+
+
+        private void SetSkillInternalSlug(On.RoR2.GenericSkill.orig_SetSkillInternal orig, GenericSkill self, SkillDef newSkill)
+        {
+            orig(self, newSkill);
+            if (GetCount(self.characterBody) > 0){
+                CheckStockCounts(self.characterBody);
+            }
+        }
+
         private void VoidSlugDeductStock(On.RoR2.GenericSkill.orig_DeductStock orig, GenericSkill self, int count)
         {
             orig(self, count);
-            if (GetCount(self.characterBody) > 0)
-            {
+            Debug.Log("bean: " + self.skillNameToken + " | " + self.name + " | " + self.GetScriptClassName());
+            if (GetCount(self.characterBody) > 0){
                 CheckStockCounts(self.characterBody);
             }
         }
@@ -768,8 +762,8 @@ namespace vanillaVoid.Items
         private void VoidSlugAlsoDeductStock(On.RoR2.Skills.SkillDef.orig_OnExecute orig, RoR2.Skills.SkillDef self, GenericSkill skill)
         {
             orig(self, skill);
-            if (GetCount(skill.characterBody) > 0)
-            {
+            Debug.Log("bean2: " + self.skillNameToken + " | " + self.name + " | " + skill.GetScriptClassName() + " | " + skill.name);
+            if (GetCount(skill.characterBody) > 0){
                 CheckStockCounts(skill.characterBody);
             }
         }
@@ -777,8 +771,7 @@ namespace vanillaVoid.Items
         private void VoidSlugRestock(On.RoR2.GenericSkill.orig_RestockSteplike orig, GenericSkill self)
         {
             orig(self);
-            if (GetCount(self.characterBody) > 0)
-            {
+            if (GetCount(self.characterBody) > 0){
                 CheckStockCounts(self.characterBody);
             }
         }
@@ -786,8 +779,7 @@ namespace vanillaVoid.Items
         private void VoidSlugAddOne(On.RoR2.GenericSkill.orig_AddOneStock orig, GenericSkill self)
         {
             orig(self);
-            if (GetCount(self.characterBody) > 0)
-            {
+            if (GetCount(self.characterBody) > 0){
                 CheckStockCounts(self.characterBody);
             }
         }
@@ -795,8 +787,7 @@ namespace vanillaVoid.Items
         private void VoidSlugPack(On.RoR2.GenericSkill.orig_ApplyAmmoPack orig, GenericSkill self)
         {
             orig(self);
-            if (GetCount(self.characterBody) > 0)
-            {
+            if (GetCount(self.characterBody) > 0){
                 CheckStockCounts(self.characterBody);
             }
 
@@ -805,8 +796,7 @@ namespace vanillaVoid.Items
         private void VoidSlugReset(On.RoR2.GenericSkill.orig_Reset orig, GenericSkill self)
         {
             orig(self);
-            if (GetCount(self.characterBody) > 0)
-            {
+            if (GetCount(self.characterBody) > 0){
                 CheckStockCounts(self.characterBody);
             }
         }
@@ -814,31 +804,61 @@ namespace vanillaVoid.Items
         private void VoidSlugInventoryChanged(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self)
         {
             orig(self);
-            if (GetCount(self) > 0)
-            {
+            if (GetCount(self) > 0){
                 CheckStockCounts(self);
             }
         }
 
         private void VoidSlugCheckStocks(CharacterBody self)
         {
-            if (!self.inventory)
-            {
+            if (!self.inventory){
                 return;
             }
 
-            if (GetCount(self) > 0)
-            {
+            if (GetCount(self) > 0){
                 CheckStockCounts(self);
             }
         }
 
-
-
-        public class VoidSlugToken : MonoBehaviour
+        private void RebootEnter(On.EntityStates.Railgunner.Backpack.Reboot.orig_OnEnter orig, EntityStates.Railgunner.Backpack.Reboot self)
         {
-
+            Debug.Log("reboob extra check");
+            orig(self);
+            if (GetCount(self.characterBody) > 0){
+                CheckStockCounts(self.characterBody);
+            }
         }
+
+        private void OfflineEnter(On.EntityStates.Railgunner.Backpack.Offline.orig_OnEnter orig, EntityStates.Railgunner.Backpack.Offline self)
+        {
+            Debug.Log("Offlibe extra check");
+            orig(self);
+            if (GetCount(self.characterBody) > 0){
+                CheckStockCounts(self.characterBody);
+            }
+        }
+
+        private void AssualterExit2(On.EntityStates.Merc.Assaulter2.orig_OnExit orig, EntityStates.Merc.Assaulter2 self)
+        {
+            Debug.Log("aa2");
+            orig(self);
+            if (GetCount(self.characterBody) > 0)
+            {
+                CheckStockCounts(self.characterBody);
+            }
+        }
+
+        private void AssualterExit(On.EntityStates.Merc.Assaulter.orig_OnExit orig, EntityStates.Merc.Assaulter self)
+        {
+            Debug.Log("aaa");
+            orig(self);
+            if (GetCount(self.characterBody) > 0)
+            {
+                CheckStockCounts(self.characterBody);
+            }
+        }
+
+        public class VoidSlugToken : MonoBehaviour { }
 
     }
 

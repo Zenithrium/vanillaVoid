@@ -218,6 +218,25 @@ namespace vanillaVoid.Interactables
 
             //DirectorAPI.Helpers.AddNewInteractable(directorCard, DirectorAPI.InteractableCategory.VoidStuff);
 
+            //            RoR2/Base/SceneGroups/sgStage1.asset 	RoR2.SceneCollection
+            //RoR2/Base/SceneGroups/sgStage2.asset 	RoR2.SceneCollection
+            //RoR2/Base/SceneGroups/sgStage3.asset 	RoR2.SceneCollection
+            //RoR2/Base/SceneGroups/sgStage4.asset 	RoR2.SceneCollection
+            //RoR2/Base/SceneGroups/sgStage5.asset 
+            //var sg1 = Addressables.LoadAssetAsync<RoR2.SceneCollection>("RoR2/Base/SceneGroups/sgStage1.asset").WaitForCompletion();
+
+            //foreach(var stage in R2API.StageRegistration.stageVariantDictionary)
+            //{
+            //    //DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.AbandonedAqueduct);
+            //    var yeah = stage.Value[0];
+            //    
+            //
+            //}
+
+            //Debug.Log("yeahg");
+            //DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.Custom, "golemplains");
+            //Debug.Log("Yeah 2 ");
+
             //something something vanillavoid something "the shit way" etc
             DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.AbandonedAqueduct);
             DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.AbyssalDepths);

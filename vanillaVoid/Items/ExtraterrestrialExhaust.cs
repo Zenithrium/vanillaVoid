@@ -688,3 +688,4 @@ namespace vanillaVoid.Items
     }
 
 }
+

@@ -11,6 +11,8 @@ using UnityEngine.AddressableAssets;
 using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
+using System.Collections;
+using vanillaVoid.Items;
 
 namespace vanillaVoid.Items
 {
@@ -21,6 +23,14 @@ namespace vanillaVoid.Items
         public ConfigEntry<int> itemsPerStage;
 
         public ConfigEntry<int> itemsPerStageStacking;
+
+        public ConfigEntry<bool> directlyGiveItems;
+
+        public ConfigEntry<float> ClockworkTier1Weight;
+
+        public ConfigEntry<float> ClockworkTier2Weight;
+
+        public ConfigEntry<float> ClockworkTier3Weight;
 
         //public ConfigEntry<int> breaksPerStageCap;
 
@@ -80,8 +90,10 @@ namespace vanillaVoid.Items
         bool isBazaarStage;
         bool isValid;
 
-        public override void Init(ConfigFile config)
-        {
+        //ClockworkDropper dropper;
+        ClockworkDropTable dropTable;
+
+        public override void Init(ConfigFile config){
             CreateConfig(config);
 
             switch (itemVariant.Value)
@@ -175,6 +187,8 @@ namespace vanillaVoid.Items
             //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
             //CreateBuff();
             Hooks();
+            dropTable = new ClockworkDropTable();
+            //dropper = new ClockworkDropper(dropTable);
         }
 
         public override void CreateConfig(ConfigFile config)
@@ -183,8 +197,12 @@ namespace vanillaVoid.Items
 
             itemsPerStage = config.Bind<int>("Item: " + ItemName, "Items per Stage", 3, "Variant 0: Adjust the number of items you get upon entering a new stage with this item.");
             itemsPerStageStacking = config.Bind<int>("Item: " + ItemName, "Extra Items per Stack", 1, "Variant 0: Adjust the additional number of items you get for each subsequent stack.");
+            ClockworkTier1Weight = config.Bind<float>("Item: " + ItemName, "Tier 1 Weight", .792f, "Variant 0: Adjust weight of Tier 1 items.");
+            ClockworkTier2Weight = config.Bind<float>("Item: " + ItemName, "Tier 2 Weight", .198f, "Variant 0: Adjust weight of Tier 2 items.");
+            ClockworkTier3Weight = config.Bind<float>("Item: " + ItemName, "Tier 3 Weight", .01f, "Variant 0: Adjust weight of Tier 3 items.");
+            directlyGiveItems = config.Bind<bool>("Item: " + ItemName, "Directly Give Items to Player", false, "Variant 0: Adjust whether or not the item should spawn pickups on the ground (anyone can pick them up, false) or put them directly in the holding player's inventory (true).");
             bazaarHappen = config.Bind<bool>("Item: " + ItemName, "Function in Bazaar", false, "Variant 0: Adjust whether or not should function in the bazaar. This additionally causes the item to no longer break items in the bazaar.");
-
+            
             breakCooldown = config.Bind<float>("Item: " + ItemName, "Breaking Cooldown", 3.0f, "Variant 0 and 1: Adjust how long the cooldown is between the item breaking other items.");
             scrapInstead = config.Bind<bool>("Item: " + ItemName, "Scrap Instead", false, "Variant 0 and 1: Adjust whether the items are scrapped or destroyed.");
             destroySelf = config.Bind<bool>("Item: " + ItemName, "Destroy Self Instead", false, "Variant 0 and 1: Adjust if the item should destroy itself, rather than other items. Destroys half of the current stack. Overrides the config option below (tier priority).");
@@ -736,6 +754,42 @@ namespace vanillaVoid.Items
             On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer += HelpSimulacrum;
             RoR2.SceneDirector.onPostPopulateSceneServer += Variant2Clear;
             //On.RoR2.Stage.RespawnCharacter += StageRewards;
+            On.RoR2.Stage.RespawnCharacter += Var0DropItems;
+            //On.RoR2.CharacterBody.Start()
+        }
+
+        private void Var0DropItems(On.RoR2.Stage.orig_RespawnCharacter orig, Stage self, CharacterMaster characterMaster)
+        {
+            orig(self, characterMaster);
+
+            int itemCount = characterMaster.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+            if (itemCount > 0){
+                int rewardCount = itemsPerStage.Value + (itemsPerStageStacking.Value * (itemCount - 1));
+                if (watchVoidRng == null){
+                    watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
+                }
+
+                if (directlyGiveItems.Value){
+                    var items = dropTable.GenerateUniqueDropsPreReplacement(rewardCount, watchVoidRng);
+                    Debug.Log("Granting items");
+                    for (int i = 0; i < items.Length; ++i){
+                        characterMaster.inventory.GiveItem(items[i].itemIndex, 1);
+                        GenericPickupController.SendPickupMessage(characterMaster, items[i]);
+                    }
+                }else{
+                    //if (dropper.rng == null){
+                    //    dropper.rng = watchVoidRng;
+                    //}
+                    Debug.Log("item drop " + rewardCount);
+                    //ClockworkItemDrop(characterMaster.GetBody(), rewardCount);
+
+                    var cdropper = characterMaster.GetBody().gameObject.AddComponent<ClockworkDropper>();
+                    cdropper.beginDelayedDrop(characterMaster.GetBody(), rewardCount, dropTable, watchVoidRng);
+                    //add a token on the player that when awake called an ienumerator. make it destroy itself on finish. 
+                    // have the delay be out of a total amount of time (say like .5s) and have each drop incfrement be faster the more it's dropping
+
+                }
+            }
         }
 
         private void Variant2Clear(SceneDirector obj)
@@ -790,6 +844,7 @@ namespace vanillaVoid.Items
             }
         }
 
+        //variant 1 and 2 for simu
         private void HelpSimulacrum(On.RoR2.InfiniteTowerRun.orig_OnPrePopulateSceneServer orig, InfiniteTowerRun self, SceneDirector obj)
         {
             orig(self, obj);
@@ -910,134 +965,52 @@ namespace vanillaVoid.Items
         private void DetermineStage(Stage obj)
         {
             isBazaarStage = false;
-            if (obj.sceneDef == SceneCatalog.GetSceneDefFromSceneName("bazaar"))
-            {
-                //Debug.Log("it's the bazaar");
+            if (obj.sceneDef == SceneCatalog.GetSceneDefFromSceneName("bazaar")){
                 isBazaarStage = true;
             }
-            if ((bazaarHappen.Value || !isBazaarStage) && itemVariant.Value == 0) //var 0
-            {
-                //int itemCount = 0;
+
+
+
+            if ((bazaarHappen.Value || !isBazaarStage) && itemVariant.Value == 0 && false){ //var 0
+                Debug.Log("Determine stage call");
+
                 foreach (var player in PlayerCharacterMasterController.instances)
                 {
                     int itemCount = player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
                     if (itemCount > 0)
                     {
                         int rewardCount = itemsPerStage.Value + (itemsPerStageStacking.Value * (itemCount - 1));
-                        for (int i = 0; i < rewardCount; i++)
-                        {
-                            if (watchVoidRng == null)
-                            {
-                                watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
+                        if (watchVoidRng == null){
+                            watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
+                        }
+
+                        if (directlyGiveItems.Value){
+                            var items = dropTable.GenerateUniqueDropsPreReplacement(rewardCount, watchVoidRng);
+                            Debug.Log("Granting items");
+                            for(int i = 0; i < items.Length; ++i){
+                                player.master.inventory.GiveItem(items[i].itemIndex, 1);
+                                GenericPickupController.SendPickupMessage(player.master, items[i]);
                             }
-
-                            PickupIndex pickupResult;// = PickupIndex.none;
-                            int randInt = watchVoidRng.RangeInt(1, 100); // 1-79 white // 80-99 green // 100 red
-                            if (randInt < 80)
-                            {
-                                List<PickupIndex> whiteList = new List<PickupIndex>(Run.instance.availableTier1DropList);
-                                Util.ShuffleList(whiteList, watchVoidRng);
-                                //itemResult = whiteList[0].itemIndex;
-                                pickupResult = whiteList[0];
-                            }
-                            else if (randInt < 99)
-                            {
-                                List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier2DropList);
-                                Util.ShuffleList(greenList, watchVoidRng);
-                                //itemResult = greenList[0].itemIndex;
-                                pickupResult = greenList[0];
-                            }
-                            else
-                            {
-                                List<PickupIndex> redList = new List<PickupIndex>(Run.instance.availableTier3DropList);
-                                Util.ShuffleList(redList, watchVoidRng);
-                                //itemResult = redList[0].itemIndex;
-                                pickupResult = redList[0];
-                            }
-
-                            //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
-                            float num = 360f / (float)rewardCount;
-                            Vector3 a = Quaternion.AngleAxis(num * (float)i, Vector3.up) * Vector3.forward;
-                            Vector3 position = player.gameObject.transform.position + a * 8f + Vector3.up * 8f;
-
-                            //PickupDropletController.CreatePickupDroplet(pickupResult, position, Vector3.zero); // <- this sort of worked? work on it later
-                            //EffectManager.SpawnEffect(Singularity.effectPrefab, new EffectData
-                            //{
-                            //    origin = position,
-                            //    scale = 2f
-                            //}, true);
-                            //this.itemDropCount++;
-
-                            player.master.inventory.GiveItem(pickupResult.itemIndex, 1);
-                            GenericPickupController.SendPickupMessage(player.master, pickupResult);
-                            //CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, itemResult, CharacterMasterNotificationQueue.TransformationType.Default);
-
+                        }else{
+                            Debug.Log("hi");
+                            //if(dropper.rng == null){
+                            //    dropper.rng = watchVoidRng;
+                            //}
+                            //Debug.Log("Delayed item drop " + rewardCount);
+                            //dropper.beginDelayedDrop(player.master.GetBody(), rewardCount);
+                            ////dropper.delayedItemDrop(player.master.GetBody(), rewardCount));
                         }
                     }
                 }
-
             }
         }
 
         private void HelpDirector(SceneDirector obj)
         {
             isValid = false;
-            //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
-            if ((bazaarHappen.Value || !isBazaarStage) && itemVariant.Value == 0 && false) //var 0
-            {
-                //int itemCount = 0;
-                foreach (var player in PlayerCharacterMasterController.instances)
-                {  
-                    int itemCount = player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
-                    if (itemCount > 0)
-                    {
-                        int rewardCount = itemsPerStage.Value + (itemsPerStageStacking.Value * (itemCount - 1));
-                        for(int i = 0; i< rewardCount; i++)
-                        {
-                            if (watchVoidRng == null)
-                            {
-                                watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
-                            }
+            Debug.Log("help director call");
 
-                            PickupIndex pickupResult;// = PickupIndex.none;
-                            int randInt = watchVoidRng.RangeInt(1, 100); // 1-79 white // 80-99 green // 100 red
-                            if (randInt < 80)
-                            {
-                                List<PickupIndex> whiteList = new List<PickupIndex>(Run.instance.availableTier1DropList);
-                                Util.ShuffleList(whiteList, watchVoidRng);
-                                //itemResult = whiteList[0].itemIndex;
-                                pickupResult = whiteList[0];
-                            }
-                            else if(randInt < 99)
-                            {
-                                List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier2DropList);
-                                Util.ShuffleList(greenList, watchVoidRng);
-                                //itemResult = greenList[0].itemIndex;
-                                pickupResult = greenList[0];
-                            }
-                            else
-                            {
-                                List<PickupIndex> redList = new List<PickupIndex>(Run.instance.availableTier3DropList);
-                                Util.ShuffleList(redList, watchVoidRng);
-                                //itemResult = redList[0].itemIndex;
-                                pickupResult = redList[0];
-                            }
-
-                            //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
-                            float num = 360f / (float)rewardCount;
-                            Vector3 a = Quaternion.AngleAxis(num * (float)i, Vector3.up) * Vector3.forward;
-                            Vector3 position = player.gameObject.transform.position + a * 8f + Vector3.up * 8f;
-
-                            player.master.inventory.GiveItem(pickupResult.itemIndex, 1);
-                            GenericPickupController.SendPickupMessage(player.master, pickupResult);
-                            //CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, itemResult, CharacterMasterNotificationQueue.TransformationType.Default);
-
-                        }
-                    }
-                }
-
-            }
-            else if((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariant.Value == 1) { //var 1
+            if((alwaysHappen.Value || obj.interactableCredit != 0) && itemVariant.Value == 1) { //var 1
                 int itemCount = 0;
                 //int playerCount = 0; // icould probably do this in a better way
                 int playerCount = PlayerCharacterMasterController.instances.Count;
@@ -1063,10 +1036,11 @@ namespace vanillaVoid.Items
                 int itemCount = 0;
                 int tempItemCount = 0;
                 int playerCount = PlayerCharacterMasterController.instances.Count;
-                if(playerCount == 0)
-                {
+
+                if(playerCount == 0){
                     playerCount = 1; //don't think this should ever happen but i wnana be sure it doesnt!
                 }
+
                 foreach (var player in PlayerCharacterMasterController.instances)
                 {
                     //itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
@@ -1153,8 +1127,7 @@ namespace vanillaVoid.Items
                     cb.AddTimedBuffAuthority(recentBreak.buffIndex, i);
                 }
 
-                if (watchVoidRng == null)
-                {
+                if (watchVoidRng == null){
                     watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
                 }
 
@@ -1366,5 +1339,104 @@ namespace vanillaVoid.Items
             }
             //orig(self, damageValue, damagePosition, damageIsSilent, attacker);
         }
+
+        private void ClockworkItemDrop(CharacterBody player, int rewardCount)
+        {
+            //var count = ClockworkMechanism.instance.GetCount(player);
+            //int rewardCount = ClockworkMechanism.instance.itemsPerStage.Value + (ClockworkMechanism.instance.itemsPerStageStacking.Value * (count - 1));
+
+            //Debug.Log("delayed drop goin " + player.name + " | " + player.corePosition + " | " + player.gameObject.transform.position);
+            //var items = dropTable.GenerateUniqueDropsPreReplacement(rewardCount, watchVoidRng);
+            float num = 360f / (float)rewardCount;
+            Debug.Log("delayed drop goin " + player.name + " | " + player.corePosition + " | " + player.gameObject.transform.position);
+            for (int i = 0; i < rewardCount; ++i){
+                //dropTable.GenerateDropPreReplacement(watchVoidRng);
+                Vector3 a = Quaternion.AngleAxis(num * (float)i, Vector3.up) * Vector3.forward;
+                Vector3 position = player.gameObject.transform.position + a * 8f + Vector3.up * 8f;
+                PickupDropletController.CreatePickupDroplet(dropTable.GenerateDropPreReplacement(watchVoidRng), position, Vector3.zero);
+                Debug.Log("dropping a goober");
+            }
+        }
     }
+
+    public class ClockworkDropper : MonoBehaviour{
+
+        public void beginDelayedDrop(CharacterBody player, int rewardCount, ClockworkDropTable table, Xoroshiro128Plus rng)
+        {
+            if (player){
+                StartCoroutine(delayedItemDrop(player, rewardCount, table, rng));
+            }
+            else
+            {
+                Debug.Log("false");
+            }
+            //StartCoroutine(delayedItemDrop(player, rewardCount));
+        }
+
+        private IEnumerator delayedItemDrop(CharacterBody player, int rewardCount, ClockworkDropTable table, Xoroshiro128Plus rng)
+        {
+            //var count = ClockworkMechanism.instance.GetCount(player);
+            //int rewardCount = ClockworkMechanism.instance.itemsPerStage.Value + (ClockworkMechanism.instance.itemsPerStageStacking.Value * (count - 1));
+            yield return new WaitForSeconds(1f);
+            Debug.Log("delayed drop goin " + player.name + " | " + player.corePosition + " | " + player.gameObject.transform.position);
+            //var items = table.GenerateUniqueDropsPreReplacement(rewardCount, rng);
+            float dur = 1f / (float)rewardCount;
+            float num = 360f / (float)rewardCount;
+            for (int i = 0; i < rewardCount; ++i){
+
+                Vector3 a = Quaternion.AngleAxis(num * (float)i, Vector3.up) * Vector3.forward;
+                Vector3 position = player.gameObject.transform.position + a * 5f + Vector3.up * 7f;
+                PickupDropletController.CreatePickupDroplet(table.GenerateDropPreReplacement(rng), position, Vector3.zero);
+                Debug.Log("dropping " + i);
+                yield return new WaitForSeconds(dur);
+            }
+            Debug.Log("i have finished");
+            Destroy(this);
+        }
+    }
+
+    public class ClockworkDropTable : PickupDropTable{
+
+        private void Add(List<PickupIndex> sourceDropList, float listWeight)
+        {
+            if (listWeight <= 0f || sourceDropList.Count == 0)
+            {
+                return;
+            }
+            float weight = listWeight / (float)sourceDropList.Count;
+            foreach (PickupIndex value in sourceDropList)
+            {
+                selector.AddChoice(value, weight);
+            }
+        }
+
+        public override PickupIndex GenerateDropPreReplacement(Xoroshiro128Plus rng){
+            int num = 0;
+
+            selector.Clear();
+            Add(Run.instance.availableTier1DropList, tier1Weight);
+            Add(Run.instance.availableTier2DropList, tier2Weight * (float)num);
+            Add(Run.instance.availableTier3DropList, tier3Weight * Mathf.Pow((float)num, 2f));
+
+            return PickupDropTable.GenerateDropFromWeightedSelection(rng, selector);
+        }
+
+        public override int GetPickupCount(){
+            return selector.Count;
+        }
+
+        public override PickupIndex[] GenerateUniqueDropsPreReplacement(int maxDrops, Xoroshiro128Plus rng){
+            return PickupDropTable.GenerateUniqueDropsFromWeightedSelection(maxDrops, rng, selector);
+        }
+
+        private float tier1Weight = ClockworkMechanism.instance.ClockworkTier1Weight.Value; //.316f;
+
+        private float tier2Weight = ClockworkMechanism.instance.ClockworkTier2Weight.Value; //.08f;
+
+        private float tier3Weight = ClockworkMechanism.instance.ClockworkTier3Weight.Value; //.004f;
+
+        private readonly WeightedSelection<PickupIndex> selector = new WeightedSelection<PickupIndex>(8);
+    }
+
 }
+
