@@ -99,8 +99,7 @@ namespace vanillaVoid.Items
         //    ItemAPI.Add(new CustomItem(BrokenItemDef, CreateItemDisplayRules()));
         //}
 
-        public override void CreateConfig(ConfigFile config)
-        {
+        public override void CreateConfig(ConfigFile config){
             //consumeStack = config.Bind<bool>("Item: " + ItemName, "Consume Stack", false, "Adjust if each potion should upgrade a whole stack, like benthic, or only one.");
             //refreshAmount = config.Bind<int>("Item: " + ItemName, "Refresh Amount", 1, "Adjust how many empty potions refresh at the start of a new stage. A negative number will refresh all stacks.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "HealingPotion", "Adjust which item this is the void pair of.");
@@ -626,8 +625,7 @@ namespace vanillaVoid.Items
 
         }
 
-        public override void Hooks()
-        {
+        public override void Hooks(){
             On.RoR2.HealthComponent.UpdateLastHitTime += BreakItem;
 
             //for broken item
@@ -671,13 +669,10 @@ namespace vanillaVoid.Items
             //Debug.Log("function ending, interactable credits after: " + obj.interactableCredit);
         }
 
-        private void BreakItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker)
-        {
+        private void BreakItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker){
             orig.Invoke(self, damageValue, damagePosition, damageIsSilent, attacker);
-            if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<EnhancementVials>.instance.GetCount(self.body) > 0 && self.isHealthLow)
-            {
-                if (potionVoidRng == null)
-                {
+            if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<EnhancementVials>.instance.GetCount(self.body) > 0 && self.isHealthLow){
+                if (potionVoidRng == null){
                     potionVoidRng = new Xoroshiro128Plus(Run.instance.seed);
                 }
                 bool isDone = false;
@@ -685,8 +680,7 @@ namespace vanillaVoid.Items
                 int potionLeftCount = potionCount;
                 int oldItemCount = 0;
                 var brokenItemDef = ItemBase<EmptyVials>.instance.ItemDef;
-                while (!isDone)
-                {
+                while (!isDone){
                     List<ItemIndex> inventoryList = new List<ItemIndex>(self.body.inventory.itemAcquisitionOrder);
                     List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier2DropList);
                     List<PickupIndex> redList = new List<PickupIndex>(Run.instance.availableTier3DropList);
@@ -694,22 +688,17 @@ namespace vanillaVoid.Items
                     ItemIndex itemIndex = ItemIndex.None;
                     ItemIndex itemResult = ItemIndex.None;
                     Util.ShuffleList(inventoryList, potionVoidRng);
-                    foreach (ItemIndex item in inventoryList)
-                    {
-
+                    foreach (ItemIndex item in inventoryList){
                         ItemDef itemDef = ItemCatalog.GetItemDef(item);
-                        if ((bool)itemDef && itemDef.tier != ItemTier.NoTier)
-                        {
-                            if(itemDef.tier == ItemTier.Tier1)
-                            {
+                        if ((bool)itemDef && itemDef.tier != ItemTier.NoTier){
+                            if(itemDef.tier == ItemTier.Tier1){
                                 itemIndex = item;
                                 oldItemCount = self.body.inventory.GetItemCount(item);
                                 
                                 Util.ShuffleList(greenList, potionVoidRng);
                                 itemResult = greenList[0].itemIndex;
                                 break;
-                            }else if(itemDef.tier == ItemTier.Tier2)
-                            {
+                            }else if(itemDef.tier == ItemTier.Tier2){
                                 itemIndex = item;
                                 oldItemCount = self.body.inventory.GetItemCount(item);
                                 
@@ -717,16 +706,11 @@ namespace vanillaVoid.Items
                                 itemResult = redList[0].itemIndex;
                                 break;
                             }
-                            //itemIndex = item;
-                            //oldItemCount = self.body.inventory.GetItemCount(item);
-                            //break;
                         }
-
                     }
-                    if (itemIndex != ItemIndex.None)
-                    {
-                        if(oldItemCount > potionLeftCount)
-                        {
+
+                    if (itemIndex != ItemIndex.None){
+                        if(oldItemCount > potionLeftCount){
                             oldItemCount = potionLeftCount;
                         }
 
@@ -734,16 +718,14 @@ namespace vanillaVoid.Items
                         self.body.inventory.GiveItem(itemResult, oldItemCount);
                         CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, itemResult, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
                         potionLeftCount -= oldItemCount;
-                        if(potionLeftCount < 1)
-                        {
+                        if(potionLeftCount < 1){
                             isDone = true;
                         }
-                    }
-                    else
-                    {
+                    }else{
                         isDone = true;
                     }
                 }
+
                 self.body.inventory.RemoveItem(ItemBase<EnhancementVials>.instance.ItemDef, potionCount);
                 self.body.inventory.GiveItem(brokenItemDef, potionCount);
                 CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, brokenItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
@@ -757,5 +739,4 @@ namespace vanillaVoid.Items
             orig(self, damageValue, damagePosition, damageIsSilent, attacker);
         }
     }
-
 }

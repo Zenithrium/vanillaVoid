@@ -24,7 +24,9 @@ using vanillaVoid.Utils;
 using MonoMod.Cil;
 using RoR2.EntitlementManagement;
 using On.RoR2.Items;
+using RoR2.ContentManagement;
 //using static vanillaVoid.Utils.Components.MaterialControllerComponents;
+[assembly: HG.Reflection.SearchableAttribute.OptIn]
 
 namespace vanillaVoid
 {
@@ -41,11 +43,10 @@ namespace vanillaVoid
 
     //[BepInDependency("com.RumblingJOSEPH.VoidItemAPI", BepInDependency.DependencyFlags.HardDependency)]
     //[BepInDependency(VoidItemAPI.VoidItemAPI.MODGUID)]
-    
+
     [NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
     //[BepInDependency(R2API.R2API.PluginGUID, R2API.R2API.PluginVersion)]
     //[NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.EveryoneNeedSameModVersion)]
-
     //[R2APISubmoduleDependency(nameof(ItemAPI), nameof(LanguageAPI), nameof(RecalculateStatsAPI), nameof(PrefabAPI), nameof(LegacyResourcesAPI))]
 
     //[BepInDependency(VoidItemAPI.VoidItemAPI.MODGUID)]
@@ -54,7 +55,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.5.13";
+        public const string ModVer = "1.5.14";
 
         public static ExpansionDef sotvDLC;
         public static ExpansionDef sotvDLC2;
@@ -71,8 +72,6 @@ namespace vanillaVoid
 
         public static GameObject platformObject;
         public static GameObject portalObject;
-
-        public static GameObject bladeObject;
 
         public static GameObject lotusObject;
         public static GameObject lotusPulse;
@@ -116,8 +115,7 @@ namespace vanillaVoid
 
         public static BuffDef lotusSlow { get; private set; }
 
-        private void Awake()
-        {
+        private void Awake(){
             //orreryCompat = Config.Bind<bool>("Mod Compatability", "Enable Lost Seers Buff", true, "Should generally stay on, but if you're having a strange issue (ex. health bars not showing up on enemies) edit this to be false.");
             locusExit = Config.Bind<bool>("Tweaks: Void Locus", "Exit Portal", true, "If enabled, spawns a portal in the void locus letting you return to normal stages if you want to.");
             locusEarlyExit = Config.Bind<bool>("Tweaks: Void Locus", "Early Exit Portal", false, "If enabled, spawns the exit portal in void locus immediately upon entering the stage. Requires the exit portal to actually be enabled.");
@@ -149,25 +147,14 @@ namespace vanillaVoid
             {
                 MainAssets = AssetBundle.LoadFromStream(stream);
             }
-
-            //SwapShadersFromMaterials(MainAssets);
-            //Debug.Log("beginning test");
             Swapallshaders(MainAssets);
 
             On.RoR2.Items.ContagiousItemManager.Init += AddVoidItemsToDict;
             On.RoR2.ItemCatalog.Init += AddUnlocksToVoidItems;
-            //On.RoR2.CharacterBody.OnSkillActivated += ExtExhaustFireProjectile;
+
+            //GlobalEventManager.onCharacterDeathGlobal += ExeBladeExtraDeath;
 
 
-            On.EntityStates.Mage.Weapon.PrepWall.OnExit += ExtExhaustIceWall; //even with the new method of doing this, ice wall is an exception for some reason
-
-            On.RoR2.GenericSkill.DeductStock += ExtExhaustStock;
-            On.RoR2.Skills.SkillDef.OnExecute += ExtExecute;
-
-
-            GlobalEventManager.onCharacterDeathGlobal += ExeBladeExtraDeath;
-
-            //RoR2.SceneDirector.onPostPopulateSceneServer += AddLotusOnEnter;
             On.RoR2.CharacterBody.OnInventoryChanged += AddLotusOnPickup;
             On.RoR2.HoldoutZoneController.UpdateHealingNovas += CrystalLotusNova;
             //On.RoR2.HoldoutZoneController.FixedUpdate += LotusSlowNova;
@@ -183,11 +170,13 @@ namespace vanillaVoid
             //n.RoR2.CharacterModel.UpdateOverlays += AddLotusMaterial;
             On.RoR2.CharacterBody.FixedUpdate += LastTry;
 
+
+            //On.RoR2.ItemCatalog.Init += ItemCatalog_Init;
+
             //IL.RoR2.GenericSkill.RunRecharge += Ah;
             //On.RoR2.GenericSkill.RunRecharge += Ah2;
 
-            On.RoR2.Language.GetLocalizedStringByToken += (orig, self, token) =>
-            {
+            On.RoR2.Language.GetLocalizedStringByToken += (orig, self, token) => {
                 if (ItemBase.TokenToVoidPair.ContainsKey(token))
                 {
                     ItemIndex idx = ItemCatalog.FindItemIndex(ItemBase.TokenToVoidPair[token]);
@@ -195,20 +184,6 @@ namespace vanillaVoid
                 }
                 return orig(self, token);
             };
-
-            //Texture tex = MainAssets.LoadAsset<Texture>("texRampIce4.png");
-            //var symbolmat = MainAssets.LoadAsset<Material>("interactablePortalSymbol");
-            //symbolmat.
-            //var material = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/matSlow80Debuff.mat").WaitForCompletion();
-            //foreach(var in material)
-
-            bladeObject = MainAssets.LoadAsset<GameObject>("mdlBladeWorldObject.prefab");
-            bladeObject.AddComponent<TeamFilter>();
-            bladeObject.AddComponent<HealthComponent>();
-            bladeObject.AddComponent<NetworkIdentity>();
-            bladeObject.AddComponent<BoxCollider>();
-            bladeObject.AddComponent<Rigidbody>();
-
 
             lotusObject = MainAssets.LoadAsset<GameObject>("mdlLotusWorldObject2.prefab");
             lotusObject.AddComponent<TeamFilter>();
@@ -254,7 +229,6 @@ namespace vanillaVoid
             }
 
 
-            PrefabAPI.RegisterNetworkPrefab(bladeObject);
             PrefabAPI.RegisterNetworkPrefab(lotusObject);
             PrefabAPI.RegisterNetworkPrefab(platformObject);
 
@@ -394,7 +368,7 @@ namespace vanillaVoid
                     var tags = item.ItemTags;
                     bool aiValid = true;
                     bool aiBlacklist = false;
-                    if(item.ItemDef.deprecatedTier == ItemTier.NoTier)
+                    if (item.ItemDef.deprecatedTier == ItemTier.NoTier)
                     {
                         aiBlacklist = true;
                         aiValid = false;
@@ -403,8 +377,8 @@ namespace vanillaVoid
                     //Debug.Log("prename " + name);
                     name = name.Replace("'", "");
                     //Debug.Log("postname " + name);
-                     
-                    foreach (var tag in tags) 
+
+                    foreach (var tag in tags)
                     {
                         if (tag == ItemTag.AIBlacklist)
                         {
@@ -484,7 +458,7 @@ namespace vanillaVoid
                         voidpair.itemDef2.unlockableDef = voidpair.itemDef1.unlockableDef;
                     }
                     //Debug.Log("voidpair: " + voidpair.itemDef1 + " | " + voidpair.itemDef2 + " | " + voidpair.ToString());
-                    
+
                 }
             }
         }
@@ -646,291 +620,13 @@ namespace vanillaVoid
             var enabled = Config.Bind<bool>("Interactable: " + interactable.InteractableName, "Enable Interactable?", true, "Should this interactable appear in runs?").Value;
 
             //InteractableStatusDictionary.Add(interactable, enabled);
-            
+
             if (enabled)
             {
                 interactableList.Add(interactable);
                 return true;
             }
             return false;
-        }
-
-        private void ExtExecute(On.RoR2.Skills.SkillDef.orig_OnExecute orig, RoR2.Skills.SkillDef self, GenericSkill skillSlot)
-        {
-            orig(self, skillSlot);
-
-            if (self.stockToConsume >= 1) //if the stock is consumed here, then it won't be consumed later - active rockets now 
-            {
-                var body = skillSlot.characterBody;
-                if (body) //to be safe i guess
-                {
-                    //Debug.Log("Firing missiles in onExecute " + self + " | " + self.name + " | " + skillSlot + " | " + self.stockToConsume);
-                    TryExhaust(body, skillSlot);
-                }
-            }
-        }
-
-        private void ExtExhaustStock(On.RoR2.GenericSkill.orig_DeductStock orig, GenericSkill self, int count)
-        {
-            orig(self, count);
-
-            Debug.Log("stock cont: " + self.stock);
-
-            var body = self.characterBody;
-            if (body)
-            {
-                //Debug.Log("firing missiles in deduct stock");
-                TryExhaust(body, self); //skill is special and calls deduct stock itself - fire now
-            }
-        }
-
-        private void TryExhaust(CharacterBody body, GenericSkill skill)
-        {
-            int inventoryCount = body.inventory.GetItemCount(ItemBase<ExtraterrestrialExhaust>.instance.ItemDef);
-            if (inventoryCount > 0 && skill.cooldownRemaining > 0 && skill.skillDef.skillNameToken != "MAGE_UTILITY_ICE_NAME") //ice wall is stupid
-            {
-                float skillCD = skill.baseRechargeInterval;
-
-                int missleCount = (int)Math.Ceiling(skillCD / ItemBase<ExtraterrestrialExhaust>.instance.secondsPerRocket.Value);
-
-                if (skill.skillDef.skillNameToken != "SKILL_LUNAR_PRIMARY_REPLACEMENT_NAME" && ItemBase<ExtraterrestrialExhaust>.instance.visionsNerf.Value)
-                {
-                    if (skill.stock % 2 != 0)
-                    {
-                        missleCount = 1;
-                    }
-                    else
-                    {
-                        missleCount = 0;
-                    }
-                }
-                StartCoroutine(delayedRockets(body, missleCount, inventoryCount)); //this can probably be done better
-            }
-        }
-
-        private void ExtExhaustIceWall(On.EntityStates.Mage.Weapon.PrepWall.orig_OnExit orig, EntityStates.Mage.Weapon.PrepWall self)
-        {
-            if (self.goodPlacement)
-            {
-                var inventory = self.characterBody.inventory;
-                if (inventory)
-                {
-                    var inventoryCount = self.characterBody.inventory.GetItemCount(ItemBase<ExtraterrestrialExhaust>.instance.ItemDef);
-                    var skill = self.skillLocator.utilityBonusStockSkill;
-                    if (inventoryCount > 0 && skill.cooldownRemaining > 0) //maybe make this higher
-                    {
-                        float skillCD = skill.baseRechargeInterval;
-
-                        int missleCount = (int)Math.Ceiling(skillCD / ItemBase<ExtraterrestrialExhaust>.instance.secondsPerRocket.Value);
-                        
-                        StartCoroutine(delayedRockets(self.characterBody, missleCount, inventoryCount)); //this can probably be done better
-                    }
-                }
-                
-            }
-            
-            orig(self);
-        }
-
-        private void ExtExhaustFireProjectile(On.RoR2.CharacterBody.orig_OnSkillActivated orig, RoR2.CharacterBody self, RoR2.GenericSkill skill)
-        {
-            var inventoryCount = self.inventory.GetItemCount(ItemBase<ExtraterrestrialExhaust>.instance.ItemDef);
-            if (inventoryCount > 0 && skill.cooldownRemaining > 0 && skill.skillDef.skillNameToken != "MAGE_UTILITY_ICE_NAME") //ice wall is handled specially 
-            {
-                float skillCD = skill.baseRechargeInterval;
-
-                int missleCount = (int)Math.Ceiling(skillCD / ItemBase<ExtraterrestrialExhaust>.instance.secondsPerRocket.Value);
-
-                if (skill.skillDef.skillNameToken != "SKILL_LUNAR_PRIMARY_REPLACEMENT_NAME" && ItemBase<ExtraterrestrialExhaust>.instance.visionsNerf.Value)
-                {
-                    if (skill.stock % 2 != 0)
-                    {
-                        missleCount = 1;
-                    }
-                    else
-                    {
-                        missleCount = 0;
-                    }
-                }
-                StartCoroutine(delayedRockets(self, missleCount, inventoryCount)); //this can probably be done better
-            }
-
-            orig(self, skill);
-        }
-
-        IEnumerator delayedRockets(RoR2.CharacterBody player, int missileCount, int inventoryCount)
-        {
-            for (int i = 0; i < missileCount; i++)
-            {
-                
-                yield return new WaitForSeconds(.1f);
-                //var playerPos = player.GetComponent<CharacterBody>().corePosition;
-                //float random = UnityEngine.Random.Range(-30, 30);
-                //Quaternion UpwardsQuat = Quaternion.Euler(270, random, 0);
-                Vector3 Upwards = new Vector3(UnityEngine.Random.Range(-10, 10), 180 - UnityEngine.Random.Range(-30, 30), UnityEngine.Random.Range(-10, 10));
-                Vector3 upTransform = new Vector3(0, 1, 0);
-                //Debug.Log(((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100));
-                float rocketDamage = player.damage * ((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100);
-
-                ProcChainMask procChainMask = default(ProcChainMask);
-               
-                MissileUtils.FireMissile(player.corePosition + upTransform, player, procChainMask, null, rocketDamage, player.RollCrit(), ExtraterrestrialExhaust.RocketProjectile, DamageColorIndex.Item, Upwards, 10f, false);
-
-            }
-        }
-
-        private static readonly SphereSearch exeBladeSphereSearch = new SphereSearch();
-        private static readonly List<HurtBox> exeBladeHurtBoxBuffer = new List<HurtBox>();
-
-        private void ExeBladeExtraDeath(DamageReport dmgReport)
-        {
-            if (!dmgReport.attacker || !dmgReport.attackerBody || !dmgReport.victim || !dmgReport.victimBody || !dmgReport.victimIsElite)
-            {
-                return; //end func if death wasn't killed by something real enough
-            }
-            var exeComponent = dmgReport.victimBody.GetComponent<ExeToken>();
-            if (exeComponent)
-            {
-                return; //prevent game crash  
-            }
-
-            CharacterBody victimBody = dmgReport.victimBody;
-            dmgReport.victimBody.gameObject.AddComponent<ExeToken>();
-            CharacterBody attackerBody = dmgReport.attackerBody;
-            if (attackerBody.inventory && NetworkServer.active)
-            {
-                var bladeCount = attackerBody.inventory.GetItemCount(ItemBase<ExeBlade>.instance.ItemDef);
-                if (bladeCount > 0)
-                {
-                    Quaternion rot = Quaternion.Euler(0, 180, 0);
-                    var tempBlade = Instantiate(bladeObject, victimBody.corePosition, rot);
-                    tempBlade.GetComponent<TeamFilter>().teamIndex = attackerBody.teamComponent.teamIndex;
-                    tempBlade.transform.position = victimBody.corePosition;
-                    NetworkServer.Spawn(tempBlade);
-                    EffectData effectData = new EffectData
-                    {
-                        origin = victimBody.corePosition
-                    };
-                    effectData.SetNetworkedObjectReference(tempBlade);
-                    EffectManager.SpawnEffect(HealthComponent.AssetReferences.executeEffectPrefab, effectData, transmit: true);
-                    StartCoroutine(ExeBladeDelayedExecutions(bladeCount, tempBlade, dmgReport));
-                }
-            }
-        }
-
-        IEnumerator ExeBladeDelayedExecutions(int bladeCount, GameObject bladeObject, DamageReport dmgReport)
-        {
-            bladeObject.AddComponent<ExeToken>(); //oopsies!!! don't break game
-
-            bladeObject.AddComponent<Rigidbody>();
-            var bladeRigid = bladeObject.GetComponent<Rigidbody>();
-            var bladeCollider = bladeObject.GetComponent<BoxCollider>(); // default size = (0.8, 4.3, 1.8)
-
-            bladeRigid.drag = .5f;
-
-            float randomHeight = UnityEngine.Random.Range(2.45f, 2.95f);
-            bladeCollider.size = new Vector3(0.1f, randomHeight, 0.1f);
-
-            bladeRigid.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
-
-            float randomX = UnityEngine.Random.Range(-20, 10);
-            float randomY = UnityEngine.Random.Range(0, 360);
-            float randomZ = UnityEngine.Random.Range(-20, 20);
-            Quaternion rot = Quaternion.Euler(randomX, randomY, randomZ);
-            bladeObject.transform.SetPositionAndRotation(bladeObject.transform.position, rot);
-
-            var damage = dmgReport.damageInfo.damage;
-            var cmbHP = dmgReport.victim.combinedHealth;
-            var bladeObjHPC = bladeObject.GetComponent<HealthComponent>();
-            CharacterBody attackerBody = dmgReport.attackerBody;
-
-            //float stackRadius = ItemBase<ExeBlade>.instance.aoeRangeBaseExe.Value + (ItemBase<ExeBlade>.instance.aoeRangeStackingExe.Value * (float)(bladeCount - 1));
-
-            float effectiveRadius = ItemBase<ExeBlade>.instance.aoeRangeBaseExe.Value;
-            float AOEDamageMult = ItemBase<ExeBlade>.instance.baseDamageAOEExe.Value;
-
-            //var tempEffect = EntityStates.ParentPod.DeathState.deathEffect;
-
-            for (int i = 0; i < (bladeCount * ItemBase<ExeBlade>.instance.additionalProcs.Value); i++) {
-                if (attackerBody)
-                {
-                    yield return new WaitForSeconds(ItemBase<ExeBlade>.instance.deathDelay.Value);
-                    DamageInfo damageInfoDeath = new DamageInfo
-                    {
-                        attacker = attackerBody.gameObject,
-                        crit = attackerBody.RollCrit(),
-                        damage = 1,
-                        position = bladeObject.transform.position,
-                        procCoefficient = ItemBase<ExeBlade>.instance.bladeCoefficient.Value,
-                        damageType = DamageType.AOE,
-                        damageColorIndex = DamageColorIndex.Default,
-                    };
-                    DamageReport damageReport = new DamageReport(damageInfoDeath, bladeObjHPC, damage, cmbHP);
-                    GlobalEventManager.instance.OnCharacterDeath(damageReport);
-
-                    EffectData effectDataPulse = new EffectData
-                    {
-                        origin = bladeObject.transform.position
-                    };
-                    effectDataPulse.SetNetworkedObjectReference(bladeObject);
-                    //var bisonEffect = EntityStates.Bison.SpawnState.spawnEffectPrefab;
-
-                    //EffectManager.SpawnEffect(HealthComponent.AssetReferences.executeEffectPrefab, effectDataPulse, true);
-                    //EntityStates.BeetleGuardMonster.GroundSlam.slamEffectPrefab
-                    //aoeRangeBaseExe.Value == 0 || baseDamageAOEExe.Value == 0
-                    if (ItemBase<ExeBlade>.instance.aoeRangeBaseExe.Value != 0 && ItemBase<ExeBlade>.instance.baseDamageAOEExe.Value != 0)
-                    {
-                        EffectManager.SpawnEffect(HealthComponent.AssetReferences.executeEffectPrefab, effectDataPulse, true);
-                        float AOEDamage = dmgReport.attackerBody.damage * AOEDamageMult;
-                        Vector3 corePosition = bladeObject.transform.position;
-
-                        exeBladeSphereSearch.origin = corePosition;
-                        exeBladeSphereSearch.mask = LayerIndex.entityPrecise.mask;
-                        exeBladeSphereSearch.radius = effectiveRadius;
-                        exeBladeSphereSearch.RefreshCandidates();
-                        exeBladeSphereSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetUnprotectedTeams(dmgReport.attackerBody.teamComponent.teamIndex));
-                        exeBladeSphereSearch.FilterCandidatesByDistinctHurtBoxEntities();
-                        exeBladeSphereSearch.OrderCandidatesByDistance();
-                        exeBladeSphereSearch.GetHurtBoxes(exeBladeHurtBoxBuffer);
-                        exeBladeSphereSearch.ClearCandidates();
-
-                        for (int j = 0; j < exeBladeHurtBoxBuffer.Count; j++)
-                        {
-                            HurtBox hurtBox = exeBladeHurtBoxBuffer[j];
-                            if (hurtBox.healthComponent && hurtBox.healthComponent.body && hurtBox.healthComponent != bladeObjHPC)
-                            {
-                                DamageInfo damageInfoAOE = new DamageInfo
-                                {
-                                    attacker = attackerBody.gameObject,
-                                    crit = attackerBody.RollCrit(),
-                                    damage = AOEDamage,
-                                    position = corePosition,
-                                    procCoefficient = ItemBase<ExeBlade>.instance.bladeCoefficient.Value,
-                                    damageType = DamageType.AOE,
-                                    damageColorIndex = DamageColorIndex.Item,
-                                };
-                                hurtBox.healthComponent.TakeDamage(damageInfoAOE);
-                            }
-                        }
-                        exeBladeHurtBoxBuffer.Clear();
-                    }
-                }
-            }
-
-            yield return new WaitForSeconds(ItemBase<ExeBlade>.instance.additionalDuration.Value);
-            EffectData effectData = new EffectData
-            {
-                origin = bladeObject.transform.position
-            };
-            effectData.SetNetworkedObjectReference(bladeObject); //pulverizedEffectPrefab
-            EffectManager.SpawnEffect(HealthComponent.AssetReferences.permanentDebuffEffectPrefab, effectData, transmit: true);
-
-            Destroy(bladeObject);
-        }
-
-        public class ExeToken : MonoBehaviour
-        {
-            //prevents hilarity from happening
         }
 
         Vector3 teleporterPos;
@@ -949,24 +645,14 @@ namespace vanillaVoid
 
         private void PrimoridalTeleporterCheck(On.RoR2.SceneDirector.orig_PlaceTeleporter orig, SceneDirector self)
         {
-            //teleporterName = self.teleporterSpawnCard.ToString();
-            //Debug.Log("checking for primoridal: " + self.teleporterSpawnCard.ToString());
-            ////isPrimoridal = false;
-            //teleporterPos = self.teleporterInstance.transform.position;
-            //if (self.teleporterSpawnCard == LegacyResourcesAPI.Load<InteractableSpawnCard>("spawncards/interactablespawncard/iscLunarTeleporter"))
-            //{
-            //    Debug.Log("yo it is");
-            //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-            //    teleporterPos += celestialAdjust;
-            //    //isPrimoridal = true;
-            //}
-            //Debug.Log("checked for primoridal");
+
             string sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
             if (sceneName != "arena" && sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
             {
                 voidfields = false;
                 StartCoroutine(LotusDelayedPlacement(self));
-            }else if(sceneName == "arena")
+            }
+            else if (sceneName == "arena")
             {
                 voidfields = true;
             }
@@ -976,54 +662,31 @@ namespace vanillaVoid
         IEnumerator LotusDelayedPlacement(SceneDirector self)
         {
             yield return new WaitForSeconds(4f);
-            //if (SceneCatalog.GetSceneDefForCurrentScene().baseSceneName == "skymeadow")
-            //{
-            //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-            //    teleporterPos += celestialAdjust;
-            //}
-            if (self) {
+            if (self)
+            {
                 if (self.teleporterSpawnCard)
                 {
                     teleporterName = self.teleporterSpawnCard.ToString();
-                    //Debug.Log("checking for primoridal: " + self.teleporterSpawnCard.ToString());
 
                     lotusSpawned = false;
                     teleporterPos = self.teleporterInstance.transform.position;
-                    //if (obj.teleporterSpawnCard == LegacyResourcesAPI.Load<InteractableSpawnCard>("spawncards/interactablespawncard/iscLunarTeleporter"))
-                    //{
-                    //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-                    //    teleporterPos += celestialAdjust;
-                    //}
-                    //if (isPrimoridal)
-                    //{
-                    //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-                    //    teleporterPos += celestialAdjust;
-                    //    Debug.Log("recognized it is");
-                    //}
-                    //Debug.Log("teleporter pos: " + teleporterPos);
                     int itemCount = 0;
                     TeamIndex teamDex = default;
+
                     foreach (var player in PlayerCharacterMasterController.instances)
                     {
                         itemCount += player.master.inventory.GetItemCount(ItemBase<CrystalLotus>.instance.ItemDef);
                         teamDex = player.master.teamIndex;
                     }
+
                     if (itemCount > 0)
                     {
                         teleporterPos = self.teleporterInstance.transform.position;
-                        //Debug.Log(SceneCatalog.GetSceneDefForCurrentScene().baseSceneName);
                         if (teleporterName.Contains("iscLunarTeleporter"))
                         {
                             Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
                             teleporterPos += celestialAdjust;
                         }
-
-                        //if (SceneCatalog.GetSceneDefForCurrentScene().baseSceneName == "skymeadow")
-                        //{
-                        //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-                        //    teleporterPos += celestialAdjust;
-                        //}
-
 
                         Quaternion rot = Quaternion.Euler(1.52666613f, 180, 9.999999f);
                         var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
@@ -1033,85 +696,13 @@ namespace vanillaVoid
                         tempLotusObject = tempLotus;
                         lotusSpawned = true;
 
-                        EffectData effectData = new EffectData
-                        {
-                            origin = tempLotus.transform.position
-                        };
+                        EffectData effectData = new EffectData { origin = tempLotus.transform.position };
                         effectData.SetNetworkedObjectReference(tempLotus.gameObject);
                         EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
                     }
-                    //Debug.Log("checking prevfrac: " + previousPulseFraction);
                     previousPulseFraction = 0;
-                    //Debug.Log("fixed prevfrac: " + previousPulseFraction);
                 }
             }
-            
-        }
-
-        private void AddLotusOnEnter(SceneDirector obj)
-        {
-            lotusSpawned = false;
-            teleporterPos = obj.teleporterInstance.transform.position;
-            previousPulseFraction = 0;
-            //if (obj.teleporterSpawnCard == LegacyResourcesAPI.Load<InteractableSpawnCard>("spawncards/interactablespawncard/iscLunarTeleporter"))
-            //{
-            //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-            //    teleporterPos += celestialAdjust;
-            //}
-            //if (isPrimoridal)
-            //{
-            //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-            //    teleporterPos += celestialAdjust;
-            //    Debug.Log("recognized it is");
-            //}
-            //Debug.Log("teleporter pos: " + teleporterPos);
-            int itemCount = 0;
-            TeamIndex teamDex = default;
-            foreach (var player in PlayerCharacterMasterController.instances)
-            {
-                itemCount += player.master.inventory.GetItemCount(ItemBase<CrystalLotus>.instance.ItemDef);
-                teamDex = player.master.teamIndex;
-            }
-            if (itemCount > 0)
-            {
-                teleporterPos = obj.teleporterInstance.transform.position;
-                //Debug.Log(SceneCatalog.GetSceneDefForCurrentScene().baseSceneName);
-                if (teleporterName.Contains("iscLunarTeleporter"))
-                {
-                    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-                    teleporterPos += celestialAdjust;
-                }
-
-                //if (SceneCatalog.GetSceneDefForCurrentScene().baseSceneName == "skymeadow")
-                //{
-                //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-                //    teleporterPos += celestialAdjust;
-                //}
-
-                string sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
-                if (sceneName != "arena" && sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
-                {
-                    Quaternion rot = Quaternion.Euler(1.52666613f, 180, 9.999999f);
-                    var tempLotus = Instantiate(lotusObject, teleporterPos, rot);
-                    tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
-                    tempLotus.transform.position = teleporterPos + heightAdjust;
-                    NetworkServer.Spawn(tempLotus);
-                    tempLotusObject = tempLotus;
-                    lotusSpawned = true;
-                    voidfields = false;
-
-                    EffectData effectData = new EffectData
-                    {
-                        origin = tempLotus.transform.position
-                    };
-                    effectData.SetNetworkedObjectReference(tempLotus.gameObject);
-                    EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
-                }else if(sceneName == "arena")
-                {
-                    voidfields = true;
-                }
-            }
-
         }
 
         private void AddLotusOnPickup(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self)
@@ -1128,6 +719,7 @@ namespace vanillaVoid
                         itemCount += player.master.inventory.GetItemCount(ItemBase<CrystalLotus>.instance.ItemDef);
                         teamDex = player.master.teamIndex;
                     }
+
                     if (itemCount > 0)
                     {
                         if (teleporterName.Contains("iscLunarTeleporter"))
@@ -1135,11 +727,7 @@ namespace vanillaVoid
                             Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
                             teleporterPos += celestialAdjust;
                         }
-                        //if (SceneCatalog.GetSceneDefForCurrentScene().baseSceneName == "skymeadow")
-                        //{
-                        //    Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
-                        //    teleporterPos += celestialAdjust;
-                        //}
+
                         string sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
                         if (sceneName != "arena" && sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
                         {
@@ -1168,21 +756,8 @@ namespace vanillaVoid
             }
         }
 
-        //Vector3 heightAdjust = new Vector3(0, 1.5f, 0);
-        //float previousPulseFraction = 0;
-        //float secondsUntilBarrierAttempt = 0;
-        //LotusColliderToken lotusTimerToken;
-
-
-        //private void LotusSlowNova(On.RoR2.HoldoutZoneController.orig_FixedUpdate orig, HoldoutZoneController self)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-
         private void CrystalLotusNova(On.RoR2.HoldoutZoneController.orig_UpdateHealingNovas orig, HoldoutZoneController self, bool isCharging)
         {
-            //Debug.Log("i am happening " + self.charge);
             int itemCount = 0;
             TeamIndex teamDex = default;
             foreach (var player in PlayerCharacterMasterController.instances)
@@ -1194,9 +769,7 @@ namespace vanillaVoid
             if (slowCoeffValue < 1)
             {
                 lotusTimer += Time.fixedDeltaTime;
-                //Debug.Log(lotusTimer);
                 slowCoeffValue = speedCurve.Evaluate(lotusTimer / LotusDuration.Value);
-                //Debug.Log("coeff: " + slowCoeffValue + " | formula: " + slowCoeffValue * (Time.fixedDeltaTime / 10));
             }
             else
             {
@@ -1207,7 +780,6 @@ namespace vanillaVoid
             {
                 if (NetworkServer.active && Time.fixedDeltaTime > 0f)
                 {
-                    
                     if (!tempLotusCollider)
                     {
                         Vector3 holdoutpos = self.gameObject.transform.position;
@@ -1229,10 +801,6 @@ namespace vanillaVoid
                         tempward.invertTeamFilter = true;
                         tempward.enabled = false;
                         tempward.buffDuration = 1;
-                        //var spcl = tempLotusCollider.GetComponent<SphereCollider>();
-                        //Debug.Log(self.radiusSmoothTime);
-                        //spcl.radius = self.radiusSmoothTime;
-                        //var wardtemp = tempLotusCollider.GetComponent<BuffWard>();
 
                     }
                     else
@@ -1240,27 +808,19 @@ namespace vanillaVoid
                         Vector3 holdoutpos = self.gameObject.transform.position;
                         tempLotusCollider.transform.position = holdoutpos;
                     }
-                    //slowCoeffValue += Time.deltaTime;
 
                     var spcl = tempLotusCollider.GetComponent<SphereCollider>();
 
                     spcl.radius = self.currentRadius;
-                    //var token = tempLotusCollider.GetComponent<LotusColliderToken>();
-                    //token.teamIndex = teamDex;
 
                     var ward = tempLotusCollider.GetComponent<BuffWard>();
                     ward.radius = self.currentRadius;
-                    //ward.buffDef = CryoCanister.instance.preFreezeSlow;
-                    //ward.invertTeamFilter = true;
-                    //ward.buffDuration = 1f;
 
-                    //TeamFilter filter = tempLotusCollider.GetComponent<TeamFilter>();
                     var comp = tempLotusCollider.GetComponent<SlowDownProjectiles>();
                     comp.slowDownCoefficient = slowCoeffValue;
 
                     if (secondsUntilBarrierAttempt > 0f)
                     {
-                        //Debug.Log("waiting");
                         secondsUntilBarrierAttempt -= Time.fixedDeltaTime;
                     }
                     else
@@ -1270,9 +830,9 @@ namespace vanillaVoid
                             previousPulseFraction = 0;
                             currentCharge = self.charge;
                         }
-                        if(self.charge >= 1)
+                        if (self.charge >= 1)
                         {
-                            if(LotusVariant.Value == 0)
+                            if (LotusVariant.Value == 0)
                             {
                                 if (tempLotusCollider)
                                 {
@@ -1284,12 +844,10 @@ namespace vanillaVoid
                         float nextPulseFraction = CalcNextPulseFraction(itemCount * (int)ItemBase<CrystalLotus>.instance.pulseCountStacking.Value, previousPulseFraction);
                         currentCharge = self.charge;
 
-                        //Debug.Log("waiting for " + nextPulseFraction + " | we are at " + currentCharge);
                         if (nextPulseFraction <= currentCharge)
                         {
                             if (LotusVariant.Value == 1)
                             {
-                                //Quaternion Upwards = Quaternion.Euler(270, 0, 0);
                                 string nova = "RoR2/Base/TPHealingNova/TeleporterHealNovaPulse.prefab";
                                 GameObject novaPrefab = Addressables.LoadAssetAsync<GameObject>(nova).WaitForCompletion();
                                 novaPrefab.GetComponent<TeamFilter>().teamIndex = teamDex;
@@ -1298,7 +856,6 @@ namespace vanillaVoid
                             }
                             else
                             {
-                                //slowCoeffValue = .1f;
                                 ward.enabled = true;
 
                                 lotusTimer = 0;
@@ -1306,7 +863,7 @@ namespace vanillaVoid
                                 slowCoeffValue = speedCurve.Evaluate(lotusTimer / LotusDuration.Value);
 
                                 StartCoroutine(Lotus2ExplosionThing(self.gameObject));
-                                
+
                             }
 
                             previousPulseFraction = nextPulseFraction;
@@ -1323,7 +880,7 @@ namespace vanillaVoid
                     }
                 }
             }
-            
+
             orig(self, isCharging);
         }
         private static float CalcNextPulseFraction(int itemCount, float prevPulseFraction)
@@ -1441,7 +998,7 @@ namespace vanillaVoid
             {
                 pulsepos = teleporterPos + heightAdjustPulse;
             }
-            
+
             EffectManager.SimpleEffect(lotusEffect, pulsepos, new Quaternion(0, 0, 0, 0), true);
 
             yield return new WaitForSeconds(1.15f);
@@ -1493,7 +1050,7 @@ namespace vanillaVoid
         private void LastTry(On.RoR2.CharacterBody.orig_FixedUpdate orig, CharacterBody self)
         {
             orig(self);
-            if(self.GetBuffCount(lotusSlow) > 0 && slowCoeffValue < 1)
+            if (self.GetBuffCount(lotusSlow) > 0 && slowCoeffValue < 1)
             {
                 var token = self.gameObject.GetComponent<LotusBodyToken>();
                 if (!token)
@@ -1528,14 +1085,14 @@ namespace vanillaVoid
                     token.coeff = slowCoeffValue;
                 }
             }
-            else if(slowCoeffValue >= 1)
+            else if (slowCoeffValue >= 1)
             {
                 int count = self.GetBuffCount(lotusSlow);
-                for(int i = 0; i < count; i++)
+                for (int i = 0; i < count; i++)
                 {
                     self.RemoveOldestTimedBuff(lotusSlow);
                 }
-                
+
                 var token = self.gameObject.GetComponent<LotusBodyToken>();
                 if (token)
                 {
@@ -1545,43 +1102,7 @@ namespace vanillaVoid
                     //ebug.Log("end time: " + endTime + " | " + (startTime - endTime));
                 }
             }
-            //else
-            //{
-            //    //var token = self.gameObject.GetComponent<LotusBodyToken>();
-            //    //if (token)
-            //    //{
-            //    //    token.End();
-            //    //    Destroy(token);
-            //    //}
-            //}
         }
-
-
-        //private void LotusSlowVisuals(On.RoR2.CharacterBody.orig_FixedUpdate orig, CharacterBody self)
-        //{
-        //    orig(self);
-        //    var component = self.gameObject.GetComponent<LotusBodyToken>();
-        //    if (self.GetBuffCount(BarrierLotus.instance.lotusSlow) > 0)
-        //    {
-        //        //var component = self.gameObject.GetComponent<LotusBodyToken>();
-        //        if (!component)
-        //        {
-        //            component = self.gameObject.AddComponent<LotusBodyToken>();
-        //            component.body = self;
-        //            component.material = lotusSlowMaterial;
-        //            component.Begin();
-        //        }
-        //    }
-        //    else
-        //    {
-        //        if (component)
-        //        {
-        //            Destroy(component);
-        //        }
-        //    }
-        //
-        //  }
-
 
         public class LotusBodyToken : MonoBehaviour
         {
@@ -1599,10 +1120,10 @@ namespace vanillaVoid
                 material = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/matSlow80Debuff.mat").WaitForCompletion();
                 matInstance = Instantiate(material);
 
-                
+
 
                 //Debug.Log("boost: " + matInstance.GetFloat("_Boost"));
-                matInstance.SetFloat("_Boost", matInstance.GetFloat("_Boost") - (coeff*2));
+                matInstance.SetFloat("_Boost", matInstance.GetFloat("_Boost") - (coeff * 2));
                 //matInstance.SetTexture("_RemapTex", tex);
                 //Debug.Log("remap: " + matInstance.GetTexture("_RemapTex"));
                 matInstance.SetTexture("_RemapTex", tex);
@@ -1756,7 +1277,7 @@ namespace vanillaVoid
                             se.radius = 30;
                             se.scaleShakeRadiusWithLocalScale = false;
                             se.amplitudeTimeDecay = true;
-                            
+
                             //something something vanillavoid something "the shit way" TWO
                             var bright = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/VFX/matTracerBright.mat").WaitForCompletion();
                             var flash = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/VFX/matGenericFlash.mat").WaitForCompletion();
@@ -1797,7 +1318,8 @@ namespace vanillaVoid
                                 trans.GetComponent<PickupDisplay>().voidParticleEffect = voidsys;
 
                                 voidsys.transform.position = new Vector3(0, 0, 0);
-                            }catch(Exception e)
+                            }
+                            catch (Exception e)
                             {
                                 Debug.Log("VV Exception (Command VFX): " + e);
                             }
@@ -1820,146 +1342,31 @@ namespace vanillaVoid
                 }
                 GameObject platform = UnityEngine.Object.Instantiate<GameObject>(platformObject, new Vector3(-37.5f, 15.25f, -273.5f), new Quaternion(0, 0, 0, 0));
                 NetworkServer.Spawn(platform);
-                
+
             }
-            
+
         }
 
         private void SpawnLocusPortal(On.RoR2.VoidStageMissionController.orig_OnBatteryActivated orig, VoidStageMissionController self)
         {
             orig(self);
-            if(self.numBatteriesActivated >= self.numBatteriesSpawned && !locusEarlyExit.Value)
+            if (self.numBatteriesActivated >= self.numBatteriesSpawned && !locusEarlyExit.Value)
             {
                 GameObject portal = UnityEngine.Object.Instantiate<GameObject>(portalObject, new Vector3(-37.5f, 19.5f, -284.05f), new Quaternion(0, 70, 0, 0));
                 NetworkServer.Spawn(portal);
-            } 
+            }
         }
 
         private void LocusDirectorHelp(SceneDirector obj)
         {
             string sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
-            if (LocusBonus.Value > 0 && sceneName == "voidstage") 
+            if (LocusBonus.Value > 0 && sceneName == "voidstage")
             {
-                
+
                 obj.interactableCredit += LocusBonus.Value;
 
             }
         }
-
-        //private void ClockworkItemDrops(On.RoR2.Stage.orig_RespawnCharacter orig, Stage self, CharacterMaster characterMaster)
-        //{
-        //    orig(self, characterMaster);
-        //
-        //    if (ItemBase<ClockworkMechanism>.instance.itemVariant.Value == 0)
-        //    {
-        //        //int itemCount = 0;
-        //        foreach (var player in PlayerCharacterMasterController.instances)
-        //        {
-        //            int itemCount = player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
-        //            if (itemCount > 0)
-        //            {
-        //                int rewardCount = ItemBase<ClockworkMechanism>.instance.itemsPerStage.Value + (ItemBase<ClockworkMechanism>.instance.itemsPerStageStacking.Value * (itemCount - 1));
-        //                ClockworkDelayedItemDrops(rewardCount, player.gameObject.transform.position);
-        //            }
-        //            //if (itemCount > 0)
-        //            //{
-        //            //    int rewardCount = ItemBase<ClockworkMechanism>.instance.itemsPerStage.Value + (ItemBase<ClockworkMechanism>.instance.itemsPerStageStacking.Value * (itemCount - 1));
-        //            //    for (int i = 0; i < rewardCount; i++)
-        //            //    {
-        //            //        if (ItemBase<ClockworkMechanism>.instance.watchVoidRng == null)
-        //            //        {
-        //            //            ItemBase<ClockworkMechanism>.instance.watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
-        //            //        }
-        //            //
-        //            //        //ItemIndex itemResult = ItemIndex.None;
-        //            //        PickupIndex pickupResult = PickupIndex.none;
-        //            //        int randInt = ItemBase<ClockworkMechanism>.instance.watchVoidRng.RangeInt(1, 100); // 1-79 white // 80-99 green // 100 red
-        //            //        if (randInt < 80)
-        //            //        {
-        //            //            List<PickupIndex> whiteList = new List<PickupIndex>(Run.instance.availableTier1DropList);
-        //            //            Util.ShuffleList(whiteList, ItemBase<ClockworkMechanism>.instance.watchVoidRng);
-        //            //            //itemResult = whiteList[0].itemIndex;
-        //            //            pickupResult = whiteList[0];
-        //            //            Debug.Log("selected a white");
-        //            //        }
-        //            //        else if (randInt < 100)
-        //            //        {
-        //            //            List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier1DropList);
-        //            //            Util.ShuffleList(greenList, ItemBase<ClockworkMechanism>.instance.watchVoidRng);
-        //            //            //itemResult = greenList[0].itemIndex;
-        //            //            pickupResult = greenList[0];
-        //            //            Debug.Log("selected a green");
-        //            //        }
-        //            //        else
-        //            //        {
-        //            //            List<PickupIndex> redList = new List<PickupIndex>(Run.instance.availableTier1DropList);
-        //            //            Util.ShuffleList(redList, ItemBase<ClockworkMechanism>.instance.watchVoidRng);
-        //            //            //itemResult = redList[0].itemIndex;
-        //            //            pickupResult = redList[0];
-        //            //            Debug.Log("selected a red");
-        //            //        }
-        //            //        //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
-        //            //        float num = 360f / (float)rewardCount;
-        //            //        Vector3 a = Quaternion.AngleAxis(num * (float)i, Vector3.up) * Vector3.forward;
-        //            //        Vector3 position = player.gameObject.transform.position + a * 4f + Vector3.up * 8f;
-        //            //        Debug.Log("spawned it at " + position);
-        //            //        PickupDropletController.CreatePickupDroplet(pickupResult, position, Vector3.zero);
-        //            //        Debug.Log("spawned it");
-        //            //
-        //            //    }
-        //            //}
-        //        }
-        //    }
-        //}
-
-        //IEnumerator ClockworkDelayedItemDrops(int rewardCount, Vector3 playerPos)
-        //{
-        //    //int rewardCount = ItemBase<ClockworkMechanism>.instance.itemsPerStage.Value + (ItemBase<ClockworkMechanism>.instance.itemsPerStageStacking.Value * (itemCount - 1));
-        //    for (int i = 0; i < rewardCount; i++)
-        //    {
-        //        yield return new WaitForSeconds(.05f);
-        //        if (ItemBase<ClockworkMechanism>.instance.watchVoidRng == null)
-        //        {
-        //            ItemBase<ClockworkMechanism>.instance.watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
-        //        }
-        //
-        //        //ItemIndex itemResult = ItemIndex.None;
-        //        PickupIndex pickupResult = PickupIndex.none;
-        //        int randInt = ItemBase<ClockworkMechanism>.instance.watchVoidRng.RangeInt(1, 100); // 1-79 white // 80-99 green // 100 red
-        //        if (randInt < 80)
-        //        {
-        //            List<PickupIndex> whiteList = new List<PickupIndex>(Run.instance.availableTier1DropList);
-        //            Util.ShuffleList(whiteList, ItemBase<ClockworkMechanism>.instance.watchVoidRng);
-        //            //itemResult = whiteList[0].itemIndex;
-        //            pickupResult = whiteList[0];
-        //            Debug.Log("selected a white");
-        //        }
-        //        else if (randInt < 100)
-        //        {
-        //            List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier1DropList);
-        //            Util.ShuffleList(greenList, ItemBase<ClockworkMechanism>.instance.watchVoidRng);
-        //            //itemResult = greenList[0].itemIndex;
-        //            pickupResult = greenList[0];
-        //            Debug.Log("selected a green");
-        //        }
-        //        else
-        //        {
-        //            List<PickupIndex> redList = new List<PickupIndex>(Run.instance.availableTier1DropList);
-        //            Util.ShuffleList(redList, ItemBase<ClockworkMechanism>.instance.watchVoidRng);
-        //            //itemResult = redList[0].itemIndex;
-        //            pickupResult = redList[0];
-        //            Debug.Log("selected a red");
-        //        }
-        //        //player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
-        //        float num = 360f / (float)rewardCount;
-        //        Vector3 a = Quaternion.AngleAxis(num * (float)i, Vector3.up) * Vector3.forward;
-        //        Vector3 position = playerPos + a * 4f + Vector3.up * 8f;
-        //        Debug.Log("spawned it at " + position);
-        //        PickupDropletController.CreatePickupDroplet(pickupResult, position, Vector3.zero);
-        //        Debug.Log("spawned it");
-        //
-        //    }
-        //}
 
         public void Swapallshaders(AssetBundle bundle)
         {
@@ -2008,30 +1415,116 @@ namespace vanillaVoid
             }
         }
 
-        //static List<Material> materialsWithSwappedShaders;
-        //private void SwapShadersFromMaterials(AssetBundle assetBundle)
-        //{
-        //    var materials = assetBundle.LoadAllAssets<Material>().Where(mat => mat.shader.name.StartsWith("StubbedShader"));
-        //    foreach (Material material in materials)
-        //    {
-        //        try
-        //        {
-        //            SwapShader(material);
-        //        }
-        //        catch (Exception e) { Debug.LogError(e); }
-        //    }
-        //}
-        //private async void SwapShader(Material material)
-        //{
-        //    var shaderName = material.shader.name.Substring("Stubbed".Length);
-        //    var adressablePath = $"{shaderName}.shader";
-        //    var asyncOp = Addressables.LoadAssetAsync<Shader>(adressablePath);
-        //    var shaderTask = asyncOp.Task;
-        //    var shader = await shaderTask;
-        //    material.shader = shader;
-        //    materialsWithSwappedShaders.Add(material);
-        //}
+        private void ItemCatalog_Init(On.RoR2.ItemCatalog.orig_Init orig)
+        {
+            orig();
+
+            var t1Infect = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/ItemInfection, White.prefab").WaitForCompletion();
+            var t2Infect = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/ItemInfection, Green.prefab").WaitForCompletion();
+            var t3Infect = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/ItemInfection, Red.prefab").WaitForCompletion();
+            var luInfect = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/ItemInfection, Blue.prefab").WaitForCompletion();
+
+            var v1Infect = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("void1Infection.prefab");
+            var v1dis = v1Infect.AddComponent<ItemDisplay>();
+            v1dis.rendererInfos = new CharacterModel.RendererInfo[1];
+            v1dis.rendererInfos[0].renderer = v1Infect.GetComponent<MeshRenderer>();
+            v1dis.rendererInfos[0].defaultMaterial = vanillaVoidPlugin.MainAssets.LoadAsset<Material>("voidInfectionT1.mat");
+
+            var v2Infect = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("void2Infection.prefab");
+            var v2dis = v2Infect.AddComponent<ItemDisplay>();
+            v2dis.rendererInfos = new CharacterModel.RendererInfo[1];
+            v2dis.rendererInfos[0].renderer = v2Infect.GetComponent<MeshRenderer>();
+            v2dis.rendererInfos[0].defaultMaterial = vanillaVoidPlugin.MainAssets.LoadAsset<Material>("voidInfectionT2.mat");
+
+            var v3Infect = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("void3Infection.prefab");
+            var v3dis = v3Infect.AddComponent<ItemDisplay>();
+            v3dis.rendererInfos = new CharacterModel.RendererInfo[1];
+            v3dis.rendererInfos[0].renderer = v3Infect.GetComponent<MeshRenderer>();
+            v3dis.rendererInfos[0].defaultMaterial = vanillaVoidPlugin.MainAssets.LoadAsset<Material>("voidInfectionT3.mat");
+
+            var bsInfect = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("t4Infection.prefab");
+            var bsdis = bsInfect.AddComponent<ItemDisplay>();
+            bsdis.rendererInfos = new CharacterModel.RendererInfo[1];
+            bsdis.rendererInfos[0].renderer = bsInfect.GetComponent<MeshRenderer>();
+            bsdis.rendererInfos[0].defaultMaterial = vanillaVoidPlugin.MainAssets.LoadAsset<Material>("InfectionT4.mat");
+
+            //string[] bones = {"HandL", "HandR", "chest", "UpperArmL", "UpperArmR", "LowerArmL", "LowerArmR", "ThighL", "ThighR", "CalfL", "CalfR,", "Head", "Neck", "Stomach", "Pelvis"};
+            //string[] bones = {"chest", "UpperArmL", "UpperArmR", "LowerArmL", "LowerArmR", "ThighL", "ThighR", "CalfL", "CalfR,", "Head", "Neck", "Stomach", "Pelvis" };
+            //0-2 large, 3, thin, 4 small, 5-12 tall
+            string[] bones = { "chest", "Stomach", "Pelvis", "Head", "Neck", "UpperArmL", "UpperArmR", "LowerArmL", "LowerArmR", "ThighL", "ThighR", "CalfL", "CalfR" };
+
+            Xoroshiro128Plus mithRand = new Xoroshiro128Plus(3691);
+
+
+            var idrs = Addressables.LoadAssetAsync<ItemDisplayRuleSet>("RoR2/Base/Brother/idrsBrother.asset").WaitForCompletion();
+            int i = 0;
+            foreach (var drs in idrs.keyAssetRuleGroups)
+            {
+                Debug.Log(++i + ": keyAssetRuleGroups - " + drs.keyAsset + " | " + drs.displayRuleGroup.rules[0].localPos + " | " + drs.displayRuleGroup.rules[0].childName + " | ");
+            }
+            ItemDisplayRuleSet.KeyAssetRuleGroup[] itemRuleGroups = idrs.keyAssetRuleGroups;
+
+            ReadOnlyContentPack? sotvPack = ContentManager.FindContentPack("RoR2.DLC1");
+            if (sotvPack.HasValue)
+            {
+                var pack = sotvPack.Value;
+                var items = pack.itemDefs;
+
+                foreach (var item in items)
+                {
+                    Debug.Log(++i + ": Item: " + item.nameToken + " | " + item.tier + " | " + item.deprecatedTier);
+
+                    if (item.tier == ItemTier.Tier1 || item.tier == ItemTier.Tier2 || item.tier == ItemTier.Tier3 || item.tier == ItemTier.Boss || item.tier == ItemTier.Lunar)
+                    {
+                        ItemDisplayRuleSet.KeyAssetRuleGroup a;
+                        a.keyAsset = item;
+
+                        var rand = mithRand.RangeInt(0, bones.Length);
+
+                        a.displayRuleGroup = new DisplayRuleGroup();
+                        a.displayRuleGroup.AddDisplayRule(new RoR2.ItemDisplayRule
+                        {
+                            ruleType = ItemDisplayRuleType.ParentedPrefab,
+                            followerPrefab = (item.tier == ItemTier.Tier1 ? t1Infect : item.tier == ItemTier.Tier2 ? t2Infect : item.tier == ItemTier.Tier3 ? t3Infect : item.tier == ItemTier.Boss ? bsInfect : luInfect),
+                            childName = bones[rand],
+                            localPos = GeneratePositionFromRand(mithRand, rand), //new Vector3(mithRand.RangeFloat(-.225f, .225f), mithRand.RangeFloat(-.225f, .225f), mithRand.RangeFloat(-.225f, .225f)),
+                            localAngles = new Vector3(mithRand.RangeFloat(0, 360), mithRand.RangeFloat(0, 360), mithRand.RangeFloat(0, 360)),
+                            localScale = new Vector3(mithRand.RangeFloat(.105f, .115f), mithRand.RangeFloat(.105f, .115f), mithRand.RangeFloat(.105f, .115f))
+                        });
+                        itemRuleGroups = itemRuleGroups.AddItem(a).ToArray();
+
+                        //itemRuleGroups = itemRuleGroups.AddToArray(a);
+                    }
+
+                }
+                idrs.keyAssetRuleGroups = itemRuleGroups;
+
+                Debug.Log("done with Mith Rick of Rain idrs");
+            }
+        }
+
+        Vector3 GeneratePositionFromRand(Xoroshiro128Plus rand, int randVal)
+        {
+            if (randVal <= 2)
+            { //large
+                return new Vector3(rand.RangeFloat(-.2f, .2f), rand.RangeFloat(-.225f, .225f), rand.RangeFloat(-.2f, .2f));
+            }
+            else if (randVal == 3)
+            { //thin
+                return new Vector3(rand.RangeFloat(-.2f, .2f), rand.RangeFloat(-.015f, .0675f), rand.RangeFloat(-.2f, .2f));
+            }
+            else if (randVal == 4)
+            { //small
+                return new Vector3(rand.RangeFloat(-.0375f, .0375f), rand.RangeFloat(-.0375f, .0375f), rand.RangeFloat(-.0375f, .0375f));
+            }
+            else
+            { //tall
+                return new Vector3(rand.RangeFloat(-.1f, .1f), rand.RangeFloat(-0.075f, .375f), rand.RangeFloat(-.1f, .1f));
+            }
+            //pelvis needs to be not tall
+
+            //tall needs to be thinner
+            //rotation needs to aim at bone origin - aim at the bones position, ignore y axis
+        }
     }
-
-
 }

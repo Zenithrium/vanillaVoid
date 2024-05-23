@@ -2,3 +2,6 @@
 
 # CS0618: Type or member is obsolete
 dotnet_diagnostic.CS0618.severity = suggestion
+
+# Publicizer001: Accessing a member that was not originally public
+dotnet_diagnostic.Publicizer001.severity = none

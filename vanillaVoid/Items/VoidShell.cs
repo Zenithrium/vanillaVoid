@@ -75,7 +75,7 @@ namespace vanillaVoid.Items
             (ShellTier1Weight.Value != 0 && ShellTier2Weight.Value != 0 ? "/" : "") +
             (ShellTier2Weight.Value != 0 ? $"<color=#9CE562>{ShellTier2Weight.Value * 100}%</color>" : "") +
             ((ShellTier1Weight.Value != 0 || ShellTier2Weight.Value != 0) && ShellTier3Weight.Value != 0 ? "/" : "") +
-            (ShellTier3Weight.Value != 0 ? $"<color=#E58262>{ShellTier3Weight.Value * 100}%</color>" : "") +
+            (ShellTier3Weight.Value != 0 ? $"<color=#E15141>{ShellTier3Weight.Value * 100}%</color>" : "") +
             ((ShellTier1Weight.Value != 0 || ShellTier2Weight.Value != 0 || ShellTier3Weight.Value != 0) && ShellTier1VoidWeight.Value != 0 ? "/" : "") +
             (ShellTier1VoidWeight.Value != 0 ? $"<color=#DD7AC6>{ShellTier1VoidWeight.Value * 100}%</color>" : "") + //this is the same as cIsVoid
             ((ShellTier1Weight.Value != 0 || ShellTier2Weight.Value != 0 || ShellTier3Weight.Value != 0 || ShellTier1VoidWeight.Value != 0) && ShellTier2VoidWeight.Value != 0 ? "/" : "") +
@@ -112,6 +112,8 @@ namespace vanillaVoid.Items
 
         public static GameObject voidPotentialPrefab;
 
+        public VoidShellDropTable dropTable;
+
         //public static BasicPickupDropTable[] tables = new BasicPickupDropTable[4];
 
         //public static BasicPickupDropTable table;
@@ -132,8 +134,7 @@ namespace vanillaVoid.Items
             Hooks();
         }
 
-        public override void CreateConfig(ConfigFile config)
-        {
+        public override void CreateConfig(ConfigFile config){
             enableFog = config.Bind<bool>("Item: " + ItemName, "Enable Void Fog", true, "Adjust whether the Lost Battery should have void fog while charging (like void fields).");
             playerFog = config.Bind<bool>("Item: " + ItemName, "Player Only Void Fog", true, "Adjust whether void fog should only target players rather than targeting everyone except void enemies.");
 
@@ -165,17 +166,10 @@ namespace vanillaVoid.Items
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "FreeChest", "Adjust which item this is the void pair of.");
         }
 
-        public void CreateInteractable()
-        {
+        public void CreateInteractable(){
             voidPotentialPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/OptionPickup/OptionPickup.prefab").WaitForCompletion();
 
-            //table = new BasicPickupDropTable();
-            //table.voidTier1Weight = 6f;
-            //table.voidTier2Weight = 3f;
-            //table.voidTier3Weight = .75f;
-            //table.tier1Weight = 7.5f;
-            //table.tier2Weight = 4;
-            //table.tier3Weight = 1f;
+            dropTable = ScriptableObject.CreateInstance<VoidShellDropTable>();
 
             Vector3 zero = new Vector3(0, 0, 0);
 
@@ -1100,7 +1094,7 @@ namespace vanillaVoid.Items
                                 Vector3 vector = Quaternion.AngleAxis((float)UnityEngine.Random.Range(0, 360), Vector3.up) * (Vector3.up * (float)20f + Vector3.forward * 5f);
                                 Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
                                 Vector3 position = self.transform.position + (1.5f * Vector3.up);
-                                VoidShellDropTable dropTable = new VoidShellDropTable();
+                                //VoidShellDropTable dropTable = ScriptableObject.CreateInstance<VoidShellDropTable>();
                                 //int i = 0;
                                 for (int i = 0; i < players; ++i)
                                 {
@@ -1115,13 +1109,13 @@ namespace vanillaVoid.Items
                                     options[1].available = true;
                                     options[2].available = true;
 
-                                    PickupDropletController.CreatePickupDroplet(new GenericPickupController.CreatePickupInfo
-                                    {
+                                    PickupDropletController.CreatePickupDroplet(new GenericPickupController.CreatePickupInfo{
                                         pickerOptions = options,
                                         rotation = Quaternion.identity,
                                         prefabOverride = voidPotentialPrefab,
                                         pickupIndex = PickupCatalog.FindPickupIndex(ItemTier.VoidTier1),
-                                    }, position, vector);
+                                        position = position
+                                    }, vector);
                                     vector = rotation * vector;
                                 }
                             }
@@ -1132,24 +1126,9 @@ namespace vanillaVoid.Items
                                 Vector3 vector = Quaternion.AngleAxis((float)UnityEngine.Random.Range(0, 360), Vector3.up) * (Vector3.up * (float)20f + Vector3.forward * 5f);
                                 Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
                                 Vector3 position = self.transform.position + (1.5f * Vector3.up);
-                                VoidShellDropTable dropTable = new VoidShellDropTable();
+                                //VoidShellDropTable dropTable = ScriptableObject.CreateInstance<VoidShellDropTable>();
                                 //int i = 0;
-                                foreach (int player in validPlayerList)
-                                {
-                                    //int adjust = player - 1;
-                                    //Debug.Log("player " + adjust);
-                                    //PickupDropTable dropTable;
-                                    //dropTable.Add(Run.instance.availableTier1DropList, .79f);
-                                    //WeightedSelection<PickupIndex> options = new WeightedSelection<PickupIndex>();
-
-                                    //BasicPickupDropTable newTable = table;
-                                    //newTable.voidTier1Weight = 6f + (adjust * .6f);
-                                    //newTable.voidTier2Weight = 3f + (adjust * 1.25f);
-                                    //newTable.voidTier3Weight = .75f + (adjust * 1.75f);
-                                    //newTable.tier1Weight = 7.5f;
-                                    //newTable.tier2Weight = 4 + (adjust * .4f);
-                                    //newTable.tier3Weight = 1f + (adjust * .8f);
-
+                                foreach (int player in validPlayerList){
                                     VoidShellTriple triple = dropTable.GenerateDropPreReplacementForPlayer(voidCellRng, player);
                                     PickupPickerController.Option[] options = new PickupPickerController.Option[3];
 
@@ -1167,7 +1146,8 @@ namespace vanillaVoid.Items
                                         rotation = Quaternion.identity,
                                         prefabOverride = voidPotentialPrefab,
                                         pickupIndex = PickupCatalog.FindPickupIndex(ItemTier.VoidTier1),
-                                    }, position, vector);
+                                        position = position
+                                    }, vector);
                                     vector = rotation * vector;
                                 }
                             }

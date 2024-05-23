@@ -61,6 +61,7 @@ namespace vanillaVoid.Items
         public ConfigEntry<int> variantBreakAmount;
 
         public Xoroshiro128Plus watchVoidRng;
+
         public override string ItemName => "Clockwork Mechanism";
 
         public override string ItemLangTokenName => "CLOCKWORK_ITEM";
@@ -92,6 +93,7 @@ namespace vanillaVoid.Items
 
         //ClockworkDropper dropper;
         ClockworkDropTable dropTable;
+        public GameObject clockworkDropVFX;
 
         public override void Init(ConfigFile config){
             CreateConfig(config);
@@ -185,9 +187,9 @@ namespace vanillaVoid.Items
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
             //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
-            //CreateBuff();
+            CreateVFX();
             Hooks();
-            dropTable = new ClockworkDropTable();
+            dropTable = ScriptableObject.CreateInstance<ClockworkDropTable>();
             //dropper = new ClockworkDropper(dropTable);
         }
 
@@ -224,8 +226,30 @@ namespace vanillaVoid.Items
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "FragileDamageBonus", "Adjust which item this is the void pair of.");
         }
 
-        public void CreateBuff()
-        {
+        public void CreateVFX(){
+            clockworkDropVFX = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("ClockworkDropVFX.prefab");
+
+            var vfxa = clockworkDropVFX.AddComponent<VFXAttributes>();
+            vfxa.vfxPriority = VFXAttributes.VFXPriority.Medium;
+            vfxa.vfxIntensity = VFXAttributes.VFXIntensity.Low;
+
+            clockworkDropVFX.AddComponent<EffectComponent>();
+            clockworkDropVFX.AddComponent<DestroyOnTimer>().duration = 1;
+
+            var lic = clockworkDropVFX.transform.Find("Holder").Find("Point Light").gameObject.AddComponent<LightIntensityCurve>();
+            AnimationCurve clockcurve = new AnimationCurve{
+                keys = new Keyframe[]{ new Keyframe(0, 1), new Keyframe(0.3739389f, 0.3662643f), new Keyframe(1, 0) },
+                preWrapMode = WrapMode.ClampForever,
+                postWrapMode = WrapMode.ClampForever
+            };
+            lic.timeMax = .5f;
+            lic.curve = clockcurve;
+            
+            ContentAddition.AddEffect(clockworkDropVFX);
+        }
+
+
+        public void CreateBuff(){
             recentBreak = ScriptableObject.CreateInstance<BuffDef>();
             recentBreak.buffColor = Color.white;
             recentBreak.canStack = true;
@@ -739,23 +763,18 @@ namespace vanillaVoid.Items
 
         }
 
-        public override void Hooks()
-        {
-            
-            if (itemVariant.Value == 0 || itemVariant.Value == 1)
-            {
+        public override void Hooks(){
+            if (itemVariant.Value == 0 || itemVariant.Value == 1){
                 On.RoR2.HealthComponent.UpdateLastHitTime += BreakItem;
-                if(itemVariant.Value == 0)
-                {
+                if(itemVariant.Value == 0){
                     Stage.onServerStageBegin += DetermineStage;
                 }
             }
+
             RoR2.SceneDirector.onPrePopulateSceneServer += HelpDirector;
             On.RoR2.InfiniteTowerRun.OnPrePopulateSceneServer += HelpSimulacrum;
             RoR2.SceneDirector.onPostPopulateSceneServer += Variant2Clear;
-            //On.RoR2.Stage.RespawnCharacter += StageRewards;
             On.RoR2.Stage.RespawnCharacter += Var0DropItems;
-            //On.RoR2.CharacterBody.Start()
         }
 
         private void Var0DropItems(On.RoR2.Stage.orig_RespawnCharacter orig, Stage self, CharacterMaster characterMaster)
@@ -770,24 +789,17 @@ namespace vanillaVoid.Items
                 }
 
                 if (directlyGiveItems.Value){
-                    var items = dropTable.GenerateUniqueDropsPreReplacement(rewardCount, watchVoidRng);
-                    Debug.Log("Granting items");
-                    for (int i = 0; i < items.Length; ++i){
-                        characterMaster.inventory.GiveItem(items[i].itemIndex, 1);
-                        GenericPickupController.SendPickupMessage(characterMaster, items[i]);
+                    //Debug.Log("Granting items");
+                    for (int i = 0; i < itemCount; ++i){
+                        var item = dropTable.GenerateDropPreReplacement(watchVoidRng);
+                        characterMaster.inventory.GiveItem(item.itemIndex, 1);
+                        GenericPickupController.SendPickupMessage(characterMaster, item);
                     }
                 }else{
-                    //if (dropper.rng == null){
-                    //    dropper.rng = watchVoidRng;
-                    //}
-                    Debug.Log("item drop " + rewardCount);
-                    //ClockworkItemDrop(characterMaster.GetBody(), rewardCount);
+                    //Debug.Log("item drop " + rewardCount);
 
                     var cdropper = characterMaster.GetBody().gameObject.AddComponent<ClockworkDropper>();
-                    cdropper.beginDelayedDrop(characterMaster.GetBody(), rewardCount, dropTable, watchVoidRng);
-                    //add a token on the player that when awake called an ienumerator. make it destroy itself on finish. 
-                    // have the delay be out of a total amount of time (say like .5s) and have each drop incfrement be faster the more it's dropping
-
+                    cdropper.beginDelayedDrop(characterMaster.GetBody(), rewardCount, dropTable, watchVoidRng, clockworkDropVFX);
                 }
             }
         }
@@ -984,22 +996,14 @@ namespace vanillaVoid.Items
                             watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
                         }
 
-                        if (directlyGiveItems.Value){
-                            var items = dropTable.GenerateUniqueDropsPreReplacement(rewardCount, watchVoidRng);
-                            Debug.Log("Granting items");
-                            for(int i = 0; i < items.Length; ++i){
-                                player.master.inventory.GiveItem(items[i].itemIndex, 1);
-                                GenericPickupController.SendPickupMessage(player.master, items[i]);
-                            }
-                        }else{
-                            Debug.Log("hi");
-                            //if(dropper.rng == null){
-                            //    dropper.rng = watchVoidRng;
-                            //}
-                            //Debug.Log("Delayed item drop " + rewardCount);
-                            //dropper.beginDelayedDrop(player.master.GetBody(), rewardCount);
-                            ////dropper.delayedItemDrop(player.master.GetBody(), rewardCount));
-                        }
+                        //if (directlyGiveItems.Value){
+                        //    var items = dropTable.GenerateUniqueDropsPreReplacement(rewardCount, watchVoidRng);
+                        //    Debug.Log("Granting items");
+                        //    for(int i = 0; i < items.Length; ++i){
+                        //        player.master.inventory.GiveItem(items[i].itemIndex, 1);
+                        //        GenericPickupController.SendPickupMessage(player.master, items[i]);
+                        //    }
+                        //}
                     }
                 }
             }
@@ -1361,10 +1365,10 @@ namespace vanillaVoid.Items
 
     public class ClockworkDropper : MonoBehaviour{
 
-        public void beginDelayedDrop(CharacterBody player, int rewardCount, ClockworkDropTable table, Xoroshiro128Plus rng)
+        public void beginDelayedDrop(CharacterBody player, int rewardCount, ClockworkDropTable table, Xoroshiro128Plus rng, GameObject dropVFX)
         {
             if (player){
-                StartCoroutine(delayedItemDrop(player, rewardCount, table, rng));
+                StartCoroutine(delayedItemDrop(player, rewardCount, table, rng, dropVFX));
             }
             else
             {
@@ -1373,24 +1377,31 @@ namespace vanillaVoid.Items
             //StartCoroutine(delayedItemDrop(player, rewardCount));
         }
 
-        private IEnumerator delayedItemDrop(CharacterBody player, int rewardCount, ClockworkDropTable table, Xoroshiro128Plus rng)
+        private IEnumerator delayedItemDrop(CharacterBody player, int rewardCount, ClockworkDropTable table, Xoroshiro128Plus rng, GameObject dropVFX)
         {
             //var count = ClockworkMechanism.instance.GetCount(player);
             //int rewardCount = ClockworkMechanism.instance.itemsPerStage.Value + (ClockworkMechanism.instance.itemsPerStageStacking.Value * (count - 1));
-            yield return new WaitForSeconds(1f);
-            Debug.Log("delayed drop goin " + player.name + " | " + player.corePosition + " | " + player.gameObject.transform.position);
+            yield return new WaitForSeconds(1.33f);
+            //Debug.Log("delayed drop goin " + player.name + " | " + player.corePosition + " | " + player.gameObject.transform.position);
             //var items = table.GenerateUniqueDropsPreReplacement(rewardCount, rng);
             float dur = 1f / (float)rewardCount;
             float num = 360f / (float)rewardCount;
             for (int i = 0; i < rewardCount; ++i){
 
                 Vector3 a = Quaternion.AngleAxis(num * (float)i, Vector3.up) * Vector3.forward;
-                Vector3 position = player.gameObject.transform.position + a * 5f + Vector3.up * 7f;
+                Vector3 position = player.gameObject.transform.position + a * 6f + Vector3.up * 7f;
+
                 PickupDropletController.CreatePickupDroplet(table.GenerateDropPreReplacement(rng), position, Vector3.zero);
-                Debug.Log("dropping " + i);
+                EffectData effectData = new EffectData{
+                    origin = position
+                };
+
+                effectData.SetNetworkedObjectReference(this.gameObject);
+                EffectManager.SpawnEffect(dropVFX, effectData, transmit: true);
+                //Debug.Log("dropping " + i);
                 yield return new WaitForSeconds(dur);
             }
-            Debug.Log("i have finished");
+            //Debug.Log("i have finished");
             Destroy(this);
         }
     }

@@ -739,31 +739,27 @@ namespace vanillaVoid.Items
 
             private void FixedUpdate()
             {
-                if (!body)
-                {
+                if (!body){
                     return;
                 }
-                if (!body.characterMotor)
-                {
+                if (!body.characterMotor){
                     return;
                 }
 
-                if (body.characterMotor.isGrounded)
-                {
+                if (body.characterMotor.isGrounded){
                     dashCurrent = dashMax;
                     count = 0;
                 }
-                if (!body.inputBank.jump.justPressed)
-                {
-                    if(body.characterMotor.jumpCount != previousCount)
-                    {
+
+                if (!body.inputBank.jump.justPressed){
+                    if(body.characterMotor.jumpCount != previousCount){
                         count++;
                         previousCount = body.characterMotor.jumpCount;
                     }
                 }
+
                 //Debug.Log("jumpcount: " + body.characterMotor.jumpCount); //count >= body.maxJumpCount
-                if (body.inputBank.jump.justPressed && body.characterMotor.jumpCount == body.maxJumpCount && count >= body.maxJumpCount && dashCurrent != 0 && body.moveSpeed != 0)
-                {
+                if (body.inputBank.jump.justPressed && body.characterMotor.jumpCount == body.maxJumpCount && count >= body.maxJumpCount && dashCurrent != 0 && body.moveSpeed != 0){
                     Vector3 dir = body.inputBank.moveVector;
                     if(dir != Vector3.zero)
                     {

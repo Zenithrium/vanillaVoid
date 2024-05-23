@@ -719,7 +719,6 @@ namespace vanillaVoid.Items
             );
 
             if (ILFound){
-                float a;
                 c.Index += 1;
                 c.Emit(OpCodes.Ldloc, 76);
                 c.Emit(OpCodes.Ldarg_0);

@@ -61,6 +61,10 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
+        private static readonly SphereSearch exeBladeSphereSearch = new SphereSearch();
+        private static readonly List<HurtBox> exeBladeHurtBoxBuffer = new List<HurtBox>();
+
+        public static GameObject bladeObject;
         //string tempItemPickupDesc;
         //string tempItemFullDescription;
 
@@ -69,26 +73,11 @@ namespace vanillaVoid.Items
         public override void Init(ConfigFile config)
         {
             CreateConfig(config);
-            //if (enableOnDeathDamage.Value)
-            //{
-            //    tempItemPickupDesc = $"Your 'On-Kill' effects occur an additional time upon killing an elite. Additionally causes a damaging AOE upon elite kill. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
-            //    tempItemFullDescription = $"Your <style=cIsDamage>On-Kill</style> effects occur <style=cIsDamage>{additionalProcs.Value}</style> <style=cStack>(+{additionalProcs.Value} per stack)</style> additional times upon killing an elite. Additionally causes a <style=cIsDamage>{aoeRangeBaseExe.Value}m</style> explosion, dealing <style=cIsDamage>{baseDamageAOEExe.Value * 100}%</style> base damage. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
-            //
-            //}
-            //else
-            //{
-            //    tempItemPickupDesc = $"Your 'On-Kill' effects occur an additional time upon killing an elite. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
-            //    tempItemFullDescription = $"Your <style=cIsDamage>On-Kill</style> effects occur <style=cIsDamage>{additionalProcs.Value}</style> <style=cStack>(+{additionalProcs.Value} per stack)</style> additional times upon killing an elite. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
-            //    
-            //    string a = $"Your 'On-Kill' effects occur an additional time upon killing an elite." + (aoeRangeBaseExe.Value != 0 && baseDamageAOEExe.Value != 0 ? $" Additionally causes a damaging AOE upon elite kill." : "") + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
-            //    string b = $"Your <style=cIsDamage>On-Kill</style> effects occur <style=cIsDamage>{additionalProcs.Value}</style>" + (additionalProcs.Value != 0 ? $" <style=cStack>(+{additionalProcs.Value} per stack)</style>" : "") + $" additional times upon killing an elite." + (aoeRangeBaseExe.Value != 0 && baseDamageAOEExe.Value != 0 ? $" Additionally causes a <style=cIsDamage>{aoeRangeBaseExe.Value}m</style> explosion, dealing <style=cIsDamage>{baseDamageAOEExe.Value * 100}%</style> base damage." : "") + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
-            //
-            //}
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
             //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
-
+            CreateObject();
             Hooks(); 
         }
 
@@ -646,67 +635,157 @@ namespace vanillaVoid.Items
 
         }
 
-        public override void Hooks()
-        {
+        public override void Hooks(){
             //On.RoR2.GlobalEventManager.OnHitEnemy += HitProcBonus;
-            On.RoR2.GlobalEventManager.OnCharacterDeath += DeathProcBonus;
+            //On.RoR2.GlobalEventManager.OnCharacterDeath += DeathProcBonus;
+            GlobalEventManager.onCharacterDeathGlobal += ExeBladeExtraDeath;
         }
 
-        private void HitProcBonus(On.RoR2.GlobalEventManager.orig_OnHitEnemy orig, GlobalEventManager self, DamageInfo damageInfo, GameObject victim)
-        {
-            CharacterMaster attackerMaster = null;
-            bool hasExeBlade = false;
-            bool isKillingBlowElite = false;
-            if (damageInfo.attacker && damageInfo.attacker.TryGetComponent<CharacterBody>(out var attackerBody))
-            {
-                attackerMaster = attackerBody.master;
-                if (attackerBody.inventory)
-                {
-                    if(attackerBody.inventory.GetItemCount(ItemBase<ExeBlade>.instance.ItemDef) > 0)
-                    {
-                        //Debug.Log("player has blade");
-                        hasExeBlade = true;
-                    }
-                }
-            }
+        public void CreateObject(){
+            bladeObject = MainAssets.LoadAsset<GameObject>("mdlBladeWorldObject.prefab");
+            bladeObject.AddComponent<TeamFilter>();
+            bladeObject.AddComponent<HealthComponent>();
+            bladeObject.AddComponent<NetworkIdentity>();
+            bladeObject.AddComponent<BoxCollider>();
+            bladeObject.AddComponent<Rigidbody>();
+
+            PrefabAPI.RegisterNetworkPrefab(bladeObject);
+        }
+
+        private void ExeBladeExtraDeath(DamageReport dmgReport){
+            if (!dmgReport.attacker || !dmgReport.attackerBody || !dmgReport.victim || !dmgReport.victimBody || !dmgReport.victimIsElite){ return; } //end func if death wasn't killed by something real enough
             
-            if(victim.TryGetComponent<HealthComponent>(out var victimHC))
+            var exeComponent = dmgReport.victimBody.GetComponent<ExeToken>();
+            if (exeComponent) { return; } //prevent game crash  
+
+            if (!NetworkServer.active) { return; }
+
+            CharacterBody victimBody = dmgReport.victimBody;
+            dmgReport.victimBody.gameObject.AddComponent<ExeToken>();
+            CharacterBody attackerBody = dmgReport.attackerBody;
+            if (attackerBody.inventory && NetworkServer.active)
             {
-                if (damageInfo.damage > victimHC.health && victimHC.body.isElite)
-                {
-                    isKillingBlowElite = true;
-                    //Debug.Log("its a killing blow");
+                var bladeCount = attackerBody.inventory.GetItemCount(ItemBase<ExeBlade>.instance.ItemDef);
+                if (bladeCount > 0){
+                    var tempBlade = GameObject.Instantiate(bladeObject, victimBody.corePosition, Quaternion.Euler(0, 180, 0));
+
+                    //Debug.Log("temp blade instantiated");
+                    tempBlade.GetComponent<TeamFilter>().teamIndex = attackerBody.teamComponent.teamIndex;
+                    tempBlade.transform.position = victimBody.corePosition;
+                    //Debug.Log("post teamfilter");
+
+                    var bladeRigid = tempBlade.GetComponent<Rigidbody>();
+                    //Debug.Log("blade rigid got " + bladeRigid);
+                    
+                    var bladeCollider = bladeRigid.GetComponent<BoxCollider>(); // default size = (0.8, 4.3, 1.8)
+                    //Debug.Log("bladeCollider made " + bladeCollider);
+                    bladeRigid.drag = .5f;
+
+                    float randomHeight = UnityEngine.Random.Range(2.45f, 2.95f);
+                    bladeCollider.size = new Vector3(0.1f, randomHeight, 0.1f);
+
+                    bladeRigid.constraints = RigidbodyConstraints.FreezeRotation | RigidbodyConstraints.FreezePositionX | RigidbodyConstraints.FreezePositionZ;
+
+                    float randomX = UnityEngine.Random.Range(-20, 10);
+                    float randomY = UnityEngine.Random.Range(0, 360);
+                    float randomZ = UnityEngine.Random.Range(-20, 20);
+                    Quaternion rotrand = Quaternion.Euler(randomX, randomY, randomZ);
+                    bladeRigid.transform.SetPositionAndRotation(bladeRigid.transform.position, rotrand);
+
+                    var token = tempBlade.AddComponent<SwordToken>();
+                    token.PrepExecutions(exeBladeSphereSearch, exeBladeHurtBoxBuffer, bladeCount, dmgReport);
+
+                    NetworkServer.Spawn(tempBlade);
+
+                    EffectData effectData = new EffectData{ origin = victimBody.corePosition };
+                    effectData.SetNetworkedObjectReference(tempBlade);
+                    EffectManager.SpawnEffect(HealthComponent.AssetReferences.executeEffectPrefab, effectData, transmit: true);
+                    //StartCoroutine(ExeBladeDelayedExecutions(bladeCount, tempBlade, dmgReport));
                 }
             }
+        }
+    }
 
-            //if (attackerMaster && hasExeBlade && isKillingBlowElite) attackerMaster.luck += luckBonus.Value;
+    public class ExeToken : MonoBehaviour { }
 
-            orig(self, damageInfo, victim);
-
-            //if (attackerMaster && hasExeBlade && isKillingBlowElite) attackerMaster.luck -= luckBonus.Value;
+    public class SwordToken : MonoBehaviour{
+        
+        public void PrepExecutions(SphereSearch search, List<HurtBox> buffer, int count, DamageReport dmgRep){
+            StartCoroutine(ExeBladeDelayedExecutions(search, buffer, count, this.gameObject, dmgRep));
         }
 
-        private void DeathProcBonus(On.RoR2.GlobalEventManager.orig_OnCharacterDeath orig, GlobalEventManager self, DamageReport damageReport)
-        {
-            CharacterMaster attackerMaster = null;
-            bool hasExeBlade = false;
-            if (damageReport.attacker && damageReport.attacker.TryGetComponent<CharacterBody>(out var attackerBody))
-            {
-                attackerMaster = attackerBody.master;
-                if (attackerBody.inventory)
-                {
-                    if (attackerBody.inventory.GetItemCount(ItemBase<ExeBlade>.instance.ItemDef) > 0)
-                    {
-                        hasExeBlade = true;
+        IEnumerator ExeBladeDelayedExecutions(SphereSearch exeBladeSphereSearch, List<HurtBox> exeBladeHurtBoxBuffer, int bladeCount, GameObject bladeObject, DamageReport dmgReport){
+            var damage = dmgReport.damageInfo.damage;
+            var cmbHP = dmgReport.victim.combinedHealth;
+            var bladeObjHPC = bladeObject.GetComponent<HealthComponent>();
+            CharacterBody attackerBody = dmgReport.attackerBody;
+
+            float effectiveRadius = ItemBase<ExeBlade>.instance.aoeRangeBaseExe.Value;
+            float AOEDamageMult = ItemBase<ExeBlade>.instance.baseDamageAOEExe.Value;
+
+            if (attackerBody){
+                for (int i = 0; i < (bladeCount * ItemBase<ExeBlade>.instance.additionalProcs.Value); ++i){
+                    //Debug.Log("bladeCount * ItemBase<ExeBlade>.instance.additionalProcs.Value: " + bladeCount * ItemBase<ExeBlade>.instance.additionalProcs.Value + " | " + i);
+                    yield return new WaitForSeconds(ItemBase<ExeBlade>.instance.deathDelay.Value);
+                    DamageInfo damageInfoDeath = new DamageInfo{
+                        attacker = attackerBody.gameObject,
+                        crit = attackerBody.RollCrit(),
+                        damage = 1,
+                        position = bladeObject.transform.position,
+                        procCoefficient = ItemBase<ExeBlade>.instance.bladeCoefficient.Value,
+                        damageType = DamageType.AOE,
+                        damageColorIndex = DamageColorIndex.Default,
+                    };
+
+                    DamageReport damageReport = new DamageReport(damageInfoDeath, bladeObjHPC, damage, cmbHP);
+                    GlobalEventManager.instance.OnCharacterDeath(damageReport);
+
+                    EffectData effectDataPulse = new EffectData { origin = bladeObject.transform.position };
+                    effectDataPulse.SetNetworkedObjectReference(bladeObject);
+
+                    if (ItemBase<ExeBlade>.instance.aoeRangeBaseExe.Value != 0 && ItemBase<ExeBlade>.instance.baseDamageAOEExe.Value != 0){
+                        EffectManager.SpawnEffect(HealthComponent.AssetReferences.executeEffectPrefab, effectDataPulse, true);
+                        float AOEDamage = dmgReport.attackerBody.damage * AOEDamageMult;
+                        Vector3 corePosition = bladeObject.transform.position;
+
+                        exeBladeSphereSearch.origin = corePosition;
+                        exeBladeSphereSearch.mask = LayerIndex.entityPrecise.mask;
+                        exeBladeSphereSearch.radius = effectiveRadius;
+                        exeBladeSphereSearch.RefreshCandidates();
+                        exeBladeSphereSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetUnprotectedTeams(dmgReport.attackerBody.teamComponent.teamIndex));
+                        exeBladeSphereSearch.FilterCandidatesByDistinctHurtBoxEntities();
+                        exeBladeSphereSearch.OrderCandidatesByDistance();
+                        exeBladeSphereSearch.GetHurtBoxes(exeBladeHurtBoxBuffer);
+                        exeBladeSphereSearch.ClearCandidates();
+
+                        for (int j = 0; j < exeBladeHurtBoxBuffer.Count; j++){
+                            HurtBox hurtBox = exeBladeHurtBoxBuffer[j];
+                            if (hurtBox.healthComponent && hurtBox.healthComponent.body && hurtBox.healthComponent != bladeObjHPC){
+                                DamageInfo damageInfoAOE = new DamageInfo{
+                                    attacker = attackerBody.gameObject,
+                                    crit = attackerBody.RollCrit(),
+                                    damage = AOEDamage,
+                                    position = corePosition,
+                                    procCoefficient = ItemBase<ExeBlade>.instance.bladeCoefficient.Value,
+                                    damageType = DamageType.AOE,
+                                    damageColorIndex = DamageColorIndex.Item,
+                                };
+                                hurtBox.healthComponent.TakeDamage(damageInfoAOE);
+                            }
+                        }
+                        exeBladeHurtBoxBuffer.Clear();
                     }
                 }
             }
 
-            //if (attackerMaster && hasExeBlade && damageReport.victim.body.isElite) attackerMaster.luck += luckBonus.Value;
+            yield return new WaitForSeconds(ItemBase<ExeBlade>.instance.additionalDuration.Value);
+            EffectData effectData = new EffectData{
+                origin = bladeObject.transform.position
+            };
+            effectData.SetNetworkedObjectReference(bladeObject); //pulverizedEffectPrefab
+            EffectManager.SpawnEffect(HealthComponent.AssetReferences.permanentDebuffEffectPrefab, effectData, transmit: true);
 
-            orig(self, damageReport);
-
-            //if (attackerMaster && hasExeBlade && damageReport.victim.body.isElite) attackerMaster.luck -= luckBonus.Value;
+            Destroy(bladeObject);
         }
     }
 

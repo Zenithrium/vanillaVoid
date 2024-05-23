@@ -33,7 +33,7 @@ namespace vanillaVoid.Items
 
         public override ItemTier Tier => ItemTier.VoidTier1;
 
-        public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlAdzePickup.prefab");
+        public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("Microbe.prefab");
 
         public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("slugIcon512.png");
 
