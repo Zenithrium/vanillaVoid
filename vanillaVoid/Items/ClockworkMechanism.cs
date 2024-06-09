@@ -780,26 +780,27 @@ namespace vanillaVoid.Items
         private void Var0DropItems(On.RoR2.Stage.orig_RespawnCharacter orig, Stage self, CharacterMaster characterMaster)
         {
             orig(self, characterMaster);
-
-            int itemCount = characterMaster.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
-            if (itemCount > 0){
-                int rewardCount = itemsPerStage.Value + (itemsPerStageStacking.Value * (itemCount - 1));
-                if (watchVoidRng == null){
-                    watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
-                }
-
-                if (directlyGiveItems.Value){
-                    //Debug.Log("Granting items");
-                    for (int i = 0; i < itemCount; ++i){
-                        var item = dropTable.GenerateDropPreReplacement(watchVoidRng);
-                        characterMaster.inventory.GiveItem(item.itemIndex, 1);
-                        GenericPickupController.SendPickupMessage(characterMaster, item);
+            if ((bazaarHappen.Value || !isBazaarStage) && itemVariant.Value == 0){ //var 0
+                int itemCount = characterMaster.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+                if (itemCount > 0){
+                    int rewardCount = itemsPerStage.Value + (itemsPerStageStacking.Value * (itemCount - 1));
+                    if (watchVoidRng == null){
+                        watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
                     }
-                }else{
-                    //Debug.Log("item drop " + rewardCount);
 
-                    var cdropper = characterMaster.GetBody().gameObject.AddComponent<ClockworkDropper>();
-                    cdropper.beginDelayedDrop(characterMaster.GetBody(), rewardCount, dropTable, watchVoidRng, clockworkDropVFX);
+                    if (directlyGiveItems.Value){
+                        //Debug.Log("Granting items");
+                        for (int i = 0; i < rewardCount; ++i){
+                            var item = dropTable.GenerateDropPreReplacement(watchVoidRng);
+                            characterMaster.inventory.GiveItem(item.itemIndex, 1);
+                            GenericPickupController.SendPickupMessage(characterMaster, item);
+                        }
+                    }else{
+                        //Debug.Log("item drop " + rewardCount);
+
+                        var cdropper = characterMaster.GetBody().gameObject.AddComponent<ClockworkDropper>();
+                        cdropper.beginDelayedDrop(characterMaster.GetBody(), rewardCount, dropTable, watchVoidRng, clockworkDropVFX);
+                    }
                 }
             }
         }

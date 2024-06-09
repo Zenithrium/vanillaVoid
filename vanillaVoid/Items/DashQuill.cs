@@ -687,39 +687,32 @@ namespace vanillaVoid.Items
             return rules;
         }
 
-        public override void Hooks()
-        {
+        public override void Hooks(){
             On.RoR2.CharacterBody.OnInventoryChanged += AddAirdashToken;
         }
 
-        private void AddAirdashToken(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self)
-        {
+        private void AddAirdashToken(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self){
             orig(self);
-            if (self.inventory)
-            {
+            if (self.inventory){
                 int itemCount = self.inventory.GetItemCount(ItemBase<DashQuill>.instance.ItemDef);
                 var token = self.gameObject.GetComponent<AirdashToken>();
-                if (itemCount > 0)
-                {
+                if (itemCount > 0){
                     //var token = self.gameObject.GetComponent<AirdashToken>();
-                    if (!token)
-                    {
+                    if (!token){
                         token = self.gameObject.AddComponent<AirdashToken>();
                         token.body = self;
                     }
 
                     token.dashMax = itemCount * dashesPerStack.Value; 
                     
-                }else if (token)
-                {
-                    GameObject.Destroy(token.gameObject);
+                }else if (token){
+                    GameObject.Destroy(token);
                 }
                 
             }
         }
 
-        public class AirdashToken : MonoBehaviour
-        {
+        public class AirdashToken : MonoBehaviour {
             public int dashMax;
             public int dashCurrent;
             int count = 0;
@@ -727,8 +720,6 @@ namespace vanillaVoid.Items
             public float timer;
             public float lastJumpTime;
             public CharacterBody body; //the player it's attached to
-
-            
 
             void Awake()
             {

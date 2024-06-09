@@ -28,8 +28,7 @@ using RoR2.ContentManagement;
 //using static vanillaVoid.Utils.Components.MaterialControllerComponents;
 [assembly: HG.Reflection.SearchableAttribute.OptIn]
 
-namespace vanillaVoid
-{
+namespace vanillaVoid {
     [BepInPlugin(ModGuid, ModName, ModVer)]
 
     [BepInDependency("com.bepis.r2api", BepInDependency.DependencyFlags.HardDependency)]
@@ -55,7 +54,7 @@ namespace vanillaVoid
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.5.14";
+        public const string ModVer = "1.5.15";
 
         public static ExpansionDef sotvDLC;
         public static ExpansionDef sotvDLC2;
@@ -263,69 +262,6 @@ namespace vanillaVoid
 
             SetupVoidTierHighlights();
 
-            //GameObject commandCube = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Command/CommandCube.prefab").WaitForCompletion();
-            ////commandCube.transform.Find("PickupDisplay");
-            //
-            //GameObject voidsys = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("VoidSystem.prefab");
-            //
-            //voidsys.transform.SetParent(commandCube.transform.Find("PickupDisplay"));
-
-            //GameObject holder = new GameObject("VoidTierSystem");
-            //holder.transform.SetParent(commandCube.transform.Find("PickupDisplay"));
-            //holder.layer = 10;
-
-            //GameObject loops = new GameObject("Loops");
-            //loops.transform.SetParent(holder.transform);
-
-            //GameObject distant = new GameObject("DistantSoftGlow");
-            //loops.transform.SetParent(loops.transform);
-
-
-
-            //var voidtier1def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier1);
-            //GameObject v1prefab = voidtier1def.highlightPrefab;
-            //
-            //var hgrect1 = v1prefab.GetComponent<RoR2.UI.HighlightRect>();
-            //if (hgrect1)
-            //{
-            //    hgrect1.highlightColor = ColorCatalog.GetColor(ColorCatalog.ColorIndex.VoidItem);
-            //    hgrect1.cornerImage = MainAssets.LoadAsset<Sprite>("texUICornerTier1");
-            //}
-            //
-            //var voidtier2def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier2);
-            //GameObject v2prefab = voidtier2def.highlightPrefab;
-            //
-            //var hgrect2 = v2prefab.GetComponent<RoR2.UI.HighlightRect>();
-            //if (hgrect2)
-            //{
-            //    hgrect2.highlightColor = ColorCatalog.GetColor(ColorCatalog.ColorIndex.VoidItem);
-            //    hgrect2.cornerImage = MainAssets.LoadAsset<Sprite>("texUICornerTier2");
-            //}
-            //
-            //var voidtier3def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidTier3);
-            //GameObject v3prefab = voidtier3def.highlightPrefab;
-            //
-            //var hgrect3 = v3prefab.GetComponent<RoR2.UI.HighlightRect>();
-            //if (hgrect3)
-            //{
-            //    hgrect3.highlightColor = ColorCatalog.GetColor(ColorCatalog.ColorIndex.VoidItem);
-            //    hgrect3.cornerImage = MainAssets.LoadAsset<Sprite>("texUICornerTier3");
-            //}
-            //
-            //var voidtier4def = ItemTierCatalog.GetItemTierDef(ItemTier.VoidBoss);
-            //GameObject v4prefab = voidtier4def.highlightPrefab;
-            //
-            //var hgrect4 = v4prefab.GetComponent<RoR2.UI.HighlightRect>();
-            //if (hgrect4)
-            //{
-            //    hgrect4.highlightColor = ColorCatalog.GetColor(ColorCatalog.ColorIndex.VoidItem);
-            //    hgrect4.cornerImage = MainAssets.LoadAsset<Sprite>("texUICornerTier1");
-            //}
-
-            //ExtraterrestrialExhaust.RocketProjectile.
-            //R2API.ContentAddition.AddNetworkedObject(bladeObject);
-            //R2API.ContentAddition.AddNetworkedObject(lotusObject);
-
             // Don't know how to create/use an asset bundle, or don't have a unity project set up?
             // Look here for info on how to set these up: https://github.com/KomradeSpectre/AetheriumMod/blob/rewrite-master/Tutorials/Item%20Mod%20Creation.md#unity-project
 
@@ -351,25 +287,16 @@ namespace vanillaVoid
 
             List<ItemDef.Pair> newVoidPairs = new List<ItemDef.Pair>();
 
-            foreach (var itemType in ItemTypes)
-            {
-
+            foreach (var itemType in ItemTypes){
                 ItemBase item = (ItemBase)System.Activator.CreateInstance(itemType);
-                if (ValidateItem(item, Items))
-                {
+                if (ValidateItem(item, Items)){
 
-                    //string itemTempName = item.ItemName;
-                    //if (itemTempName.Contains('\''))
-                    //{
-                    //    itemTempName.Replace('\'', ' ');
-                    //}
                     item.Init(Config);
 
                     var tags = item.ItemTags;
                     bool aiValid = true;
                     bool aiBlacklist = false;
-                    if (item.ItemDef.deprecatedTier == ItemTier.NoTier)
-                    {
+                    if (item.ItemDef.deprecatedTier == ItemTier.NoTier){
                         aiBlacklist = true;
                         aiValid = false;
                     }
@@ -378,26 +305,20 @@ namespace vanillaVoid
                     name = name.Replace("'", "");
                     //Debug.Log("postname " + name);
 
-                    foreach (var tag in tags)
-                    {
-                        if (tag == ItemTag.AIBlacklist)
-                        {
+                    foreach (var tag in tags){
+                        if (tag == ItemTag.AIBlacklist){
                             aiBlacklist = true;
                             aiValid = false;
                             break;
                         }
                     }
-                    if (aiValid)
-                    {
+                    if (aiValid){
                         aiBlacklist = Config.Bind<bool>("Item: " + name, "Blacklist Item from AI Use?", false, "Should the AI not be able to obtain this item?").Value;
-                    }
-                    else
-                    {
+                    }else{
                         aiBlacklist = true;
                     }
 
-                    if (aiBlacklist)
-                    {
+                    if (aiBlacklist){
                         item.AIBlacklisted = true;
                     }
                 }
@@ -615,6 +536,7 @@ namespace vanillaVoid
         //    }
         //    return false;
         //}
+
         public bool ValidateInteractable(InteractableBase interactable, List<InteractableBase> interactableList)
         {
             var enabled = Config.Bind<bool>("Interactable: " + interactable.InteractableName, "Enable Interactable?", true, "Should this interactable appear in runs?").Value;
@@ -643,29 +565,21 @@ namespace vanillaVoid
         //lotusSlowMaterial = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/matSlow80Debuff.mat").WaitForCompletion();
         //lotusSlowMaterial.mainTexture = MainAssets.LoadAsset<Texture>("texRampIce2.png");
 
-        private void PrimoridalTeleporterCheck(On.RoR2.SceneDirector.orig_PlaceTeleporter orig, SceneDirector self)
-        {
-
+        private void PrimoridalTeleporterCheck(On.RoR2.SceneDirector.orig_PlaceTeleporter orig, SceneDirector self){
             string sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
-            if (sceneName != "arena" && sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow")
-            {
+            if (sceneName != "arena" && sceneName != "moon2" && sceneName != "voidstage" && sceneName != "voidraid" && sceneName != "artifactworld" && sceneName != "bazaar" && sceneName != "goldshores" && sceneName != "limbo" && sceneName != "mysteryspace" && sceneName != "itancientloft" && sceneName != "itdampcave" && sceneName != "itfrozenwall" && sceneName != "itgolemplains" && sceneName != "itgoolake" && sceneName != "itmoon" && sceneName != "itskymeadow"){
                 voidfields = false;
                 StartCoroutine(LotusDelayedPlacement(self));
-            }
-            else if (sceneName == "arena")
-            {
+            }else if (sceneName == "arena"){
                 voidfields = true;
             }
             orig(self);
         }
 
-        IEnumerator LotusDelayedPlacement(SceneDirector self)
-        {
+        IEnumerator LotusDelayedPlacement(SceneDirector self){
             yield return new WaitForSeconds(4f);
-            if (self)
-            {
-                if (self.teleporterSpawnCard)
-                {
+            if (self){
+                if (self.teleporterSpawnCard){
                     teleporterName = self.teleporterSpawnCard.ToString();
 
                     lotusSpawned = false;
@@ -673,17 +587,14 @@ namespace vanillaVoid
                     int itemCount = 0;
                     TeamIndex teamDex = default;
 
-                    foreach (var player in PlayerCharacterMasterController.instances)
-                    {
+                    foreach (var player in PlayerCharacterMasterController.instances){
                         itemCount += player.master.inventory.GetItemCount(ItemBase<CrystalLotus>.instance.ItemDef);
                         teamDex = player.master.teamIndex;
                     }
 
-                    if (itemCount > 0)
-                    {
+                    if (itemCount > 0){
                         teleporterPos = self.teleporterInstance.transform.position;
-                        if (teleporterName.Contains("iscLunarTeleporter"))
-                        {
+                        if (teleporterName.Contains("iscLunarTeleporter")){
                             Vector3 celestialAdjust = new Vector3(0, -.65f, 0);
                             teleporterPos += celestialAdjust;
                         }
@@ -705,8 +616,7 @@ namespace vanillaVoid
             }
         }
 
-        private void AddLotusOnPickup(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self)
-        {
+        private void AddLotusOnPickup(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self){
             if (self)
             {
                 orig(self);
@@ -756,8 +666,7 @@ namespace vanillaVoid
             }
         }
 
-        private void CrystalLotusNova(On.RoR2.HoldoutZoneController.orig_UpdateHealingNovas orig, HoldoutZoneController self, bool isCharging)
-        {
+        private void CrystalLotusNova(On.RoR2.HoldoutZoneController.orig_UpdateHealingNovas orig, HoldoutZoneController self, bool isCharging){
             int itemCount = 0;
             TeamIndex teamDex = default;
             foreach (var player in PlayerCharacterMasterController.instances)
@@ -927,45 +836,6 @@ namespace vanillaVoid
 
                 }
             }
-
-
-
-            //List<CharacterMaster> CharMasters(bool playersOnly = false)
-            //{
-            //    return CharacterMaster.readOnlyInstancesList.Where(x => x.hasBody && x.GetBody().healthComponent.alive && (x.GetBody().teamComponent.teamIndex != teamDex)).ToList();
-            //}
-            //if (CharMasters().Count > 3)
-            //{
-            //    if (genericRng == null)
-            //    {
-            //        genericRng = new Xoroshiro128Plus(Run.instance.seed);
-            //    }
-            //    int index = genericRng.RangeInt(0, CharMasters().Count - 3);
-            //    //var target1 = CharMasters().ElementAt(index);
-            //    //var target2 = CharMasters().ElementAt(index + 1);
-            //    //var target3 = CharMasters().ElementAt(index + 2);
-            //    //target1.gameObject.AddComponent<LotusToken>();
-            //    //target2.gameObject.AddComponent<LotusToken>();
-            //    //target3.gameObject.AddComponent<LotusToken>();
-            //    for (int i = index; i < index + 3; i++)
-            //    {
-            //        var target = CharMasters().ElementAt(i);
-            //        var token = target.gameObject.AddComponent<LotusBodyToken>();
-            //        token.self = target.GetBody();
-            //    }
-            //}
-            //else
-            //{
-            //    for (int i = 0; i < CharMasters().Count(); i++)
-            //    {
-            //        var target = CharMasters().ElementAt(i);
-            //        var token = target.gameObject.AddComponent<LotusBodyToken>();
-            //        token.self = target.GetBody();
-            //    }
-            //}
-            //yield return new WaitForSeconds(.25f);
-            //player.body.healthComponent.AddBarrier(player.body.healthComponent.health * ItemBase<BarrierLotus>.instance.barrierAmount.Value); //25% 
-
         }
 
         IEnumerator Lotus2ExplosionThing(GameObject gameobject)
@@ -1415,116 +1285,156 @@ namespace vanillaVoid
             }
         }
 
-        private void ItemCatalog_Init(On.RoR2.ItemCatalog.orig_Init orig)
-        {
-            orig();
-
-            var t1Infect = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/ItemInfection, White.prefab").WaitForCompletion();
-            var t2Infect = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/ItemInfection, Green.prefab").WaitForCompletion();
-            var t3Infect = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/ItemInfection, Red.prefab").WaitForCompletion();
-            var luInfect = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/ItemInfection, Blue.prefab").WaitForCompletion();
-
-            var v1Infect = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("void1Infection.prefab");
-            var v1dis = v1Infect.AddComponent<ItemDisplay>();
-            v1dis.rendererInfos = new CharacterModel.RendererInfo[1];
-            v1dis.rendererInfos[0].renderer = v1Infect.GetComponent<MeshRenderer>();
-            v1dis.rendererInfos[0].defaultMaterial = vanillaVoidPlugin.MainAssets.LoadAsset<Material>("voidInfectionT1.mat");
-
-            var v2Infect = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("void2Infection.prefab");
-            var v2dis = v2Infect.AddComponent<ItemDisplay>();
-            v2dis.rendererInfos = new CharacterModel.RendererInfo[1];
-            v2dis.rendererInfos[0].renderer = v2Infect.GetComponent<MeshRenderer>();
-            v2dis.rendererInfos[0].defaultMaterial = vanillaVoidPlugin.MainAssets.LoadAsset<Material>("voidInfectionT2.mat");
-
-            var v3Infect = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("void3Infection.prefab");
-            var v3dis = v3Infect.AddComponent<ItemDisplay>();
-            v3dis.rendererInfos = new CharacterModel.RendererInfo[1];
-            v3dis.rendererInfos[0].renderer = v3Infect.GetComponent<MeshRenderer>();
-            v3dis.rendererInfos[0].defaultMaterial = vanillaVoidPlugin.MainAssets.LoadAsset<Material>("voidInfectionT3.mat");
-
-            var bsInfect = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("t4Infection.prefab");
-            var bsdis = bsInfect.AddComponent<ItemDisplay>();
-            bsdis.rendererInfos = new CharacterModel.RendererInfo[1];
-            bsdis.rendererInfos[0].renderer = bsInfect.GetComponent<MeshRenderer>();
-            bsdis.rendererInfos[0].defaultMaterial = vanillaVoidPlugin.MainAssets.LoadAsset<Material>("InfectionT4.mat");
-
-            //string[] bones = {"HandL", "HandR", "chest", "UpperArmL", "UpperArmR", "LowerArmL", "LowerArmR", "ThighL", "ThighR", "CalfL", "CalfR,", "Head", "Neck", "Stomach", "Pelvis"};
-            //string[] bones = {"chest", "UpperArmL", "UpperArmR", "LowerArmL", "LowerArmR", "ThighL", "ThighR", "CalfL", "CalfR,", "Head", "Neck", "Stomach", "Pelvis" };
-            //0-2 large, 3, thin, 4 small, 5-12 tall
-            string[] bones = { "chest", "Stomach", "Pelvis", "Head", "Neck", "UpperArmL", "UpperArmR", "LowerArmL", "LowerArmR", "ThighL", "ThighR", "CalfL", "CalfR" };
-
-            Xoroshiro128Plus mithRand = new Xoroshiro128Plus(3691);
-
-
-            var idrs = Addressables.LoadAssetAsync<ItemDisplayRuleSet>("RoR2/Base/Brother/idrsBrother.asset").WaitForCompletion();
-            int i = 0;
-            foreach (var drs in idrs.keyAssetRuleGroups)
-            {
-                Debug.Log(++i + ": keyAssetRuleGroups - " + drs.keyAsset + " | " + drs.displayRuleGroup.rules[0].localPos + " | " + drs.displayRuleGroup.rules[0].childName + " | ");
-            }
-            ItemDisplayRuleSet.KeyAssetRuleGroup[] itemRuleGroups = idrs.keyAssetRuleGroups;
-
-            ReadOnlyContentPack? sotvPack = ContentManager.FindContentPack("RoR2.DLC1");
-            if (sotvPack.HasValue)
-            {
-                var pack = sotvPack.Value;
-                var items = pack.itemDefs;
-
-                foreach (var item in items)
-                {
-                    Debug.Log(++i + ": Item: " + item.nameToken + " | " + item.tier + " | " + item.deprecatedTier);
-
-                    if (item.tier == ItemTier.Tier1 || item.tier == ItemTier.Tier2 || item.tier == ItemTier.Tier3 || item.tier == ItemTier.Boss || item.tier == ItemTier.Lunar)
-                    {
-                        ItemDisplayRuleSet.KeyAssetRuleGroup a;
-                        a.keyAsset = item;
-
-                        var rand = mithRand.RangeInt(0, bones.Length);
-
-                        a.displayRuleGroup = new DisplayRuleGroup();
-                        a.displayRuleGroup.AddDisplayRule(new RoR2.ItemDisplayRule
-                        {
-                            ruleType = ItemDisplayRuleType.ParentedPrefab,
-                            followerPrefab = (item.tier == ItemTier.Tier1 ? t1Infect : item.tier == ItemTier.Tier2 ? t2Infect : item.tier == ItemTier.Tier3 ? t3Infect : item.tier == ItemTier.Boss ? bsInfect : luInfect),
-                            childName = bones[rand],
-                            localPos = GeneratePositionFromRand(mithRand, rand), //new Vector3(mithRand.RangeFloat(-.225f, .225f), mithRand.RangeFloat(-.225f, .225f), mithRand.RangeFloat(-.225f, .225f)),
-                            localAngles = new Vector3(mithRand.RangeFloat(0, 360), mithRand.RangeFloat(0, 360), mithRand.RangeFloat(0, 360)),
-                            localScale = new Vector3(mithRand.RangeFloat(.105f, .115f), mithRand.RangeFloat(.105f, .115f), mithRand.RangeFloat(.105f, .115f))
-                        });
-                        itemRuleGroups = itemRuleGroups.AddItem(a).ToArray();
-
-                        //itemRuleGroups = itemRuleGroups.AddToArray(a);
-                    }
-
-                }
-                idrs.keyAssetRuleGroups = itemRuleGroups;
-
-                Debug.Log("done with Mith Rick of Rain idrs");
-            }
-        }
-
-        Vector3 GeneratePositionFromRand(Xoroshiro128Plus rand, int randVal)
-        {
-            if (randVal <= 2)
-            { //large
-                return new Vector3(rand.RangeFloat(-.2f, .2f), rand.RangeFloat(-.225f, .225f), rand.RangeFloat(-.2f, .2f));
-            }
-            else if (randVal == 3)
-            { //thin
-                return new Vector3(rand.RangeFloat(-.2f, .2f), rand.RangeFloat(-.015f, .0675f), rand.RangeFloat(-.2f, .2f));
-            }
-            else if (randVal == 4)
-            { //small
-                return new Vector3(rand.RangeFloat(-.0375f, .0375f), rand.RangeFloat(-.0375f, .0375f), rand.RangeFloat(-.0375f, .0375f));
-            }
-            else
-            { //tall
-                return new Vector3(rand.RangeFloat(-.1f, .1f), rand.RangeFloat(-0.075f, .375f), rand.RangeFloat(-.1f, .1f));
-            }
-            //pelvis needs to be not tall
-
-            //tall needs to be thinner
-            //rotation needs to aim at bone origin - aim at the bones position, ignore y axis
-        }
+        //private void ItemCatalog_Init(On.RoR2.ItemCatalog.orig_Init orig)
+        //{
+        //    orig();
+        //
+        //    t1Infect = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/ItemInfection, White.prefab").WaitForCompletion();
+        //    t2Infect = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/ItemInfection, Green.prefab").WaitForCompletion();
+        //    t3Infect = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/ItemInfection, Red.prefab").WaitForCompletion();
+        //    luInfect = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Brother/ItemInfection, Blue.prefab").WaitForCompletion();
+        //
+        //    v1Infect = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("void1Infection.prefab");
+        //    var v1dis = v1Infect.AddComponent<ItemDisplay>();
+        //    v1dis.rendererInfos = new CharacterModel.RendererInfo[1];
+        //    v1dis.rendererInfos[0].renderer = v1Infect.GetComponent<MeshRenderer>();
+        //    v1dis.rendererInfos[0].defaultMaterial = vanillaVoidPlugin.MainAssets.LoadAsset<Material>("voidInfectionT1.mat");
+        //
+        //    v2Infect = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("void2Infection.prefab");
+        //    var v2dis = v2Infect.AddComponent<ItemDisplay>();
+        //    v2dis.rendererInfos = new CharacterModel.RendererInfo[1];
+        //    v2dis.rendererInfos[0].renderer = v2Infect.GetComponent<MeshRenderer>();
+        //    v2dis.rendererInfos[0].defaultMaterial = vanillaVoidPlugin.MainAssets.LoadAsset<Material>("voidInfectionT2.mat");
+        //
+        //    v3Infect = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("void3Infection.prefab");
+        //    var v3dis = v3Infect.AddComponent<ItemDisplay>();
+        //    v3dis.rendererInfos = new CharacterModel.RendererInfo[1];
+        //    v3dis.rendererInfos[0].renderer = v3Infect.GetComponent<MeshRenderer>();
+        //    v3dis.rendererInfos[0].defaultMaterial = vanillaVoidPlugin.MainAssets.LoadAsset<Material>("voidInfectionT3.mat");
+        //
+        //    v4Infect = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("void3Infection.prefab");
+        //    var v4dis = v4Infect.AddComponent<ItemDisplay>();
+        //    v4dis.rendererInfos = new CharacterModel.RendererInfo[1];
+        //    v4dis.rendererInfos[0].renderer = v4Infect.GetComponent<MeshRenderer>();
+        //    v4dis.rendererInfos[0].defaultMaterial = vanillaVoidPlugin.MainAssets.LoadAsset<Material>("voidInfectionT4.mat");
+        //
+        //    bsInfect = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("t4Infection.prefab");
+        //    var bsdis = bsInfect.AddComponent<ItemDisplay>();
+        //    bsdis.rendererInfos = new CharacterModel.RendererInfo[1];
+        //    bsdis.rendererInfos[0].renderer = bsInfect.GetComponent<MeshRenderer>();
+        //    bsdis.rendererInfos[0].defaultMaterial = vanillaVoidPlugin.MainAssets.LoadAsset<Material>("InfectionT4.mat");
+        //
+        //    //string[] bones = {"HandL", "HandR", "chest", "UpperArmL", "UpperArmR", "LowerArmL", "LowerArmR", "ThighL", "ThighR", "CalfL", "CalfR,", "Head", "Neck", "Stomach", "Pelvis"};
+        //    //string[] bones = {"chest", "UpperArmL", "UpperArmR", "LowerArmL", "LowerArmR", "ThighL", "ThighR", "CalfL", "CalfR,", "Head", "Neck", "Stomach", "Pelvis" };
+        //    //0-2 large, 3, thin, 4 small, 5-12 tall
+        //
+        //    string[] bones = { "chest", "Stomach", "Head", "UpperArmL", "LowerArmL", "UpperArmR", "LowerArmR", "ThighL", "ThighR", "CalfL", "CalfR", "chest", "Stomach", "chest" };
+        //    //                    0         1         2         3           4              5           6          7          8        9        10       11        12
+        //    Xoroshiro128Plus mithRand = new Xoroshiro128Plus(2147483520);
+        //
+        //
+        //    var idrs = Addressables.LoadAssetAsync<ItemDisplayRuleSet>("RoR2/Base/Brother/idrsBrother.asset").WaitForCompletion();
+        //    //foreach (var drs in idrs.keyAssetRuleGroups){
+        //    //    Debug.Log(++i + ": keyAssetRuleGroups - " + drs.keyAsset + " | " + drs.displayRuleGroup.rules[0].localPos + " | " + drs.displayRuleGroup.rules[0].childName + " | ");
+        //    //}
+        //    ItemDisplayRuleSet.KeyAssetRuleGroup[] itemRuleGroups = idrs.keyAssetRuleGroups;
+        //
+        //    var contentPacks = ContentManager.allLoadedContentPacks;
+        //
+        //    foreach (var pack in contentPacks){
+        //        Debug.Log("Content Pack j: " + pack.identifier);
+        //        if(pack.identifier == "RoR2.BaseContent"){
+        //            if (pack.itemDefs.Length != 0){
+        //                Debug.Log("Adding " + pack.identifier + " using  " + ItemTier.Boss);
+        //                itemRuleGroups = AddAllDisplays(pack.itemDefs, itemRuleGroups, mithRand, bones, ItemTier.Boss);
+        //            }
+        //        }else{
+        //            if (pack.itemDefs.Length != 0){
+        //                Debug.Log("Adding " + pack.identifier + "'s items");
+        //                itemRuleGroups = AddAllDisplays(pack.itemDefs, itemRuleGroups, mithRand, bones, ItemTier.NoTier);
+        //            }
+        //        }
+        //
+        //    }
+        //
+        //    idrs.keyAssetRuleGroups = itemRuleGroups;
+        //}
+        //
+        // (Vector3, Vector3) GeneratePositionFromRand(Xoroshiro128Plus rand, int randVal, bool isWhite){
+        //    //string[] bones = { "chest", "Stomach", "Head", "UpperArmL", "LowerArmL", "UpperArmR", "LowerArmR", "ThighL", "ThighR", "CalfL", "CalfR", "chest", "Stomach" };
+        //    //                      0         1         2         3           4              5           6          7          8        9        10       11        12
+        //    
+        //    Vector3 pos;
+        //    Vector3 root = Vector3.zero;
+        //    Vector3 modifier = Vector3.zero;
+        //    if (randVal == 0 || randVal == 11) { //chest   -----------------VVV was .1f and a lot of other .085fs were 
+        //        pos = new Vector3(rand.nextBool ? rand.RangeFloat(-0.125f, -0.045f) : rand.RangeFloat(0.045f, 0.125f), rand.RangeFloat(-.2f, 0.325f), rand.nextBool ? rand.RangeFloat(-0.125f, -0.085f) : rand.RangeFloat(0.085f, 0.125f));
+        //        root = new Vector3(-0.00957f, 0.20225f, -0.023202f);
+        //
+        //        modifier = new Vector3(0, 80, 330);
+        //
+        //    }else if (randVal == 1 || randVal == 12){ //stomach
+        //
+        //        pos = new Vector3(rand.nextBool ? rand.RangeFloat(-0.1275f, -0.065f) : rand.RangeFloat(0.065f, 0.1275f), rand.RangeFloat(0.125f, 0.325f), rand.nextBool ? rand.RangeFloat(-0.125f, -0.085f) : rand.RangeFloat(0.085f, 0.125f));
+        //
+        //        root = new Vector3(-0.03386f, 0.24174f, 0.06423f);
+        //        modifier = new Vector3(0, 90, 0);
+        //
+        //    }else if (randVal == 2){ //head                                           
+        //        pos = new Vector3(rand.RangeFloat(-0.075f, 0.075f), rand.RangeFloat(-.03f, .0675f), rand.RangeFloat(-0.075f, .075f));
+        //
+        //    }else if (randVal >= 3 && randVal <= 6){ // arms
+        //        pos = new Vector3(rand.RangeFloat(-0.0065f, 0.0065f), rand.RangeFloat(.075f, .3f), rand.RangeFloat(0.005f, 0.01f));
+        //        
+        //    }else if(randVal == 7 || randVal == 8){ //thigh
+        //        pos = new Vector3(rand.RangeFloat(-0.021f, 0.029f), rand.RangeFloat(.0375f, .325f), 0);
+        //
+        //    }else if(randVal == 9 || randVal == 10){ //calves
+        //        var bean = (rand.RangeFloat(-0.025f, 0.045f), rand.RangeFloat(0, .3675f), rand.RangeFloat(.02f, 0.04f));
+        //        Debug.Log("bean: " + bean.Item1 + " | " + bean.Item2 + " | " + bean.Item3);
+        //        pos = new Vector3(bean.Item1, bean.Item2, bean.Item3);
+        //        root = new Vector3(.01f, pos.y, 0.03f);
+        //        
+        //    }else{ //specifically boob region
+        //        pos = new Vector3(rand.nextBool ? rand.RangeFloat(-0.115f, -0.065f) : rand.RangeFloat(0.065f, 0.115f), rand.RangeFloat(0.12f, 0.325f), rand.nextBool ? rand.RangeFloat(-.05f, -0.035f) : rand.RangeFloat(-.005f, .01f));
+        //        root = new Vector3(-0.00957f, 0.20225f, -0.025f);
+        //
+        //        modifier = new Vector3(341.1971f, 90, 27f);
+        //
+        //    }
+        //    root.y = pos.y;
+        //    Vector3 between = pos - root;
+        //    
+        //    Vector3 rot = Quaternion.LookRotation(between).eulerAngles;
+        //    rot += modifier;
+        //
+        //    return (pos, rot);
+        //}
+        //
+        //ItemDisplayRuleSet.KeyAssetRuleGroup[] AddAllDisplays(ReadOnlyNamedAssetCollection<ItemDef> items, ItemDisplayRuleSet.KeyAssetRuleGroup[] itemRuleGroups, Xoroshiro128Plus mithRand, string[] bones, ItemTier filter) { 
+        //    foreach (var item in items){
+        //
+        //        if ((filter == ItemTier.NoTier && item.tier != ItemTier.NoTier) || (item.tier == filter && filter != ItemTier.NoTier)){
+        //            Debug.Log("filter: " + filter + " | " + item.tier);
+        //            ItemDisplayRuleSet.KeyAssetRuleGroup a;
+        //            a.keyAsset = item;
+        //
+        //            var rand = mithRand.RangeInt(0, bones.Length);
+        //            var pos = GeneratePositionFromRand(mithRand, rand, (item.tier == ItemTier.Tier1 || item.tier == ItemTier.VoidTier1));
+        //
+        //            a.displayRuleGroup = new DisplayRuleGroup();
+        //            a.displayRuleGroup.AddDisplayRule(new RoR2.ItemDisplayRule{
+        //                ruleType = ItemDisplayRuleType.ParentedPrefab,
+        //                followerPrefab = (item.tier == ItemTier.Tier1 ? t1Infect : item.tier == ItemTier.Tier2 ? t2Infect : item.tier == ItemTier.Tier3 ? t3Infect : item.tier == ItemTier.Boss ? bsInfect : item.tier == ItemTier.Lunar ? luInfect : item.tier == ItemTier.VoidTier1 ? v1Infect : item.tier == ItemTier.VoidTier2 ? v2Infect : item.tier == ItemTier.VoidTier3 ? v3Infect : v4Infect),
+        //                childName = bones[rand],
+        //                localPos = pos.Item1,
+        //                localAngles = pos.Item2,
+        //                localScale = new Vector3(.11f, .11f, .11f)
+        //            });
+        //            itemRuleGroups = itemRuleGroups.AddItem(a).ToArray();
+        //        }
+        //    }
+        //    return itemRuleGroups;
+        //}
     }
 }
