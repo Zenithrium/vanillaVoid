@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 433975516
+CRC: 552253936
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: f3847abb58096dfff12761c58fcaec09
+    Hash: 4bcf6ff30d001d13e71dca5961be822d
   TypeTreeHash:
     serializedVersion: 2
     Hash: deced1111d7f32add334a6903ad5d410
@@ -56,11 +56,9 @@ Assets:
 - Assets/Models/Prefabs/Item/ClockworkWatch/MessItem/gooptexture.mat
 - Assets/Models/Prefabs/Item/ExtVent/ExhaustVFX.prefab
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texGalaxy1Mask.png
-- Assets/Models/Misc/InfectionDisplays/void1Infection.prefab
 - Assets/Models/Prefabs/Item/Core/mdlCoreFinalPickup.prefab
 - Assets/Models/Prefabs/Item/WhorlItem/texShellIcon2.png
 - Assets/Models/Prefabs/Item/CryoItem/cryoGlowMat.mat
-- Assets/Models/Misc/InfectionDisplays/InfectionT4.mat
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladeDisplay.prefab
 - Assets/Models/Prefabs/Item/ExtVent/ventOrbMat.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texNullifierSky.png
@@ -85,10 +83,7 @@ Assets:
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/donut5Mesh.asset
 - Assets/Models/Prefabs/Item/CryoItem/cryoMat.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/mainGrayMatDisplay.mat
-- Assets/Models/Misc/InfectionDisplays/LunarInfectionSingleMesh.asset
-- Assets/Models/Misc/InfectionDisplays/void2Infection.prefab
 - Assets/Models/Prefabs/Item/RoundsItem/roundsIcon512.png
-- Assets/Models/Misc/InfectionDisplays/t4Infection.prefab
 - Assets/Models/Prefabs/Item/ClockworkWatch/mdlClockworkPickup.prefab
 - Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryDisplay.prefab
 - Assets/Models/Prefabs/Item/AbyssalAdze/adzeMat.mat
@@ -100,7 +95,6 @@ Assets:
 - Assets/Models/Misc/matPurpleGrassyStone.mat
 - Assets/Models/Prefabs/Item/AbyssalAdze/adzeMatDisplay.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/MessItem/mdlMessDisplay.prefab
-- Assets/Models/Misc/InfectionDisplays/voidInfectionT3.mat
 - Assets/Models/Prefabs/Item/CryoItem/texChargeShadow.png
 - Assets/Models/Prefabs/Item/VialsItem/mdlVialsFinalPickup.prefab
 - Assets/raw/lotus/lotusmaterial.mat
@@ -135,10 +129,9 @@ Assets:
 - Assets/Sprites/texUICornerTier2.png
 - Assets/Models/Prefabs/Item/ExtVent/mdlVentPickup.prefab
 - Assets/Models/Prefabs/Item/AbyssalAdze/old/orbCoreTexture.mat
-- Assets/Models/Misc/InfectionDisplays/texRampLunarInfection.png
 - Assets/Models/Prefabs/Item/Core/rake.png
+- Assets/Models/Prefabs/Item/RoundsItem/vfx/texHuntressArrowBigMask.png
 - Assets/Models/Misc/fbxVoidArch.fbx
-- Assets/Models/Misc/InfectionDisplays/voidInfectionT4.mat
 - Assets/Models/Prefabs/Item/Core/corediffuse3.png
 - Assets/Models/Prefabs/Item/WhorlItem/whorlShellMatDisplay.mat
 - Assets/Models/Misc/CommandVFX/matNullifierStarTrail.mat
@@ -154,14 +147,16 @@ Assets:
 - Assets/Models/Prefabs/Item/Core/corenormal.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/ClockworkDropVFX.prefab
 - Assets/Models/VFX/texRampIce.png
-- Assets/Models/Misc/InfectionDisplays/voidInfectionT1.mat
 - Assets/Models/Prefabs/Item/Core/coreIcon512.png
 - Assets/Models/Prefabs/Item/QuillItem/quillMatDisplay.mat
 - Assets/Models/Prefabs/Item/RoundsItem/texRampDefault.asset
 - Assets/Sprites/texUICornerTier3.png
 - Assets/zendesigns/StaffItem/mdlStaffDisplay.prefab
+- Assets/Models/Prefabs/Item/RoundsItem/vfx/texHuntressArrowBigMaskTest.png
 - Assets/Models/Prefabs/Item/ExtVent/extVentGuardMatDisplay.mat
+- Assets/Models/Prefabs/Item/RoundsItem/vfx/texMagmaCloud.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texCloudCrackedIce.png
+- Assets/Models/Prefabs/Item/RoundsItem/vfx/texRampVoidSoft2.png
 - Assets/Models/Prefabs/Item/ExtVent/orbFlare1Mat.mat
 - Assets/Textures/Icons/Buffs/drownDot.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/pillarMat.mat
@@ -173,6 +168,7 @@ Assets:
 - Assets/Models/VFX/matIceAura.mat
 - Assets/Models/Prefabs/Item/RoundsItem/RentlessProjectileGhost.prefab
 - Assets/Textures/Icons/Buffs/whorlRegenBuffIcon.png
+- Assets/Models/Prefabs/Item/RoundsItem/vfx/matHuntressFlurryArrowTrail.mat
 - Assets/raw/lotus/betterLotusMaterial.mat
 - Assets/Models/Prefabs/Item/ExtVent/ventOrb.prefab
 - Assets/Models/Prefabs/Item/ClockworkWatch/MessItem/voidorb.mat
@@ -195,6 +191,7 @@ Assets:
 - Assets/Models/VFX/matLaserPointerBeam.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texRampVoidSurvivorBase2.png
 - Assets/Models/Misc/Interactables/texRampCrowbar.png
+- Assets/Models/Prefabs/Item/RoundsItem/vfx/RoundsOrbEffect.prefab
 - Assets/Models/Prefabs/Item/QuillItem/mdlQuillSoloDisplay.prefab
 - Assets/Models/Prefabs/Item/QuillItem/mdlQuillPickupReal.prefab
 - Assets/Models/Prefabs/Item/AbyssalAdze/adzeIcon512.png
@@ -204,8 +201,8 @@ Assets:
 - Assets/Models/Prefabs/Item/ClockworkWatch/MessItem/metallictexture.mat
 - Assets/Models/Prefabs/Item/Core/coreGlassRedInner.mat
 - Assets/Models/Prefabs/Item/LotusItem/mdlLotusWorldObject2.prefab
+- Assets/Models/Prefabs/Item/RoundsItem/vfx/texHuntressArrowBigMaskTestRealAgain.png
 - Assets/Models/Prefabs/Item/ExtVent/extBubblesMat.mat
-- Assets/Models/Misc/InfectionDisplays/voidInfectionT2.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/MessItem/crabtexture.mat
 - Assets/Models/Prefabs/Item/ExtVent/ventIcon512.png
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedEmptyPickup.prefab
@@ -219,10 +216,10 @@ Assets:
 - Assets/Models/Prefabs/Item/RoundsItem/mdlQuiliHateModding.prefab
 - Assets/Models/Misc/CommandVFX/matInverseDistortion.mat
 - Assets/Models/Prefabs/Item/BladeItem/bladeMat.mat
-- Assets/Models/Misc/InfectionDisplays/void3Infection.prefab
 - Assets/Models/Prefabs/Item/ClockworkWatch/whiteMat.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/matNullifierStarParticle.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/backMatDisplay.mat
+- Assets/Models/Prefabs/Item/RoundsItem/vfx/texAlphaGradient3Mask.png
 - Assets/Models/Prefabs/Item/WhorlItem/whorlMeteorShellMat.mat
 - Assets/Models/Prefabs/Item/WhorlItem/WhorlShellVFX.prefab
 - Assets/Models/Prefabs/Item/VialsItem/emptyVialsIcon512.png
@@ -243,8 +240,6 @@ Assets:
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/matInverseDistortion.mat
 - Assets/Textures/Icons/Item/OrbItem/OrbIcon.png
 - Assets/Models/Prefabs/Item/MicrobeItem/Microbe.prefab
-- Assets/Models/Misc/InfectionDisplays/texRampItemInfection.png
-- Assets/Models/Misc/InfectionDisplays/void4Infection.prefab
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texLightning2Mask.png
 - Assets/Models/Prefabs/Item/CryoItem/cryoMatDisplay.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/gearMat.mat
@@ -258,7 +253,6 @@ Assets:
 - Assets/Models/Prefabs/Item/Core/coreLight.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texNullifierSky2.png
 - Assets/Models/Prefabs/Item/WhorlItem/matParticles.mat
-- Assets/Models/Misc/InfectionDisplays/LunarInfectionSmallMesh.asset
 - Assets/Models/Prefabs/Item/Core/coremodel_textured.fbx
 - Assets/Models/Prefabs/Item/ClockworkWatch/valveMatDisplay.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/mainGrayMat.mat
@@ -267,7 +261,6 @@ Assets:
 - Assets/Models/Prefabs/Item/WhorlItem/whorlIcon512.png
 - Assets/Models/Prefabs/Item/Core/gloopdiffuse.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texParticleDust1Mask.png
-- Assets/Models/Misc/InfectionDisplays/texRampDefault.png
 - Assets/Models/Prefabs/Item/OrreryItem/orreryDamageNew.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/MessItem/armtexture.mat
 - Assets/Models/Prefabs/Item/WhorlItem/mdlWhorlPickup.prefab
@@ -287,6 +280,7 @@ Assets:
 - Assets/Models/Prefabs/Item/WhorlItem/whorlMeteorMat.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texCloudCrackedIceInverted.png
 - Assets/raw/vials/Materials/vialTextureBrighter.mat
+- Assets/Models/Prefabs/Item/RoundsItem/vfx/matHuntressArrow.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/matVoidBlinkPortal.mat
 - Assets/Models/Prefabs/Item/LotusItem/lotusIcon512.png
 - Assets/Models/Prefabs/Item/LotusItem/mdlFinalLotusDisplay.prefab

@@ -682,33 +682,41 @@ namespace vanillaVoid.Items
 
         }
 
-        public override void Hooks(){ }
+        public override void Hooks(){ 
+        //On.RoR2.GenericSkill.DeductStock += ExtExhaustStock;
+        //    On.RoR2.Skills.SkillDef.OnExecute += ExtExecute;
+        //
+        //    On.EntityStates.Mage.Weapon.PrepWall.OnExit += ExtExhaustIceWall; //even with the new method of doing this, ice wall is an exception for some reason
+        }
 
     }
 
     public class ExhaustItemBehavior : BaseItemBodyBehavior {
-        [ItemDefAssociation(useOnServer = true, useOnClient = false)]
+        [ItemDefAssociation(useOnServer = false, useOnClient = true)]
         private static ItemDef GetItemDef() { return ItemBase<ExtraterrestrialExhaust>.instance.ItemDef; }
 
-        private void OnEnable(){
+        private void OnEnable(){  
             On.RoR2.GenericSkill.DeductStock += ExtExhaustStock;
             On.RoR2.Skills.SkillDef.OnExecute += ExtExecute;
 
             On.EntityStates.Mage.Weapon.PrepWall.OnExit += ExtExhaustIceWall; //even with the new method of doing this, ice wall is an exception for some reason
+            On.EntityStates.Engi.EngiMissilePainter.Fire.FireMissile += ExtExhaustHarpoonFire;
         }
-
 
         private void OnDisable(){
             On.RoR2.GenericSkill.DeductStock -= ExtExhaustStock;
             On.RoR2.Skills.SkillDef.OnExecute -= ExtExecute;
-
-            On.EntityStates.Mage.Weapon.PrepWall.OnExit -= ExtExhaustIceWall; 
+        
+            On.EntityStates.Mage.Weapon.PrepWall.OnExit -= ExtExhaustIceWall;
+            On.EntityStates.Engi.EngiMissilePainter.Fire.FireMissile -= ExtExhaustHarpoonFire;
         }
 
         private void ExtExecute(On.RoR2.Skills.SkillDef.orig_OnExecute orig, RoR2.Skills.SkillDef self, GenericSkill skillSlot){
             orig(self, skillSlot);
             if (self.stockToConsume >= 1){ //if the stock is consumed here, then it won't be consumed later - active rockets now 
-                var body = skillSlot.characterBody;
+                //var body = skillSlot.characterBody;
+                if(skillSlot.characterBody != body){ return; }
+
                 if (body){ //to be safe i guess
                     //Debug.Log("Firing missiles in onExecute " + self + " | " + self.name + " | " + skillSlot + " | " + self.stockToConsume);
                     TryExhaust(body, skillSlot);
@@ -716,11 +724,11 @@ namespace vanillaVoid.Items
             }
         }
 
-        private void ExtExhaustStock(On.RoR2.GenericSkill.orig_DeductStock orig, GenericSkill self, int count)
-        {
+        private void ExtExhaustStock(On.RoR2.GenericSkill.orig_DeductStock orig, GenericSkill self, int count){
             orig(self, count);
+            //var body = self.characterBody;
+            if (self.characterBody != body) { return; }
 
-            var body = self.characterBody;
             if (body){
                 TryExhaust(body, self); //skill is special and calls deduct stock itself - fire now
             }
@@ -728,27 +736,41 @@ namespace vanillaVoid.Items
 
         private void ExtExhaustIceWall(On.EntityStates.Mage.Weapon.PrepWall.orig_OnExit orig, EntityStates.Mage.Weapon.PrepWall self){
             if (self.goodPlacement){
-                var inventory = self.characterBody.inventory;
-                if (inventory){
-                    var inventoryCount = self.characterBody.inventory.GetItemCount(ItemBase<ExtraterrestrialExhaust>.instance.ItemDef);
-                    var skill = self.skillLocator.utilityBonusStockSkill;
-                    if (inventoryCount > 0 && skill.cooldownRemaining > 0){ //maybe make this higher
-                        float skillCD = skill.baseRechargeInterval;
+                if(self.characterBody == body) {
+                    //var inventory = self.characterBody.inventory;
+                    if (stack > 0){
+                        //var inventoryCount = inventory.GetItemCount(ItemBase<ExtraterrestrialExhaust>.instance.ItemDef);
+                        var skill = self.skillLocator.utilityBonusStockSkill;
+                        if (skill.cooldownRemaining > 0){ //maybe make this higher
+                            float skillCD = skill.baseRechargeInterval;
 
-                        int missleCount = (int)Math.Ceiling(skillCD / ItemBase<ExtraterrestrialExhaust>.instance.secondsPerRocket.Value);
+                            int missleCount = (int)Math.Ceiling(skillCD / ItemBase<ExtraterrestrialExhaust>.instance.secondsPerRocket.Value);
 
-                        StartCoroutine(delayedRockets(self.characterBody, missleCount, inventoryCount)); //this can probably be done better
+                            StartCoroutine(delayedRockets(self.characterBody, missleCount, stack)); //this can probably be done better
+                        }
                     }
                 }
-
             }
-
             orig(self);
         }
 
+        private void ExtExhaustHarpoonFire(On.EntityStates.Engi.EngiMissilePainter.Fire.orig_FireMissile orig, EntityStates.Engi.EngiMissilePainter.Fire self, HurtBox target, Vector3 position){
+            orig(self, target, position);
+            if (self.characterBody != body) { return; }
+
+            if (stack > 0){
+                var skill = self.skillLocator.utilityBonusStockSkill;
+                float skillCD = skill.baseRechargeInterval;
+
+                int missleCount = (int)Math.Ceiling(skillCD / ItemBase<ExtraterrestrialExhaust>.instance.secondsPerRocket.Value);
+                StartCoroutine(delayedRockets(body, missleCount, stack, target.gameObject)); //this can probably be done better
+            }
+        }
+
+
         private void TryExhaust(CharacterBody body, GenericSkill skill){
-            int inventoryCount = body.inventory.GetItemCount(ItemBase<ExtraterrestrialExhaust>.instance.ItemDef);
-            if (inventoryCount > 0 && skill.cooldownRemaining > 0 && skill.skillDef.skillNameToken != "MAGE_UTILITY_ICE_NAME"){ //ice wall is stupid
+            //int inventoryCount = body.inventory.GetItemCount(ItemBase<ExtraterrestrialExhaust>.instance.ItemDef);
+            if (stack > 0 && skill.cooldownRemaining > 0 && skill.skillDef.skillNameToken != "MAGE_UTILITY_ICE_NAME" && skill.skillDef.skillNameToken != "ENGI_SKILL_HARPOON_NAME"){ //ice wall is stupid
                 float skillCD = skill.baseRechargeInterval;
 
                 int missleCount = (int)Math.Ceiling(skillCD / ItemBase<ExtraterrestrialExhaust>.instance.secondsPerRocket.Value);
@@ -760,7 +782,7 @@ namespace vanillaVoid.Items
                         missleCount = 0;
                     }
                 }
-                StartCoroutine(delayedRockets(body, missleCount, inventoryCount)); //this can probably be done better
+                StartCoroutine(delayedRockets(body, missleCount, stack)); //this can probably be done better
             }
         }
 
@@ -775,6 +797,20 @@ namespace vanillaVoid.Items
                 ProcChainMask procChainMask = default(ProcChainMask);
 
                 MissileUtils.FireMissile(player.corePosition + upTransform, player, procChainMask, null, rocketDamage, player.RollCrit(), ExtraterrestrialExhaust.RocketProjectile, DamageColorIndex.Item, Upwards, 10f, false);
+            }
+        }
+
+        IEnumerator delayedRockets(RoR2.CharacterBody player, int missileCount, int inventoryCount, GameObject victim){
+            for (int i = 0; i < missileCount; i++){
+                yield return new WaitForSeconds(.1f);
+                Vector3 Upwards = new Vector3(UnityEngine.Random.Range(-10, 10), 180 - UnityEngine.Random.Range(-30, 30), UnityEngine.Random.Range(-10, 10));
+                Vector3 upTransform = new Vector3(0, 1, 0);
+
+                float rocketDamage = player.damage * ((ItemBase<ExtraterrestrialExhaust>.instance.rocketDamage.Value + (ItemBase<ExtraterrestrialExhaust>.instance.rocketDamageStacking.Value * (inventoryCount - 1))) / 100);
+
+                ProcChainMask procChainMask = default(ProcChainMask);
+
+                MissileUtils.FireMissile(player.corePosition + upTransform, player, procChainMask, victim, rocketDamage, player.RollCrit(), ExtraterrestrialExhaust.RocketProjectile, DamageColorIndex.Item, Upwards, 10f, false);
             }
         }
     }

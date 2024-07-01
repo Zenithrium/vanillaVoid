@@ -14,6 +14,7 @@ using On.RoR2.Items;
 using RoR2.Orbs;
 using System.Linq;
 using RoR2.Projectile;
+using Rewired.ComponentControls.Effects;
 
 namespace vanillaVoid.Items
 {
@@ -67,6 +68,8 @@ namespace vanillaVoid.Items
 
         //public static Material
 
+        public static GameObject rentlessBolt => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("RoundsOrbEffect");
+
         public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
 
         //public BuffDef relentlessDef { get; private set; }
@@ -74,8 +77,7 @@ namespace vanillaVoid.Items
         //public static DotController.DotIndex dotIndex;
         //public static DotController.DotDef dotDef;
 
-        public override void Init(ConfigFile config)
-        {
+        public override void Init(ConfigFile config){
             CreateConfig(config);
             CreateLang();
             CreateItem();
@@ -89,8 +91,7 @@ namespace vanillaVoid.Items
             Hooks();
         }
 
-        public void SetupALot()
-        {
+        public void SetupALot(){
             //rentlessProjectile.AddComponent<NetworkIdentity>();
             rentlessProjectile.AddComponent<TeamFilter>();
 
@@ -171,10 +172,30 @@ namespace vanillaVoid.Items
             };
             asa.destroyOnEnd = true;
 
+
+            rentlessBolt.AddComponent<EffectComponent>();
+            var rbec = rentlessBolt.AddComponent<OrbEffect>();
+            rbec.startVelocity1 = Vector3.zero;
+            rbec.startVelocity2 = Vector3.zero;
+            rbec.endVelocity1 = new Vector3(-12, 0, -12);
+            rbec.endVelocity2 = new Vector3(12, 0, 12);
+
+            rbec.endEffect = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("RoR2/Base/Huntress/OmniImpactVFXHuntress.prefab");
+            var rbvfx = rentlessBolt.AddComponent<VFXAttributes>();
+            rbvfx.vfxPriority = VFXAttributes.VFXPriority.Medium;
+            rbvfx.vfxIntensity = VFXAttributes.VFXIntensity.Medium;
+
+            var raa = rentlessBolt.transform.Find("Quad").gameObject.AddComponent<RotateAroundAxis>();
+            raa.speed = RotateAroundAxis.Speed.Fast;
+            raa.slowRotationSpeed = 5;
+            raa.fastRotationSpeed = 360;
+            raa.rotateAroundAxis = RotateAroundAxis.RotationAxis.X;
+            raa.relativeTo = Space.Self;
+
+            ContentAddition.AddEffect(rentlessBolt);
         }
 
-        public override void CreateConfig(ConfigFile config)
-        {
+        public override void CreateConfig(ConfigFile config){
             baseDamage = config.Bind<float>("Item: " + ItemName, "Percent Damage", 2.5f, "Adjust the percent of extra damage dealt on the first stack.");
             stackingDamage = config.Bind<float>("Item: " + ItemName, "Stacking Percent Damage", 2.5f, "Adjust the percent of extra damage dealt per stack.");
             hitAll = config.Bind<bool>("Item: " + ItemName, "Hit All Bosses", true, "Adjust if the item should hit all active bosses or only one at random.");
@@ -774,16 +795,13 @@ namespace vanillaVoid.Items
 
         }
 
-        private void CheckForBosses(CharacterBody obj)
-        {
-            if (obj.isBoss)
-            {
+        private void CheckForBosses(CharacterBody obj){
+            if (obj.isBoss){
                 activeBosses.Add(obj);
             }
         }
 
-        private void RelentlessDeathDamage(DamageReport obj)
-        {
+        private void RelentlessDeathDamage(DamageReport obj){
             if (obj.victimIsBoss){
                 var success = activeBosses.Remove(obj.victimBody);
                 //Debug.Log(success + " for removing " + obj.victimBody.name);
@@ -803,20 +821,20 @@ namespace vanillaVoid.Items
 
                         if (count > 0 && (inTeleporter || !requireTeleporter.Value)){
                             foreach (var boss in activeBosses){
-                                GenericDamageOrb genericDamageOrb = new RentlessOrb();
-                                genericDamageOrb.damageValue = attacker.damage * 1;
-                                genericDamageOrb.isCrit = attacker.RollCrit();
-                                genericDamageOrb.teamIndex = attacker.teamComponent.teamIndex;
-                                genericDamageOrb.attacker = attacker.gameObject;
-                                genericDamageOrb.procCoefficient = 0;
+                                GenericDamageOrb damageOrb = new RentlessOrb();
+                                damageOrb.damageValue = attacker.damage * 1;
+                                damageOrb.isCrit = attacker.RollCrit();
+                                damageOrb.teamIndex = attacker.teamComponent.teamIndex;
+                                damageOrb.attacker = attacker.gameObject;
+                                damageOrb.procCoefficient = 0;
                                 HurtBox hurtBox = boss.hurtBoxGroup.mainHurtBox;
 
                                 if (hurtBox){
                                     //Transform transform = this.childLocator.FindChild(this.muzzleString);
                                     //EffectManager.SimpleMuzzleFlash(this.muzzleflashEffectPrefab, base.gameObject, this.muzzleString, true);
-                                    genericDamageOrb.origin = obj.victimBody.corePosition;
-                                    genericDamageOrb.target = hurtBox;
-                                    OrbManager.instance.AddOrb(genericDamageOrb);
+                                    damageOrb.origin = obj.victimBody.corePosition;
+                                    damageOrb.target = hurtBox;
+                                    OrbManager.instance.AddOrb(damageOrb);
                                 }
                             }
                         }
@@ -866,52 +884,21 @@ namespace vanillaVoid.Items
             }
         }
 
-
-        //private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
-        //    
-        //    orig(self, damageInfo);
-        //
-        //    if (!damageInfo.rejected)
-        //    {
-        //        var body = self.body;
-        //        if (body)
-        //        {
-        //            if (body.isBoss && body.GetBuffCount(relentlessDef) > 0)
-        //            {
-        //                var dotInfo = new InflictDotInfo()
-        //                {
-        //                    attackerObject = damageInfo.attacker,
-        //                    victimObject = self.body.gameObject,
-        //                    dotIndex = dotIndex,
-        //                    duration = -1,
-        //                    damageMultiplier = 1,
-        //                };
-        //                DotController.InflictDot(ref dotInfo);
-        //            }
-        //        }
-        //    }
-        //
-        //}
-
-        public class RentlessOrb : GenericDamageOrb
-        {
-            // Token: 0x06004097 RID: 16535 RVA: 0x0010B789 File Offset: 0x00109989
-            public override void Begin()
-            {
+        public class RentlessOrb : GenericDamageOrb {
+            public override void Begin(){
                 this.speed = 80;
                 // base.duration = 0.2f;
                 base.Begin();
             }
 
-            // Token: 0x06004098 RID: 16536 RVA: 0x0010B79C File Offset: 0x0010999C
-            public override GameObject GetOrbEffect()
-            {
-                if (this.isCrit)
-                {
+            public override GameObject GetOrbEffect(){
+                if (this.isCrit){
                     return LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/OrbEffects/FlurryArrowCritOrbEffect");
                 }
-                return LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/OrbEffects/FlurryArrowOrbEffect");
+                //return LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/OrbEffects/FlurryArrowOrbEffect");
+                return rentlessBolt;
                 //return LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/OrbEffects/ArrowOrbEffect");
+                //RoundsOrbEffect
             }
         }
 

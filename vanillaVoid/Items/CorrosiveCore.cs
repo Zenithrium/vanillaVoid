@@ -48,8 +48,7 @@ namespace vanillaVoid.Items
         public DotController.DotIndex drownDotIndex;
         ModdedDamageType drownDamage;
 
-        public override void Init(ConfigFile config)
-        {
+        public override void Init(ConfigFile config){
             CreateConfig(config);
             CreateLang();
             CreateItem();
@@ -59,8 +58,7 @@ namespace vanillaVoid.Items
             Hooks();
         }
 
-        public void CreateBuff()
-        {
+        public void CreateBuff(){
             drownDamage = ReserveDamageType();
             drownBuff = ScriptableObject.CreateInstance<BuffDef>();
             drownBuff.buffColor = Color.magenta;
@@ -74,8 +72,7 @@ namespace vanillaVoid.Items
             drownDotIndex = DotAPI.RegisterDotDef(0.2f, (1 * 0.2f), DamageColorIndex.Void, drownBuff, DrownDotBehavior, null);
         }
 
-        public void DrownDotBehavior(DotController self, DotController.DotStack dotStack)
-        {
+        public void DrownDotBehavior(DotController self, DotController.DotStack dotStack){
             if (dotStack.dotIndex == drownDotIndex){
                 CharacterBody attacker = dotStack.attackerObject.GetComponent<CharacterBody>();
                 int count = 1;
@@ -662,36 +659,6 @@ namespace vanillaVoid.Items
         private void GainUpdateSlow(On.RoR2.CharacterBody.orig_OnBuffFirstStackGained orig, CharacterBody self, BuffDef buffDef)
         {
             orig(self, buffDef);
-
-            //CharacterBody victimBody = self.body;
-            //if ()
-            //{
-            //    CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
-            //
-            //    if (attackerBody && attackerBody.inventory)
-            //    {
-            //        var stackCount = GetCount(attackerBody);
-            //
-            //        if (stackCount > 0)
-            //        {
-            //            var comp = self.body.gameObject.GetComponent<CorrosiveCounter>();
-            //            if (comp.slowAmount != comp.slowAmountCurrent)
-            //            {
-            //                comp.slowAmountCurrent = comp.slowAmount;
-            //                var dotInfo = new InflictDotInfo
-            //                {
-            //                    attackerObject = damageInfo.attacker,
-            //                    victimObject = self.body.gameObject,
-            //                    damageMultiplier = 1f,
-            //                    dotIndex = drownDotIndex,
-            //                    duration = 999999
-            //                };
-            //
-            //                DotController.InflictDot(ref dotInfo);
-            //            }
-            //        }
-            //    }
-            //}
         }
 
         private void LostUpdateSlow(On.RoR2.CharacterBody.orig_OnBuffFinalStackLost orig, CharacterBody self, BuffDef buffDef)
@@ -722,19 +689,17 @@ namespace vanillaVoid.Items
                 c.Index += 1;
                 c.Emit(OpCodes.Ldloc, 76);
                 c.Emit(OpCodes.Ldarg_0);
-                c.EmitDelegate<Action<float, CharacterBody>>((slowAmount, self) =>
-                {
+                c.EmitDelegate<Action<float, CharacterBody>>((slowAmount, self) => {
 
-                    //Debug.Log("slow amount: " + slowAmount);
-                    //Debug.Log("self: " + self);
+                    Debug.Log("slow amount: " + slowAmount);
+                    Debug.Log("self: " + self);
                     var token = self.gameObject.GetComponent<CorrosiveCounter>();
                     if (!token){
                         token = self.gameObject.AddComponent<CorrosiveCounter>();
                     }
                     token.slowAmount = slowAmount;
 
-                    if(token.slowAmount == 1)
-                    {
+                    if(token.slowAmount == 1){
                         var dotCtrl = DotController.FindDotController(self.gameObject);
                         if (dotCtrl){
                             for (int i = 0; i < dotCtrl.dotStackList.Count; ++i){
@@ -753,8 +718,7 @@ namespace vanillaVoid.Items
         }
 
 
-        private void ApplySlowDot(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
-        {
+        private void ApplySlowDot(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo){
             orig(self, damageInfo);
 
             if (damageInfo.attacker){
@@ -766,11 +730,16 @@ namespace vanillaVoid.Items
                     if(stackCount > 0){
                         var comp = self.body.gameObject.GetComponent<CorrosiveCounter>();
                         
-                        if (comp && (comp.slowAmount != comp.slowAmountCurrent || GetCount(comp.recentPlayer) < GetCount(attackerBody)))
-                        {
+                        if (comp && (comp.slowAmount != comp.slowAmountCurrent || GetCount(comp.recentPlayer) < GetCount(attackerBody) || self.body.moveSpeed == 0)){
                             if(GetCount(comp.recentPlayer) < GetCount(attackerBody)){
                                 comp.recentPlayer = attackerBody;
                             }
+
+                            Debug.Log("move speed:" + self.body.moveSpeed);
+                            bool flag2 = self.body.HasBuff(RoR2Content.Buffs.Entangle);
+                            bool flag3 = self.body.HasBuff(RoR2Content.Buffs.Nullified);
+                            bool flag4 = self.body.HasBuff(RoR2Content.Buffs.LunarSecondaryRoot);
+                            Debug.Log(flag2 + "|" + flag3 + "|" + flag4);
 
                             comp.slowAmountCurrent = comp.slowAmount;
 

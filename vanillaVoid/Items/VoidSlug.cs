@@ -28,8 +28,7 @@ namespace vanillaVoid.Items
 
         public override string ItemFullDescription => $"yeag. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemLore => $"<style=cMono>//-- AUTO-TRANSCRIPTION FROM CARGO BAY 6 OF UES [Redacted] --//</style>" +
-            "\n\n\"slug was born with a special power\"";
+        public override string ItemLore => $"the sky is lonely; the air full of absense. it’s always worse when it rains. i miss it.\n\nthe world is thick with tears. i shed my better judgement and meander forwards. someone has noticed my molt. you are being watched.\n\neyes close and i am here. i am no longer myself. i blink and see a stranger.\n\ni pick them up and carry them with me. the sensation is foreign to us. it is all we have ever done.";
 
         public override ItemTier Tier => ItemTier.VoidTier1;
 
@@ -40,7 +39,7 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
-        public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
+        public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Healing };
 
         public BuffDef voidSlugRegen { get; private set; }
 
@@ -53,13 +52,10 @@ namespace vanillaVoid.Items
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
             //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
 
-
-
             Hooks();
         }
 
-        public void CreateBuff()
-        {
+        public void CreateBuff(){
             voidSlugRegen = ScriptableObject.CreateInstance<BuffDef>();
             voidSlugRegen.buffColor = new Color(136, 101, 207);
             voidSlugRegen.canStack = true;
@@ -69,8 +65,7 @@ namespace vanillaVoid.Items
             ContentAddition.AddBuffDef(voidSlugRegen);
         }
 
-        public override void CreateConfig(ConfigFile config)
-        {
+        public override void CreateConfig(ConfigFile config){
             baseRegen = config.Bind<float>("Item: " + ItemName, "Base Regen per Buff Stack", .75f, "Adjust the amount of regeneration for every stack of the first item");
             baseRegenPerStack = config.Bind<float>("Item: " + ItemName, "Base J per J per J", .75f, "Adjust the amount of J in each stack of J");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "HealWhileSafe", "Adjust which item this is the void pair of.");
@@ -664,17 +659,13 @@ namespace vanillaVoid.Items
             //[Info   : Unity Log] SS2_EXECUTIONER2_IONCHARGE_NAMETrue0
         }
 
-        private void CalculateStatsVoidSlugRegen(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
-        {
-            if (sender)
-            {
+        private void CalculateStatsVoidSlugRegen(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args){
+            if (sender){
                 int buffCount = sender.GetBuffCount(voidSlugRegen);
-                if (buffCount > 0)
-                {
+                if (buffCount > 0){
                     // the actual stat value should be like buffcount * 0.75 or something ?? i think what she 
                     var stackCount = GetCount(sender);
-                    if (stackCount == 0)
-                    {
+                    if (stackCount == 0){
                         stackCount = 1;
                     }
 
