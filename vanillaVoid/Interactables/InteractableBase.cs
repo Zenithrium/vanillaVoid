@@ -22,6 +22,10 @@ namespace vanillaVoid.Interactables
 
         public abstract string InteractableContext { get; }
 
+        public abstract string InteractableInspect { get; }
+
+        public abstract string InteractableInspectTitle { get; }
+
         public abstract string InteractableLangToken { get; }
 
         public abstract GameObject InteractableModel { get; }
@@ -32,6 +36,8 @@ namespace vanillaVoid.Interactables
         {
             LanguageAPI.Add("VV_INTERACTABLE_" + InteractableLangToken + "_NAME", InteractableName);
             LanguageAPI.Add("VV_INTERACTABLE_" + InteractableLangToken + "_CONTEXT", InteractableContext);
+            LanguageAPI.Add("VV_INTERACTABLE_" + InteractableLangToken + "_INSPECT", InteractableInspect);
+            LanguageAPI.Add("VV_INTERACTABLE_" + InteractableLangToken + "_TITLE", InteractableInspectTitle);
         }
     }
 }

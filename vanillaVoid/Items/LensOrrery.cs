@@ -397,6 +397,60 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(1.75f, 1.75f, 1.75f)
                 }
             });
+            rules.Add("mdlSeeker", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "LowerArmR",
+                    localPos = new Vector3(-0.00471F, 0.22213F, 0.07942F),
+                    localAngles = new Vector3(85.33129F, 356.3102F, 359.245F),
+                    localScale = new Vector3(2.25F, 2.25F, 2.25F)
+                },
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "LowerArmL",
+                    localPos = new Vector3(-0.00016F, 0.22212F, -0.07933F),
+                    localAngles = new Vector3(274.6687F, 356.3102F, 9.79711F),
+                    localScale = new Vector3(2.15F, 2.15F, 2.15F)
+                }
+            });
+            rules.Add("mdlChef", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Cleaver",
+                    localPos = new Vector3(-0.00492F, 0.50069F, 0.00001F),
+                    localAngles = new Vector3(0F, 0F, 86.91245F),
+                    localScale = new Vector3(1.4F, 1.4F, 1.4F)
+                },
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "PizzaCutter",
+                    localPos = new Vector3(-0.15502F, 0.40595F, -0.00051F),
+                    localAngles = new Vector3(359.1721F, 359.1821F, 89.33355F),
+                    localScale = new Vector3(1.15F, 1.15F, 1.15F)
+                }
+            });
+            rules.Add("mdlFalseSon", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(-0.39755F, 0.26368F, 0.21003F),
+                    localAngles = new Vector3(64.63329F, 349.0132F, 12.14522F),
+                    localScale = new Vector3(4F, 4F, 4F)
+                }
+            });
             rules.Add("mdlScav", new RoR2.ItemDisplayRule[]
             {
                 new RoR2.ItemDisplayRule

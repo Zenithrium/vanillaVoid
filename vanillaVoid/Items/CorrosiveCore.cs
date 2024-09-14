@@ -87,7 +87,7 @@ namespace vanillaVoid.Items
                 }
 
                 if(mult > 1){
-                    Debug.Log("Removing old debuff");
+                    //Debug.Log("Removing old debuff");
 
                     for(int i = 0; i < self.dotStackList.Count; ++i){
                         if(self.dotStackList[i].dotIndex == drownDotIndex){
@@ -97,13 +97,13 @@ namespace vanillaVoid.Items
                     }
                     //self.RemoveDotStackAtServer()
 
-                    Debug.Log("The j: " + baseDamageDot.Value * attacker.damage + (stackingDamageDot.Value * (count - 1)));
+                   // Debug.Log("The j: " + baseDamageDot.Value * attacker.damage + (stackingDamageDot.Value * (count - 1)));
                     dotStack.damage = mult * (baseDamageDot.Value * attacker.damage + (stackingDamageDot.Value * (count - 1)));
                     dotStack.AddModdedDamageType(drownDamage);
                 }
                 else
                 {
-                    Debug.Log("Mult is not high enough");
+                    //Debug.Log("Mult is not high enough");
                 }
 
                 //float baseDotDamage = self.victimBody.maxHealth * burnDamagePercent.Value / 100f / burnDamageDuration.Value * myDotDef.interval;
@@ -307,6 +307,42 @@ namespace vanillaVoid.Items
                 }
             });
             rules.Add("mdlVoidSurvivor", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(0f, 0f, 0f),
+                    localAngles = new Vector3(0f, 0f, 0f),
+                    localScale = new Vector3(1f, 1f, 1f)
+                }
+            });
+            rules.Add("mdlSeeker", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(0f, 0f, 0f),
+                    localAngles = new Vector3(0f, 0f, 0f),
+                    localScale = new Vector3(1f, 1f, 1f)
+                }
+            });
+            rules.Add("mdlChef", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(0f, 0f, 0f),
+                    localAngles = new Vector3(0f, 0f, 0f),
+                    localScale = new Vector3(1f, 1f, 1f)
+                }
+            });
+            rules.Add("mdlFalseSon", new RoR2.ItemDisplayRule[]
             {
                 new RoR2.ItemDisplayRule
                 {
@@ -665,13 +701,13 @@ namespace vanillaVoid.Items
         {
             var token = self.gameObject.GetComponent<CorrosiveCounter>();
             if (token){
-                Debug.Log("Before " + token.slowAmount);
+                //Debug.Log("Before " + token.slowAmount);
             }
 
             orig(self, buffDef);
 
             if (token){
-                Debug.Log("After " + token.slowAmount);
+               // Debug.Log("After " + token.slowAmount);
             }
         }
 
@@ -691,8 +727,8 @@ namespace vanillaVoid.Items
                 c.Emit(OpCodes.Ldarg_0);
                 c.EmitDelegate<Action<float, CharacterBody>>((slowAmount, self) => {
 
-                    Debug.Log("slow amount: " + slowAmount);
-                    Debug.Log("self: " + self);
+                    //Debug.Log("slow amount: " + slowAmount);
+                    //Debug.Log("self: " + self);
                     var token = self.gameObject.GetComponent<CorrosiveCounter>();
                     if (!token){
                         token = self.gameObject.AddComponent<CorrosiveCounter>();
@@ -710,7 +746,7 @@ namespace vanillaVoid.Items
                             }
                         }
                     }
-                    Debug.Log("slow amount: " + slowAmount + " | " + self);
+                    //Debug.Log("slow amount: " + slowAmount + " | " + self);
                 });
             }else{
                 Debug.Log("ah fuck");
@@ -735,11 +771,11 @@ namespace vanillaVoid.Items
                                 comp.recentPlayer = attackerBody;
                             }
 
-                            Debug.Log("move speed:" + self.body.moveSpeed);
+                            //Debug.Log("move speed:" + self.body.moveSpeed);
                             bool flag2 = self.body.HasBuff(RoR2Content.Buffs.Entangle);
                             bool flag3 = self.body.HasBuff(RoR2Content.Buffs.Nullified);
                             bool flag4 = self.body.HasBuff(RoR2Content.Buffs.LunarSecondaryRoot);
-                            Debug.Log(flag2 + "|" + flag3 + "|" + flag4);
+                            //Debug.Log(flag2 + "|" + flag3 + "|" + flag4);
 
                             comp.slowAmountCurrent = comp.slowAmount;
 
@@ -766,33 +802,6 @@ namespace vanillaVoid.Items
                     }
                 }
             }
-            //float initialDmg = damageInfo.damage;
-            //float mult = 0;
-            //bool adjusted = false;
-            //
-            //if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>()){
-            //    CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
-            //    if (attackerBody.inventory){
-            //        var stackCount = GetCount(attackerBody);
-            //
-            //        if (stackCount > 0){
-            //            var healthFraction = Mathf.Clamp((1 - self.combinedHealthFraction), 0f, 1f);
-            //            mult = healthFraction * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
-            //
-            //            damageInfo.damage *= (1 + mult);
-            //            float maxDamage = initialDmg + (initialDmg * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1))));
-            //
-            //            damageInfo.damage = Mathf.Min(damageInfo.damage, maxDamage);
-            //            adjusted = true;
-            //        }
-            //    }
-            //}
-            //
-            //if (adjusted){
-            //    damageInfo.damage /= (1 + mult);
-            //    //damageInfo.damage = initialDmg; //this also works
-            //}
-
         }
     }
 

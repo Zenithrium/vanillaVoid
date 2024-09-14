@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 552253936
+CRC: 1085880601
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 4bcf6ff30d001d13e71dca5961be822d
+    Hash: e36c572d1e9a99290d3a5d5eb9dbd637
   TypeTreeHash:
     serializedVersion: 2
     Hash: deced1111d7f32add334a6903ad5d410
@@ -229,6 +229,7 @@ Assets:
 - Assets/Models/Prefabs/Item/BladeItem/bladeMatDisplay.mat
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladePickup.prefab
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texBehemothTileMask.png
+- Assets/Models/Misc/texSGGrassTerrain12.png
 - Assets/Models/Prefabs/Item/QuillItem/quillMat.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texRampNullifier.png
 - Assets/Models/Prefabs/Item/RoundsItem/matRentlessTrail.mat

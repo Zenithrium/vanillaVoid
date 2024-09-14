@@ -620,6 +620,42 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.0325F, 0.0325F, 0.0325F)
                 }
             });
+            rules.Add("mdlSeeker", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "ThighL",
+                    localPos = new Vector3(0.13024F, 0.02634F, -0.02825F),
+                    localAngles = new Vector3(345.1675F, 330.8004F, 169.3298F),
+                    localScale = new Vector3(0.0185F, 0.0185F, 0.0185F)
+                }
+            });
+            rules.Add("mdlChef", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(-0.29044F, -0.51197F, 0.02651F),
+                    localAngles = new Vector3(316.3288F, 336.8533F, 74.11308F),
+                    localScale = new Vector3(0.04F, 0.04F, 0.04F)
+                }
+            });
+            rules.Add("mdlFalseSon", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "ThighL",
+                    localPos = new Vector3(0.18826F, 0.32683F, -0.02996F),
+                    localAngles = new Vector3(346.8619F, 106.0506F, 237.3382F),
+                    localScale = new Vector3(0.0325F, 0.0325F, 0.0325F)
+                }
+            });
             rules.Add("mdlScav", new RoR2.ItemDisplayRule[]
             {
                 new RoR2.ItemDisplayRule
@@ -1114,8 +1150,8 @@ namespace vanillaVoid.Items
                                         rotation = Quaternion.identity,
                                         prefabOverride = voidPotentialPrefab,
                                         pickupIndex = PickupCatalog.FindPickupIndex(ItemTier.VoidTier1),
-                                        position = position
-                                    }, vector);
+                                        
+                                    }, position, vector);
                                     vector = rotation * vector;
                                 }
                             }
@@ -1146,8 +1182,7 @@ namespace vanillaVoid.Items
                                         rotation = Quaternion.identity,
                                         prefabOverride = voidPotentialPrefab,
                                         pickupIndex = PickupCatalog.FindPickupIndex(ItemTier.VoidTier1),
-                                        position = position
-                                    }, vector);
+                                    }, position, vector);
                                     vector = rotation * vector;
                                 }
                             }

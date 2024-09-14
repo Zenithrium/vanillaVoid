@@ -73,8 +73,8 @@ namespace vanillaVoid.Items
         {
             //rocketsPerSecond = config.Bind<float>("Item: " + ItemName, "Rockets per Second", 2f, "Adjust the number of rockets fired for each second of skill cooldown.");
             secondsPerRocket = config.Bind<float>("Item: " + ItemName, "Seconds per Rocket", 2f, "Adjust the number of seconds of skill cooldown needed to fire a rocket. (1 = 1 rocket per second of cooldown)");
-            rocketDamage = config.Bind<float>("Item: " + ItemName, "Rocket Damage Percent", 120f, "Adjust the percent damage dealt on the first stack. (100 = 100% base damage)");
-            rocketDamageStacking = config.Bind<float>("Item: " + ItemName, "Rocket Damage Percent Stacking", 60f, "Adjust the percent damage gained per stack. (100 = 100% base damage)");
+            rocketDamage = config.Bind<float>("Item: " + ItemName, "Projectile Damage Percent", 80f, "Adjust the percent damage dealt on the first stack. (100 = 100% base damage)");
+            rocketDamageStacking = config.Bind<float>("Item: " + ItemName, "Stacking Projectile Damage Percent", 40f, "Adjust the percent damage gained per stack. (100 = 100% base damage)");
             exhaustCoefficient = config.Bind<float>("Item: " + ItemName, "Proc Coefficient", .2f, "Adjust the proc coefficient for the item's fired projectiles. For reference, Fireworks' is .2 per missile. (0 is no procs, 1 is normal proc rate)");
             accurateRockets = config.Bind<bool>("Item: " + ItemName, "More Accurate Rockets", false, "Adjust if the rockets should more accurately seek out enemies. Advised if another mod adjusts fireworks to be more accurate.");
             visionsNerf = config.Bind<bool>("Item: " + ItemName, "Visions of Heresy Nerf", false, "Adjust if Visions of Heresy should fire half as many rockets as it normally would with Exhaust.");
@@ -105,7 +105,6 @@ namespace vanillaVoid.Items
                 fireworkController.maxSeekDistance = 10000f;
             }
 
-
             var projectileController = RocketProjectile.GetComponent<ProjectileController>();
             projectileController.ghostPrefab = model;
             projectileController.startSound = "Play_item_void_critGlasses";
@@ -113,6 +112,8 @@ namespace vanillaVoid.Items
             projectileController.procCoefficient = exhaustCoefficient.Value;
             //RocketProjectile.GetComponent<EffectComponent>().soundName = "Play_item_void_critGlasses";
             //RocketProjectile.GetComponent<ProjectileExplosion>();
+
+            projectileController.ghostPrefab.AddComponent<VFXAttributes>().DoNotPool = true;
 
             PrefabAPI.RegisterNetworkPrefab(RocketProjectile);
             //ProjectileAPI.Add(Projectile);
@@ -350,6 +351,42 @@ namespace vanillaVoid.Items
                     localPos = new Vector3(0.05727483f, 0.239799f, 0.04521416f),
                     localAngles = new Vector3(326.0425f, 334.65f, 283.8331f),
                     localScale = new Vector3(0.0045f, 0.0045f, 0.0045f)
+                }
+            });
+            rules.Add("mdlSeeker", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(0.14285F, 0.17762F, -0.21428F),
+                    localAngles = new Vector3(29.44553F, 102.6059F, 4.5236F),
+                    localScale = new Vector3(0.04F, 0.04F, 0.04F)
+                }
+            });
+            rules.Add("mdlChef", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(-0.36731F, -0.14817F, 0.21139F),
+                    localAngles = new Vector3(0F, 0F, 92.25253F),
+                    localScale = new Vector3(0.03F, 0.03F, 0.03F)
+                }
+            });
+            rules.Add("mdlFalseSon", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(-0.03705F, 0.03254F, -0.30368F),
+                    localAngles = new Vector3(23.29488F, 115.029F, 296.4156F),
+                    localScale = new Vector3(0.045F, 0.045F, 0.045F)
                 }
             });
             rules.Add("mdlScav", new RoR2.ItemDisplayRule[]
@@ -691,9 +728,9 @@ namespace vanillaVoid.Items
 
     }
 
-    public class ExhaustItemBehavior : BaseItemBodyBehavior {
+    public class ExtExhaustItemBehavior : BaseItemBodyBehavior {
         [ItemDefAssociation(useOnServer = false, useOnClient = true)]
-        private static ItemDef GetItemDef() { return ItemBase<ExtraterrestrialExhaust>.instance.ItemDef; }
+        private static ItemDef GetItemDef() { return ItemBase<ExtraterrestrialExhaust>.instance?.ItemDef; }
 
         private void OnEnable(){  
             On.RoR2.GenericSkill.DeductStock += ExtExhaustStock;

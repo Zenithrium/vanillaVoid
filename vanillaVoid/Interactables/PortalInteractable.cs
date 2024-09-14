@@ -26,6 +26,10 @@ namespace vanillaVoid.Interactables
 
         public override string InteractableContext => "Tear a hole in reality?";
 
+        public override string InteractableInspect => "Allows survivors to sacrifice a random void item to create a portal to the Void Fields.";
+
+        public override string InteractableInspectTitle => "Shattered Monolith";
+
         public override string InteractableLangToken => "SHATTERED_SHRINE";
 
         public override GameObject InteractableModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("VoidShrine.prefab");
@@ -104,6 +108,17 @@ namespace vanillaVoid.Interactables
             var expReqComp = InteractableBodyModelPrefab.AddComponent<RoR2.ExpansionManagement.ExpansionRequirementComponent>();
             expReqComp.requiredExpansion = vanillaVoidPlugin.sotvDLC;
 
+
+            var inspect = ScriptableObject.CreateInstance<InspectDef>();
+            var info = inspect.Info = new RoR2.UI.InspectInfo();
+
+            info.Visual = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("texShrineIconOutlined");
+            info.DescriptionToken = $"VV_INTERACTABLE_{InteractableLangToken}_INSPECT";
+            info.TitleToken = $"VV_INTERACTABLE_{InteractableLangToken}_TITLE";
+            inspect.Info = info;
+
+            var giip = InteractableBodyModelPrefab.gameObject.AddComponent<GenericInspectInfoProvider>();
+            giip.InspectInfo = inspect;
 
             var purchaseInteraction = InteractableBodyModelPrefab.AddComponent<PurchaseInteraction>();
             purchaseInteraction.displayNameToken = $"VV_INTERACTABLE_{InteractableLangToken}_NAME";
@@ -251,6 +266,20 @@ namespace vanillaVoid.Interactables
             DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.SunderedGrove);
             DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.TitanicPlains);
             DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.WetlandAspect);
+
+            DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.VerdantFalls);
+            DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.ViscousFalls);
+
+            DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.ShatteredAbodes);
+            DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.DisturbedImpact);
+
+            DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.TreebornColony);
+            DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.GoldenDieback);
+
+            DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.ReformedAltar);
+
+            DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.HelminthHatchery);
+
 
             DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.Custom, "FBLScene");
             DirectorAPI.Helpers.AddNewInteractableToStage(MonolithCard, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.Custom, "drybasin");
@@ -493,7 +522,7 @@ namespace vanillaVoid.Interactables
                 {
                     if (NetworkServer.active)
                     {
-                        AttemptSpawnVoidPortal();
+                        AttemptSpawnVoidPortal(body);
                         GameObject effectPrefab = Addressables.LoadAssetAsync<GameObject>("RoR2/Base/Common/VFX/ShrineUseEffect.prefab").WaitForCompletion();
                         EffectManager.SimpleImpactEffect(effectPrefab, this.transform.position, new Vector3(0, 0, 0), true);
 
@@ -510,7 +539,7 @@ namespace vanillaVoid.Interactables
 
             }
             
-            private bool AttemptSpawnVoidPortal()
+            private bool AttemptSpawnVoidPortal(CharacterBody body)
             {
                 //InteractableSpawnCard portalSpawnCard = Addressables.LoadAssetAsync<InteractableSpawnCard>("RoR2/Base/PortalShop/iscShopPortal.asset").WaitForCompletion();
                 string spawnMessageToken = "<color=#DD7AC6>The rift opens...</color>";
@@ -524,10 +553,17 @@ namespace vanillaVoid.Interactables
                 }, Run.instance.stageRng));
                 if (exists && !string.IsNullOrEmpty(spawnMessageToken))
                 {
-                    Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                    //Chat.SendBroadcastChat(new Chat.SimpleChatMessage
+                    //{
+                    //    baseToken = spawnMessageToken
+                    //});
+
+                    Chat.SendBroadcastChat(new Chat.SubjectFormatChatMessage
                     {
+                        //subjectAsCharacterBody = body,
                         baseToken = spawnMessageToken
                     });
+
                 }
                 return exists;
             }

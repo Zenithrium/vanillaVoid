@@ -20,7 +20,7 @@ namespace vanillaVoid.Items
         public ConfigEntry<float> baseRegen;
 
         public ConfigEntry<float> baseRegenPerStack;
-        public override string ItemName => "Well Stocked Stocki";
+        public override string ItemName => "Prepared Stocki"; //Well Stocked Stocki
 
         public override string ItemLangTokenName => "SLUG_ITEM";
 
@@ -258,6 +258,42 @@ namespace vanillaVoid.Items
                 }
             });
             rules.Add("mdlVoidSurvivor", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(0f, 0f, 0f),
+                    localAngles = new Vector3(0f, 0f, 0f),
+                    localScale = new Vector3(1f, 1f, 1f)
+                }
+            });
+            rules.Add("mdlSeeker", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(0f, 0f, 0f),
+                    localAngles = new Vector3(0f, 0f, 0f),
+                    localScale = new Vector3(1f, 1f, 1f)
+                }
+            });
+            rules.Add("mdlChef", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(0f, 0f, 0f),
+                    localAngles = new Vector3(0f, 0f, 0f),
+                    localScale = new Vector3(1f, 1f, 1f)
+                }
+            });
+            rules.Add("mdlFalseSon", new RoR2.ItemDisplayRule[]
             {
                 new RoR2.ItemDisplayRule
                 {
@@ -744,7 +780,8 @@ namespace vanillaVoid.Items
         private void VoidSlugDeductStock(On.RoR2.GenericSkill.orig_DeductStock orig, GenericSkill self, int count)
         {
             orig(self, count);
-            Debug.Log("bean: " + self.skillNameToken + " | " + self.name + " | " + self.GetScriptClassName());
+            //Debug.Log("bean: " + self.skillNameToken + " | " + self.name + " | " + self.GetScriptClassName());
+            //Debug.Log("bean: " + self.skillNameToken + " | " + self.skillName + " | " + self.GetScriptClassName() + " | " + self.GetType());
             if (GetCount(self.characterBody) > 0){
                 CheckStockCounts(self.characterBody);
             }
@@ -753,7 +790,7 @@ namespace vanillaVoid.Items
         private void VoidSlugAlsoDeductStock(On.RoR2.Skills.SkillDef.orig_OnExecute orig, RoR2.Skills.SkillDef self, GenericSkill skill)
         {
             orig(self, skill);
-            Debug.Log("bean2: " + self.skillNameToken + " | " + self.name + " | " + skill.GetScriptClassName() + " | " + skill.name);
+            //Debug.Log("bean2: " + self.skillNameToken + " | " + self.skillName + " | " + skill.GetScriptClassName() + " | " + skill.GetType());
             if (GetCount(skill.characterBody) > 0){
                 CheckStockCounts(skill.characterBody);
             }
@@ -813,7 +850,7 @@ namespace vanillaVoid.Items
 
         private void RebootEnter(On.EntityStates.Railgunner.Backpack.Reboot.orig_OnEnter orig, EntityStates.Railgunner.Backpack.Reboot self)
         {
-            Debug.Log("reboob extra check");
+           // Debug.Log("reboob extra check");
             orig(self);
             if (GetCount(self.characterBody) > 0){
                 CheckStockCounts(self.characterBody);
@@ -822,7 +859,7 @@ namespace vanillaVoid.Items
 
         private void OfflineEnter(On.EntityStates.Railgunner.Backpack.Offline.orig_OnEnter orig, EntityStates.Railgunner.Backpack.Offline self)
         {
-            Debug.Log("Offlibe extra check");
+            //Debug.Log("Offlibe extra check");
             orig(self);
             if (GetCount(self.characterBody) > 0){
                 CheckStockCounts(self.characterBody);
@@ -831,7 +868,7 @@ namespace vanillaVoid.Items
 
         private void AssualterExit2(On.EntityStates.Merc.Assaulter2.orig_OnExit orig, EntityStates.Merc.Assaulter2 self)
         {
-            Debug.Log("aa2");
+            //Debug.Log("aa2");
             orig(self);
             if (GetCount(self.characterBody) > 0)
             {
@@ -841,7 +878,7 @@ namespace vanillaVoid.Items
 
         private void AssualterExit(On.EntityStates.Merc.Assaulter.orig_OnExit orig, EntityStates.Merc.Assaulter self)
         {
-            Debug.Log("aaa");
+            //Debug.Log("aaa");
             orig(self);
             if (GetCount(self.characterBody) > 0)
             {

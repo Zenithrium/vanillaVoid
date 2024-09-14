@@ -296,6 +296,42 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.15f, 0.15f, 0.15f)
                 }
             });
+            rules.Add("mdlSeeker", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(-0.01045F, 0.23457F, -0.19368F),
+                    localAngles = new Vector3(305.1918F, 73.05267F, 23.90182F),
+                    localScale = new Vector3(0.11F, 0.11F, 0.11F)
+                }
+            });
+            rules.Add("mdlChef", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(0.28857F, -0.36503F, -0.00765F),
+                    localAngles = new Vector3(79.21353F, 186.0065F, 359.0951F),
+                    localScale = new Vector3(0.15F, 0.15F, 0.15F)
+                }
+            });
+            rules.Add("mdlFalseSon", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(0.4311F, 0.40855F, -0.37673F),
+                    localAngles = new Vector3(331.1584F, 155.745F, 335.6807F),
+                    localScale = new Vector3(0.1F, 0.1F, 0.1F)
+                }
+            });
             rules.Add("mdlScav", new RoR2.ItemDisplayRule[]
             {
                 new RoR2.ItemDisplayRule
