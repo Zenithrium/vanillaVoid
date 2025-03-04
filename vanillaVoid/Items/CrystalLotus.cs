@@ -46,7 +46,7 @@ namespace vanillaVoid.Items
 
         public override ItemTier Tier => ItemTier.VoidTier2;
 
-        public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlFinalLotusPickup.prefab");
+        public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlFinalLotusPickupReal.prefab");
 
         public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("lotusIcon512.png");
 
@@ -76,8 +76,6 @@ namespace vanillaVoid.Items
         static Vector3 teleporterPos;
         GameObject tempLotusObject;
         bool lotusSpawned = false;
-        bool isPrimoridal = false;
-        string teleporterName = "";
         //public float slowCoeffValue = 1f;
         //bool detonationTime = false;
         public Material lotusMaterial;
@@ -194,6 +192,13 @@ namespace vanillaVoid.Items
 
             var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
             itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);
+
+            var mpp = ItemModel.AddComponent<ModelPanelParameters>();
+            mpp.focusPointTransform = ItemModel.transform.Find("Target");
+            mpp.cameraPositionTransform = ItemModel.transform.Find("Source");
+            mpp.minDistance = 1f;
+            mpp.maxDistance = 3f;
+            mpp.modelRotation = Quaternion.Euler(new Vector3(0, 0, 0));
 
             ItemDisplayRuleDict rules = new ItemDisplayRuleDict();
             rules.Add("mdlCommandoDualies", new RoR2.ItemDisplayRule[]{
@@ -727,6 +732,43 @@ namespace vanillaVoid.Items
                     localPos = new Vector3(0.23273F, 0.16713F, -0.32676F),
                     localAngles = new Vector3(23.24931F, 60.94613F, 339.5645F),
                     localScale = new Vector3(0.1F, 0.1F, 0.1F)
+                }
+            });
+
+            rules.Add("RA2ChronoBody", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "backpack_base",
+                    localPos = new Vector3(-0.32942F, -0.13828F, -0.38581F),
+                    localAngles = new Vector3(37.95247F, 210.9446F, 346.3948F),
+                    localScale = new Vector3(0.2F, 0.2F, 0.2F)
+                }
+            });
+            rules.Add("RobRavagerBody", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(0.1726241f, 0.2653433f, 0.212837f),
+                    localAngles = new Vector3(6.086947f, 8.317881f, 2.610492f),
+                    localScale = new Vector3(.2f, .2f, .2f)
+                }
+            });
+            rules.Add("mdlMorris", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Hat",
+                    localPos = new Vector3(0.07035F, 0.16124F, -0.14492F),
+                    localAngles = new Vector3(325.7638F, 9.17666F, 336.5881F),
+                    localScale = new Vector3(0.125F, 0.125F, 0.125F)
                 }
             });
             return rules;

@@ -88,7 +88,12 @@ namespace vanillaVoid.Items
             var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
             itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);
 
-
+            var mpp = ItemModel.AddComponent<ModelPanelParameters>();
+            mpp.focusPointTransform = ItemModel.transform.Find("Target");
+            mpp.cameraPositionTransform = ItemModel.transform.Find("Source");
+            mpp.minDistance = .25f;
+            mpp.maxDistance = 1f;
+            mpp.modelRotation = Quaternion.Euler(new Vector3(0, 0, 0));
 
             ItemDisplayRuleDict rules = new ItemDisplayRuleDict();
             rules.Add("mdlCommandoDualies", new RoR2.ItemDisplayRule[]{
@@ -720,6 +725,72 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.05F, 0.05F, 0.05F)
                 }
             });
+
+
+            rules.Add("RA2ChronoBody", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "UpperArmR",
+                    localPos = new Vector3(0.02499F, -0.02444F, 0.24721F),
+                    localAngles = new Vector3(331.6572F, 241.5781F, 289.8795F),
+                    localScale = new Vector3(0.1F, 0.1F, 0.071F)
+                },
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "UpperArmR",
+                    localPos = new Vector3(-0.03707F, -0.02372F, 0.2144F),
+                    localAngles = new Vector3(331.6572F, 241.5781F, 271.2023F),
+                    localScale = new Vector3(0.1F, 0.1F, 0.071F)
+                }
+            });
+            rules.Add("RobRavagerBody", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "UpperArmL",
+                    localPos = new Vector3(0.1067F, 0.08422F, 0.03253F),
+                    localAngles = new Vector3(32.2339F, 187.5955F, 132.3404F),
+                    localScale = new Vector3(0.075F, 0.075F, 0.075F)
+                },
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "UpperArmL",
+                    localPos = new Vector3(0.11591F, 0.10383F, 0.0081F),
+                    localAngles = new Vector3(0.20942F, 177.2035F, 112.1289F),
+                    localScale = new Vector3(0.075F, 0.075F, 0.075F)
+                },
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "UpperArmL",
+                    localPos = new Vector3(0.13463F, 0.14561F, -0.02595F),
+                    localAngles = new Vector3(359.8448F, 187.5283F, 92.01933F),
+                    localScale = new Vector3(0.075F, 0.075F, 0.075F)
+                }
+            });
+            rules.Add("mdlMorris", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Hat",
+                    localPos = new Vector3(0.1638F, 0.06368F, -0.14623F),
+                    localAngles = new Vector3(314.6373F, 175.7672F, 13.29679F),
+                    localScale = new Vector3(0.07F, 0.07F, 0.07F)
+                }
+            });
+
             return rules;
         }
 

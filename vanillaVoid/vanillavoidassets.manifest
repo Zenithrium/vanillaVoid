@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 3824443229
+CRC: 2881324743
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 6f0faa6344c3a8838c5b1638558ee3bd
+    Hash: 8263d50c56d075673c01e3471e9defa1
   TypeTreeHash:
     serializedVersion: 2
     Hash: 7205fed4546c9a2e510a871e25a03472
@@ -227,6 +227,7 @@ Assets:
 - Assets/Models/Prefabs/Item/ClockworkWatch/MessItem/metallictexture.mat
 - Assets/Models/Prefabs/Item/Core/coreGlassRedInner.mat
 - Assets/Models/Prefabs/Item/LotusItem/mdlLotusWorldObject2.prefab
+- Assets/Models/Prefabs/Item/Core/mdlCorePickupAnimPickup.prefab
 - Assets/Models/Prefabs/Item/RoundsItem/vfx/texHuntressArrowBigMaskTestRealAgain.png
 - Assets/Models/Prefabs/Item/ExtVent/extBubblesMat.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/MessItem/crabtexture.mat
@@ -248,6 +249,7 @@ Assets:
 - Assets/Models/Prefabs/Item/RoundsItem/vfx/texAlphaGradient3Mask.png
 - Assets/Models/Prefabs/Item/WhorlItem/whorlMeteorShellMat.mat
 - Assets/Models/Prefabs/Item/WhorlItem/WhorlShellVFX.prefab
+- Assets/Models/Prefabs/Item/BladeItem/mdlBladePickupFinal.prefab
 - Assets/Models/Prefabs/Item/VialsItem/emptyVialsIcon512.png
 - Assets/Models/Prefabs/Item/Core/mdlCorePickupAnim.prefab
 - Assets/raw/microbe/microbeMat.mat
@@ -290,6 +292,7 @@ Assets:
 - Assets/Models/Prefabs/Item/WhorlItem/whorlIcon512.png
 - Assets/Models/Prefabs/Item/Core/gloopdiffuse.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texParticleDust1Mask.png
+- Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryPickupFinal.prefab
 - Assets/Models/Prefabs/Item/OrreryItem/orreryDamageNew.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/MessItem/armtexture.mat
 - Assets/Models/Prefabs/Item/WhorlItem/mdlWhorlPickup.prefab
@@ -304,6 +307,7 @@ Assets:
 - Assets/Models/Prefabs/Item/WhorlItem/mdlWhorlDisplay.prefab
 - Assets/raw/quill/quillsolo.fbx
 - Assets/Models/Prefabs/Item/VialsItem/vialsIcon512.png
+- Assets/Models/Prefabs/Item/LotusItem/mdlFinalLotusPickupReal.prefab
 - Assets/Models/Prefabs/Item/AbyssalAdze/old/HandleLowerTexture.mat
 - Assets/Models/Prefabs/Item/Core/old/mdlCorePickup.prefab
 - Assets/Models/Prefabs/Item/WhorlItem/whorlMeteorMat.mat

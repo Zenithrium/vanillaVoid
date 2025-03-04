@@ -153,6 +153,13 @@ namespace vanillaVoid.Items
             var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
             itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);
 
+            var mpp = ItemModel.AddComponent<ModelPanelParameters>();
+            mpp.focusPointTransform = ItemModel.transform.Find("Target");
+            mpp.cameraPositionTransform = ItemModel.transform.Find("Source");
+            mpp.minDistance = 6f;
+            mpp.maxDistance = 12f;
+            mpp.modelRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+
             ItemDisplayRuleDict rules = new ItemDisplayRuleDict();
             rules.Add("mdlCommandoDualies", new RoR2.ItemDisplayRule[]{
                 new RoR2.ItemDisplayRule
@@ -713,6 +720,43 @@ namespace vanillaVoid.Items
                     localPos = new Vector3(0.12312F, 0.60723F, -0.31391F),
                     localAngles = new Vector3(4.18845F, 0F, 0F),
                     localScale = new Vector3(0.0125F, 0.0125F, 0.0125F)
+                }
+            });
+
+            rules.Add("RA2ChronoBody", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "ThighL",
+                    localPos = new Vector3(-0.12354F, 0.09663F, -0.16216F),
+                    localAngles = new Vector3(18.85852F, 355.1425F, 196.0733F),
+                    localScale = new Vector3(0.025F, 0.025F, 0.025F)
+                }
+            });
+            rules.Add("RobRavagerBody", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(0.01105F, 0.43418F, -0.22538F),
+                    localAngles = new Vector3(359.8066F, 357.293F, 5.71713F),
+                    localScale = new Vector3(0.03F, 0.03F, 0.03F)
+                }
+            });
+            rules.Add("mdlMorris", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "CalfL",
+                    localPos = new Vector3(0.04001F, 0.37044F, -0.19773F),
+                    localAngles = new Vector3(350.7635F, 156.4062F, 184.0101F),
+                    localScale = new Vector3(0.025F, 0.025F, 0.025F)
                 }
             });
             return rules;

@@ -35,7 +35,7 @@ namespace vanillaVoid.Items
 
         public override ItemTier Tier => ItemTier.VoidTier2;
 
-        public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlCorePickupAnim.prefab");
+        public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlCorePickupAnimPickup.prefab");
 
         public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("coreIcon512.png");
 
@@ -166,7 +166,12 @@ namespace vanillaVoid.Items
             var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
             itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);
 
-
+            var mpp = ItemModel.AddComponent<ModelPanelParameters>();
+            mpp.focusPointTransform = ItemModel.transform.Find("Target");
+            mpp.cameraPositionTransform = ItemModel.transform.Find("Source");
+            mpp.minDistance = 4f;
+            mpp.maxDistance = 8f;
+            mpp.modelRotation = Quaternion.Euler(new Vector3(0, 0, 0));
 
             ItemDisplayRuleDict rules = new ItemDisplayRuleDict();
             rules.Add("mdlCommandoDualies", new RoR2.ItemDisplayRule[]{
@@ -174,10 +179,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(.1f, .1f, .1f)
+                    childName = "Chest",
+                    localPos = new Vector3(-0.00118F, 0.04348F, 0.18291F),
+                    localAngles = new Vector3(0F, 0F, 269.2369F),
+                    localScale = new Vector3(0.05F, 0.05F, 0.05F)
                 }
             });
             rules.Add("mdlHuntress", new RoR2.ItemDisplayRule[]
@@ -186,10 +191,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "CalfR",
+                    localPos = new Vector3(0.12266F, 0.26412F, 0.01867F),
+                    localAngles = new Vector3(356.7391F, 359.4713F, 190.1265F),
+                    localScale = new Vector3(0.0475F, 0.0475F, 0.0475F)
                 }
             });
             rules.Add("mdlBandit2", new RoR2.ItemDisplayRule[]
@@ -198,10 +203,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "ThighR",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "MainWeapon",
+                    localPos = new Vector3(-0.1446F, 0.54198F, 0.00309F),
+                    localAngles = new Vector3(0F, 0F, 0F),
+                    localScale = new Vector3(0.0325F, 0.0325F, 0.0325F)
                 }
             });
             rules.Add("mdlToolbot", new RoR2.ItemDisplayRule[]
@@ -210,10 +215,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "Hip",
+                    localPos = new Vector3(1.19634F, -0.13362F, 0.00001F),
+                    localAngles = new Vector3(270F, 0.00001F, 0F),
+                    localScale = new Vector3(0.51F, 0.51F, 0.51F)
                 }
             });
             rules.Add("mdlEngi", new RoR2.ItemDisplayRule[]
@@ -222,10 +227,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "CannonHeadL",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "Chest",
+                    localPos = new Vector3(0.00053F, 0.11487F, -0.37182F),
+                    localAngles = new Vector3(0F, 0F, 269.7339F),
+                    localScale = new Vector3(0.065F, 0.065F, 0.065F)
                 }
             });
             rules.Add("mdlEngiTurret", new RoR2.ItemDisplayRule[]
@@ -235,9 +240,9 @@ namespace vanillaVoid.Items
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "Head",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    localPos = new Vector3(0.00023F, 0.08593F, -0.45226F),
+                    localAngles = new Vector3(88.47248F, 185.7477F, 95.74977F),
+                    localScale = new Vector3(0.225F, 0.225F, 0.225F)
             
                     //localPos = new Vector3(0.3982559f, 0.5157748f, 1.197929f), //std turret
                     //localAngles = new Vector3(2.650187f, 268.003f, 247.601f),
@@ -250,10 +255,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "ThighL",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "Chest",
+                    localPos = new Vector3(-0.00165F, 0.08679F, -0.35124F),
+                    localAngles = new Vector3(9.53182F, 0F, 0F),
+                    localScale = new Vector3(0.07F, 0.07F, 0.07F)
                 }
             
             });
@@ -263,10 +268,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "ThighL",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "Pelvis",
+                    localPos = new Vector3(0.00128F, 0.02637F, 0.15752F),
+                    localAngles = new Vector3(44.84497F, 359.7617F, 89.66206F),
+                    localScale = new Vector3(0.07F, 0.07F, 0.07F)
                 }
             });
             rules.Add("mdlTreebot", new RoR2.ItemDisplayRule[]
@@ -275,10 +280,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "PlatformBase",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "CalfBackR",
+                    localPos = new Vector3(-0.00005F, 0.73238F, -0.29824F),
+                    localAngles = new Vector3(0F, 17.8037F, 0F),
+                    localScale = new Vector3(0.15F, 0.15F, 0.15F)
                 }
             });
             rules.Add("mdlLoader", new RoR2.ItemDisplayRule[]
@@ -288,9 +293,9 @@ namespace vanillaVoid.Items
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
                     childName = "MechBase",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    localPos = new Vector3(-0.00032F, -0.0516F, 0.44887F),
+                    localAngles = new Vector3(334.9733F, 179.8491F, 270.3567F),
+                    localScale = new Vector3(0.065F, 0.065F, 0.065F)
                 }
             });
             rules.Add("mdlCroco", new RoR2.ItemDisplayRule[]
@@ -299,10 +304,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Stomach",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "Hip",
+                    localPos = new Vector3(0F, 0.35496F, -1.62809F),
+                    localAngles = new Vector3(10.25407F, 358.7614F, 89.98595F),
+                    localScale = new Vector3(0.55F, 0.55F, 0.55F)
                 }
             });
             rules.Add("mdlCaptain", new RoR2.ItemDisplayRule[]
@@ -311,10 +316,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Stomach",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "CalfL",
+                    localPos = new Vector3(-0.12273F, 0.25494F, 0.07167F),
+                    localAngles = new Vector3(3.71931F, 85.17051F, 169.2675F),
+                    localScale = new Vector3(0.07F, 0.07F, 0.07F)
                 }
             });
             rules.Add("mdlRailGunner", new RoR2.ItemDisplayRule[]
@@ -323,10 +328,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "Backpack",
+                    localPos = new Vector3(-0.30914F, -0.19114F, -0.09036F),
+                    localAngles = new Vector3(0F, 0F, 0F),
+                    localScale = new Vector3(0.075F, 0.075F, 0.075F)
                 }
             });
             rules.Add("mdlVoidSurvivor", new RoR2.ItemDisplayRule[]
@@ -335,10 +340,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "CannonEnd",
+                    localPos = new Vector3(0.08971F, -0.02901F, 0.00486F),
+                    localAngles = new Vector3(0.45401F, 0.02018F, 2.54483F),
+                    localScale = new Vector3(0.075F, 0.075F, 0.075F)
                 }
             });
             rules.Add("mdlSeeker", new RoR2.ItemDisplayRule[]
@@ -347,10 +352,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "Chest",
+                    localPos = new Vector3(-0.17851F, -0.07656F, -0.01408F),
+                    localAngles = new Vector3(318.7987F, 255.6058F, 291.2871F),
+                    localScale = new Vector3(0.055F, 0.055F, 0.055F)
                 }
             });
             rules.Add("mdlChef", new RoR2.ItemDisplayRule[]
@@ -359,10 +364,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "Chest",
+                    localPos = new Vector3(0.37335F, -0.16081F, 0.13103F),
+                    localAngles = new Vector3(52.63165F, 181.2988F, 91.45337F),
+                    localScale = new Vector3(0.0625F, 0.0625F, 0.0625F)
                 }
             });
             rules.Add("mdlFalseSon", new RoR2.ItemDisplayRule[]
@@ -371,10 +376,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "Chest",
+                    localPos = new Vector3(0.41929F, 0.17111F, 0.1431F),
+                    localAngles = new Vector3(12.21397F, 1.90596F, 318.4379F),
+                    localScale = new Vector3(0.06F, 0.06F, 0.06F)
                 }
             });
             rules.Add("mdlScav", new RoR2.ItemDisplayRule[]
@@ -383,10 +388,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "Weapon",
+                    localPos = new Vector3(-3.38261F, 13.41271F, 3.48508F),
+                    localAngles = new Vector3(359.5338F, 51.73492F, 359.3961F),
+                    localScale = new Vector3(1.5F, 1.5F, 1.5F)
                 }
             });
             //
@@ -397,10 +402,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName =  "Shield",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "ThighR",
+                    localPos = new Vector3(-0.1359F, 0.24248F, 0.21037F),
+                    localAngles = new Vector3(4.67129F, 0F, 180F),
+                    localScale = new Vector3(0.05F, 0.05F, 0.05F)
                 }
             });
             rules.Add("NemesisEnforcerBody", new RoR2.ItemDisplayRule[]
@@ -409,10 +414,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "Hammer",
+                    localPos = new Vector3(-0.00018F, -0.05274F, -0.00007F),
+                    localAngles = new Vector3(0.84823F, 180F, 180F),
+                    localScale = new Vector3(0.0009F, 0.0009F, 0.0009F)
                 }
             });
             rules.Add("mdlPaladin", new RoR2.ItemDisplayRule[]
@@ -421,10 +426,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "CalfL",
+                    localPos = new Vector3(-0.24608F, 0.27776F, 0.04725F),
+                    localAngles = new Vector3(357.6129F, 217.238F, 186.1909F),
+                    localScale = new Vector3(0.1F, 0.1F, 0.1F)
                 }
             });
             //rules.Add("mdlChef", new RoR2.ItemDisplayRule[]
@@ -445,10 +450,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "PickL",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "Chest",
+                    localPos = new Vector3(0F, 0.00255F, 0.00235F),
+                    localAngles = new Vector3(0F, 0F, 268.9755F),
+                    localScale = new Vector3(0.0005F, 0.0005F, 0.0005F)
                 }
             });
             rules.Add("mdlSniper", new RoR2.ItemDisplayRule[]
@@ -457,10 +462,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "CalfL",
+                    localPos = new Vector3(0.12276F, 0.10388F, 0F),
+                    localAngles = new Vector3(359.0975F, 180F, 180F),
+                    localScale = new Vector3(0.05F, 0.05F, 0.05F)
                 }
             });
             rules.Add("DancerBody", new RoR2.ItemDisplayRule[]
@@ -469,10 +474,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "LowerArmL",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "CalfR",
+                    localPos = new Vector3(-0.16596F, 0.25509F, 0.00001F),
+                    localAngles = new Vector3(0.01331F, 180F, 180F),
+                    localScale = new Vector3(0.07F, 0.07F, 0.07F)
                 }
             });
             rules.Add("JavangleMystBody", new RoR2.ItemDisplayRule[]
@@ -481,49 +486,49 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "LeftForearm",
-                    localPos = new Vector3(0f, 0f, 0f),
-                    localAngles = new Vector3(0f, 0f, 0f),
-                    localScale = new Vector3(1f, 1f, 1f)
+                    childName = "RightThigh",
+                    localPos = new Vector3(0.00001F, 0.15492F, 0.12487F),
+                    localAngles = new Vector3(0F, 0F, 0F),
+                    localScale = new Vector3(0.035F, 0.035F, 0.035F)
                 }
             });
-            rules.Add("ExecutionerBody", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
-                {
-                    ruleType = ItemDisplayRuleType.ParentedPrefab,
-                    followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
-                }
-            });
-            rules.Add("NemmandoBody", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
-                {
-                    ruleType = ItemDisplayRuleType.ParentedPrefab,
-                    followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
-                }
-            });
+            //rules.Add("JavangleHouse", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "LeftForearm",
+            //        localPos = new Vector3(0f, 0f, 0f),
+            //        localAngles = new Vector3(0f, 0f, 0f),
+            //        localScale = new Vector3(1f, 1f, 1f)
+            //    }
+            //});
             rules.Add("mdlDeputy", new RoR2.ItemDisplayRule[]
             {
                 new RoR2.ItemDisplayRule
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
+                    childName = "Stomach",
+                    localPos = new Vector3(-0.04137F, 0.13049F, -0.0893F),
+                    localAngles = new Vector3(335.8853F, 187.695F, 316.1041F),
+                    localScale = new Vector3(0.045F, 0.045F, 0.045F)
                 }
             });
             rules.Add("mdlPathfinder", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(-0.07563F, 0.21529F, -0.25773F),
+                    localAngles = new Vector3(2.56352F, 357.1147F, 311.5867F),
+                    localScale = new Vector3(0.055F, 0.055F, 0.055F)
+                }
+            });
+            rules.Add("mdlMorris", new RoR2.ItemDisplayRule[]
             {
                 new RoR2.ItemDisplayRule
                 {
@@ -541,10 +546,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
+                    childName = "Chest",
+                    localPos = new Vector3(-0.00001F, -0.28992F, -1.38041F),
+                    localAngles = new Vector3(0F, 0F, 90F),
+                    localScale = new Vector3(0.275F, 0.275F, 0.275F)
                 }
             });
             rules.Add("mdlRocket", new RoR2.ItemDisplayRule[]
@@ -553,10 +558,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
+                    childName = "Chest",
+                    localPos = new Vector3(-0.1509F, -0.21049F, 0.30265F),
+                    localAngles = new Vector3(358.929F, 0F, 0F),
+                    localScale = new Vector3(0.06F, 0.06F, 0.06F)
                 }
             });
             //rules.Add("mdlDaredevil", new RoR2.ItemDisplayRule[]
@@ -571,18 +576,18 @@ namespace vanillaVoid.Items
             //        localScale = new Vector3(1, 1, 1)
             //    }
             //});
-            rules.Add("mdlRMOR", new RoR2.ItemDisplayRule[]
-            {
-                new RoR2.ItemDisplayRule
-                {
-                    ruleType = ItemDisplayRuleType.ParentedPrefab,
-                    followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
-                }
-            });
+            //rules.Add("mdlRMOR", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "Pelvis",
+            //        localPos = new Vector3(0, 0, 0),
+            //        localAngles = new Vector3(0, 0, 0),
+            //        localScale = new Vector3(1, 1, 1)
+            //    }
+            //});
             //rules.Add("Spearman", new RoR2.ItemDisplayRule[]
             //{
             //    new RoR2.ItemDisplayRule
@@ -601,10 +606,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "arm_bone2.L",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
+                    childName = "leg_bone2.L",
+                    localPos = new Vector3(-0.32678F, 0.17556F, 0.04668F),
+                    localAngles = new Vector3(0.43776F, 27.16183F, 172.7489F),
+                    localScale = new Vector3(0.09F, 0.09F, 0.09F)
                 }
             });
             rules.Add("mdlExecutioner2", new RoR2.ItemDisplayRule[]
@@ -613,10 +618,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
+                    childName = "Gun",
+                    localPos = new Vector3(0.26972F, 0.20634F, 0.00223F),
+                    localAngles = new Vector3(1.66128F, 358.5773F, 319.4146F),
+                    localScale = new Vector3(0.015F, 0.015F, 0.015F)
                 }
             });
             rules.Add("mdlNemCommando", new RoR2.ItemDisplayRule[]
@@ -625,10 +630,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
+                    childName = "Chest",
+                    localPos = new Vector3(0.01177F, -0.14901F, -1.0662F),
+                    localAngles = new Vector3(0F, 0F, 270F),
+                    localScale = new Vector3(0.25F, 0.25F, 0.25F)
                 }
             });
             rules.Add("mdlNemMerc", new RoR2.ItemDisplayRule[]
@@ -637,10 +642,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
+                    childName = "Chest",
+                    localPos = new Vector3(0.11027F, 0.01322F, -0.27688F),
+                    localAngles = new Vector3(0F, 0F, 343.842F),
+                    localScale = new Vector3(0.065F, 0.065F, 0.065F)
                 }
             });
             rules.Add("mdlChirr", new RoR2.ItemDisplayRule[]
@@ -649,10 +654,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Chest",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
+                    childName = "Pelvis",
+                    localPos = new Vector3(0.29325F, 0.18803F, 0.00011F),
+                    localAngles = new Vector3(12.3589F, 0F, 3.86741F),
+                    localScale = new Vector3(0.1125F, 0.1125F, 0.1125F)
                 }
             });
             rules.Add("RobDriverBody", new RoR2.ItemDisplayRule[]
@@ -661,10 +666,22 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
+                    childName = "Chest",
+                    localPos = new Vector3(-0.00118F, 0.04348F, 0.18291F),
+                    localAngles = new Vector3(0F, 0F, 269.2369F),
+                    localScale = new Vector3(0.05F, 0.05F, 0.05F)
+                }
+            });
+            rules.Add("RobRavagerBody", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Chest",
+                    localPos = new Vector3(-0.00118F, 0.04348F, 0.18291F),
+                    localAngles = new Vector3(0F, 0F, 269.2369F),
+                    localScale = new Vector3(0.07F, 0.07F, 0.07F)
                 }
             });
             rules.Add("mdlTeslaTrooper", new RoR2.ItemDisplayRule[]
@@ -673,10 +690,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
+                    childName = "ThighL",
+                    localPos = new Vector3(-0.10288F, 0.26028F, 0.09561F),
+                    localAngles = new Vector3(334.7432F, 182.6401F, 206.0909F),
+                    localScale = new Vector3(0.05F, 0.05F, 0.05F)
                 }
             });
             rules.Add("mdlDesolator", new RoR2.ItemDisplayRule[]
@@ -685,10 +702,22 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
+                    childName = "ThighL",
+                    localPos = new Vector3(-0.20642F, 0.322F, 0.07124F),
+                    localAngles = new Vector3(323.9191F, 181.3133F, 188.4952F),
+                    localScale = new Vector3(0.05F, 0.05F, 0.05F)
+                }
+            });
+            rules.Add("RA2ChronoBody", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "CalfR",
+                    localPos = new Vector3(0.0069F, 0.22536F, -0.22845F),
+                    localAngles = new Vector3(2.5693F, 359.2332F, 163.3763F),
+                    localScale = new Vector3(0.09F, 0.09F, 0.09F)
                 }
             });
             rules.Add("mdlArsonist", new RoR2.ItemDisplayRule[]
@@ -697,12 +726,48 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
+                    childName = "Chest",
+                    localPos = new Vector3(-0.01147F, 0.20373F, -0.52839F),
+                    localAngles = new Vector3(4.71942F, 0F, 0F),
+                    localScale = new Vector3(0.08F, 0.08F, 0.08F)
                 }
             });
+            //rules.Add("BastianBody", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "Pelvis",
+            //        localPos = new Vector3(0, 0, 0),
+            //        localAngles = new Vector3(0, 0, 0),
+            //        localScale = new Vector3(1, 1, 1)
+            //    }
+            //});
+            //rules.Add("mdlAmp", new RoR2.ItemDisplayRule[]
+            //{           
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "Pelvis",
+            //        localPos = new Vector3(0, 0, 0),
+            //        localAngles = new Vector3(0, 0, 0),
+            //        localScale = new Vector3(1, 1, 1)
+            //    }
+            //});
+            //rules.Add("mdlNemAmp", new RoR2.ItemDisplayRule[]
+            //{
+            //    new RoR2.ItemDisplayRule
+            //    {
+            //        ruleType = ItemDisplayRuleType.ParentedPrefab,
+            //        followerPrefab = ItemBodyModelPrefab,
+            //        childName = "Pelvis",
+            //        localPos = new Vector3(0, 0, 0),
+            //        localAngles = new Vector3(0, 0, 0),
+            //        localScale = new Vector3(1, 1, 1)
+            //    }
+            //});
             return rules;
         }
 
@@ -715,21 +780,6 @@ namespace vanillaVoid.Items
 
             On.EntityStates.FrozenState.OnEnter += CheckFrozenState;
             On.EntityStates.FrozenState.OnExit += RemoveFrozenState;
-
-            On.RoR2.Skills.SkillDef.OnExecute += Buh;
-
-            //what remains:
-
-            //0 speed affects (test this?)
-            //freeze
-        }
-
-       
-
-        private void Buh(On.RoR2.Skills.SkillDef.orig_OnExecute orig, RoR2.Skills.SkillDef self, GenericSkill skillSlot)
-        {
-            orig(self, skillSlot);
-            Debug.Log("Skill fired " + self.skillNameToken);
         }
 
         private void CheckFrozenState(On.EntityStates.FrozenState.orig_OnEnter orig, EntityStates.FrozenState self)
@@ -744,7 +794,7 @@ namespace vanillaVoid.Items
                 
                 if (mult > 1 && !self.characterBody.HasBuff(drownBuff))
                 {
-                    Debug.Log("applying DOT from CheckFrozenState");
+                    //Debug.Log("applying DOT from CheckFrozenState");
                     var dotInfo = new InflictDotInfo
                     {
                         attackerObject = comp.recentPlayer.gameObject,
@@ -755,9 +805,20 @@ namespace vanillaVoid.Items
                     };
                     DotController.InflictDot(ref dotInfo);
                 }
-                else
+                else if(!(mult > 1) && self.characterBody.HasBuff(drownBuff))
                 {
-                    Debug.Log("Should remove dot");
+                    var dotCtrl = DotController.FindDotController(self.gameObject);
+                    if (dotCtrl)
+                    {
+                        for (int i = 0; i < dotCtrl.dotStackList.Count; ++i)
+                        {
+                            if (dotCtrl.dotStackList[i].dotIndex == drownDotIndex)
+                            {
+                                dotCtrl.RemoveDotStackAtServer(i);
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         
@@ -774,7 +835,7 @@ namespace vanillaVoid.Items
 
                 if (mult > 1 && self.characterBody.HasBuff(drownBuff))
                 {
-                    Debug.Log("removing DOT from CheckFrozenState");
+                    //Debug.Log("removing DOT from CheckFrozenState");
                     var dotCtrl = DotController.FindDotController(self.gameObject);
                     if (dotCtrl)
                     {
@@ -790,7 +851,7 @@ namespace vanillaVoid.Items
                 }
                 else
                 {
-                    Debug.Log("Should keep dot");
+                    //Debug.Log("Should keep dot");
                 }
             }
         }
@@ -802,11 +863,11 @@ namespace vanillaVoid.Items
                 float mult;
                 var comp = self.body.gameObject.GetComponent<CorrosiveCounter>();
                 if (comp) {
-                    Debug.Log("comp.isFrozen: " + comp.isFrozen);
+                    //Debug.Log("comp.isFrozen: " + comp.isFrozen);
                     mult = comp.slowAmount + (comp.isFrozen ? 1.5f : (comp.isStopped ? 1 : 0)) + (self.body.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0); //shoutout to rex weaken being the only one done differently
                     
                     if (mult > 1){
-                        Debug.Log("update damage");
+                        //Debug.Log("update damage");
                         //self.RemoveDotStackAtServer()
                         var cb = comp.recentPlayer;
                         var count = cb.inventory.GetItemCount(ItemDef);
@@ -816,7 +877,7 @@ namespace vanillaVoid.Items
                     }
                     else
                     {
-                        Debug.Log("Removing DOT from TakeDamage");
+                        //Debug.Log("Removing DOT from TakeDamage");
                         if (self.body.HasBuff(drownBuff))
                         {
                             var dotCtrl = DotController.FindDotController(self.gameObject);
@@ -872,12 +933,12 @@ namespace vanillaVoid.Items
                     }
 
                     token.isFrozen = self.healthComponent.isInFrozenState;
-                    Debug.Log("RecalcStats : slowamount:" + token.slowAmount + " | " + token.isStopped + " | " + token.isFrozen);
+                    //Debug.Log("RecalcStats : slowamount:" + token.slowAmount + " | " + token.isStopped + " | " + token.isFrozen);
 
                     if (token.recentPlayer && token.recentPlayer.inventory.GetItemCount(ItemDef) > 0){
                         if (!self.HasBuff(drownBuff)){
                             if(token.slowAmount > 1 || token.isFrozen || token.isStopped){
-                                Debug.Log("applying DOT from stack gain");
+                                //Debug.Log("applying DOT from stack gain");
                                 var dotInfo = new InflictDotInfo {
                                     attackerObject = token.recentPlayer.gameObject,
                                     victimObject = self.gameObject,
@@ -916,13 +977,12 @@ namespace vanillaVoid.Items
 
                 if(attackerBody && attackerBody.inventory){
                     var stackCount = GetCount(attackerBody);
-                    Debug.Log("exists");
                     if(stackCount > 0){
                         var comp = self.body.gameObject.GetComponent<CorrosiveCounter>();
                         if (comp)
                         {
                             comp.isFrozen = self.isInFrozenState;
-                            Debug.Log("TakeDamage : is slowamount > 1?: " + (comp.slowAmount > 1) + " | is new count greater than old count?: " + (GetCount(comp.recentPlayer) < GetCount(attackerBody)) + " | stopped: " + comp.isStopped + " | slowamnt: " + comp.slowAmount + " | frozen: " + comp.isFrozen);
+                            //Debug.Log("TakeDamage : is slowamount > 1?: " + (comp.slowAmount > 1) + " | is new count greater than old count?: " + (GetCount(comp.recentPlayer) < GetCount(attackerBody)) + " | stopped: " + comp.isStopped + " | slowamnt: " + comp.slowAmount + " | frozen: " + comp.isFrozen);
                             comp.recentPlayer = attackerBody;
                         }
                         if (comp && (comp.slowAmount > 1 || GetCount(comp.recentPlayer) < GetCount(attackerBody) || comp.isStopped)){
@@ -947,7 +1007,6 @@ namespace vanillaVoid.Items
 
         public CharacterBody recentPlayer;
         public CharacterBody currentPlayer;
-
     }
 
     public class CorrosiveToken : MonoBehaviour

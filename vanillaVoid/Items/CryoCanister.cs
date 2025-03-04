@@ -145,15 +145,15 @@ namespace vanillaVoid.Items
 
         public override void CreateConfig(ConfigFile config)
         {
-            baseDamageAOE = config.Bind<float>("Item: " + ItemName, "Base Damage Percent", .15f, "Adjust the percent base damage the AOE does. (1 = 100% base damage)");
-            stackingDamageAOE = config.Bind<float>("Item: " + ItemName, "Base Damage Percent Stacking", .15f, "Adjust the percent base damage the AOE gains per stack. (1 = 100% base damage)");
-            aoeRangeBase = config.Bind<float>("Item: " + ItemName, "Range of AOE", 10f, "Adjust the range of the slow AOE on the first stack. (1 = 1m range)");
-            aoeRangeStacking = config.Bind<float>("Item: " + ItemName, "Range Increase per Stack", 2.5f, "Adjust the range the slow AOE gains per stack. (1 = 1m range)");
+            baseDamageAOE = config.Bind<float>("Item: " + ItemName, "Base Damage", .2f, "Adjust the percent base damage the AOE does. (1 = 100% base damage)");
+            stackingDamageAOE = config.Bind<float>("Item: " + ItemName, "Base Damage Increase per Stack", .2f, "Adjust the percent base damage the AOE gains per stack. (1 = 100% base damage)");
+            aoeRangeBase = config.Bind<float>("Item: " + ItemName, "AOE Range", 12f, "Adjust the range of the slow AOE on the first stack. (1 = 1m range diameter)");
+            aoeRangeStacking = config.Bind<float>("Item: " + ItemName, "AOE Range Increase per Stack", 4f, "Adjust the range the slow AOE gains per stack. (1 = 1m range diameter)");
             requiredStacksForFreeze = config.Bind<int>("Item: " + ItemName, "Debuff Stacks Required for Freeze", 3, "Adjust the number of stacks needed to freeze an enemy.");
             requiredStacksForBossFreeze = config.Bind<int>("Item: " + ItemName, "Buff Stacks Required for Boss Freeze", 10, "Adjust the number of stacks needed to freeze a boss. Set to 0 or less to remove this.");
             slowPercentage = config.Bind<float>("Item: " + ItemName, "Max Percent Slow", .5f, "Adjust the percentage slow the buff causes. (1 = 100% slow)");
-            slowDuration = config.Bind<float>("Item: " + ItemName, "Duration of Slow Debuff", 4, "Adjust the duration the slow lasts, in seconds.");
-            slowDurationStacking = config.Bind<float>("Item: " + ItemName, "Duration of Slow Debuff per Stack", 2, "Adjust the duration the slow gains per stack.");
+            slowDuration = config.Bind<float>("Item: " + ItemName, "Slow Debuff Duration", 6, "Adjust the duration the slow lasts, in seconds.");
+            slowDurationStacking = config.Bind<float>("Item: " + ItemName, "Slow Debuff Duration per Stack", 3, "Adjust the duration the slow gains per stack.");
             cryoCoefficient = config.Bind<float>("Item: " + ItemName, "Proc Coefficient", 0, "Adjust the proc coefficient for the item's damage AOE. For reference, Gasoline's is 0. (0 is no procs, 1 is normal proc rate)");
             displaySlowAmount = config.Bind<bool>("Item: " + ItemName, "Display Slow Percent in Item Description", false, "Adjust whether the the slow percentage is displayed in the logbook description.");
 
@@ -165,8 +165,8 @@ namespace vanillaVoid.Items
             ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlCryoDisplay.prefab");
 
             string fluidMat = "RoR2/Base/Huntress/matHuntressGlaive.mat"; //this one doesn't seem to work if loaded from assetbundle? so i guess this way it is
-            
-            var cryoFluidModel = ItemModel.transform.Find("Glowybits").GetComponent<MeshRenderer>();
+
+            var cryoFluidModel = ItemModel.transform.Find("Intermediate").Find("Glowybits").GetComponent<MeshRenderer>();
             cryoFluidModel.material = Addressables.LoadAssetAsync<Material>(fluidMat).WaitForCompletion();
             
             var cryoFluidDisplay = ItemBodyModelPrefab.transform.Find("Glowybits").GetComponent<MeshRenderer>();
@@ -175,6 +175,13 @@ namespace vanillaVoid.Items
 
             var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
             itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);
+
+            var mpp = ItemModel.AddComponent<ModelPanelParameters>();
+            mpp.focusPointTransform = ItemModel.transform.Find("Target");
+            mpp.cameraPositionTransform = ItemModel.transform.Find("Source");
+            mpp.minDistance = 3.5f;
+            mpp.maxDistance = 7.5f;
+            mpp.modelRotation = Quaternion.Euler(new Vector3(0, 0, 0));
 
             ItemDisplayRuleDict rules = new ItemDisplayRuleDict();
             rules.Add("mdlCommandoDualies", new RoR2.ItemDisplayRule[]{
@@ -711,6 +718,45 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(0.0425F, 0.0425F, 0.0425F)
                 }
             });
+
+
+            rules.Add("RA2ChronoBody", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "weapon_base",
+                    localPos = new Vector3(-0.2016F, -0.5702F, -0.41532F),
+                    localAngles = new Vector3(310.171F, 165.9906F, 261.7139F),
+                    localScale = new Vector3(0.09F, 0.09F, 0.09F)
+                }
+            });
+            rules.Add("RobRavagerBody", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "ThighL",
+                    localPos = new Vector3(0.1515263f, 0.06217923f, -0.01854283f),
+                    localAngles = new Vector3(294.0765f, 24.31453f, 41.70001f),
+                    localScale = new Vector3(0.08f, 0.08f, 0.08f)
+                }
+            });
+            rules.Add("mdlMorris", new RoR2.ItemDisplayRule[]
+            {
+                new RoR2.ItemDisplayRule
+                {
+                    ruleType = ItemDisplayRuleType.ParentedPrefab,
+                    followerPrefab = ItemBodyModelPrefab,
+                    childName = "Pelvis",
+                    localPos = new Vector3(-0.24497F, 0.05832F, 0.24744F),
+                    localAngles = new Vector3(301.067F, 262.8177F, 30.36138F),
+                    localScale = new Vector3(0.08F, 0.08F, 0.08F)
+                }
+            });
+
             return rules;
         }
 

@@ -18,7 +18,7 @@ namespace vanillaVoid.Items
     {
 
         public ConfigEntry<int> refreshAmount;
-
+        public ConfigEntry<bool> refreshVariant;
         public override string ItemName => "Empty Vials";
 
         public override string ItemLangTokenName => "EMPTY_VIALS";
@@ -66,12 +66,13 @@ namespace vanillaVoid.Items
         {
             //consumeStack = config.Bind<bool>("Item: " + ItemName, "Consume Stack", false, "Adjust if each potion should upgrade a whole stack, like benthic, or only one.");
             refreshAmount = config.Bind<int>("Item: " + ItemName, "Refresh Amount", 1, "Adjust how many empty vials refresh at the start of a new stage. A negative number will refresh all stacks.");
+            refreshVariant = config.Bind<bool>("Item: " + ItemName, "Variant 0 Refresh", false, "Makes it possible for Variant 0 vials (corrupt) to regenerate like they do for Variant 1 (upgrade).");
         }
 
         private void RefreshVials(SceneDirector obj)
         {
             int refreshAmnt = refreshAmount.Value;
-            if (refreshAmnt != 0)
+            if (refreshAmnt != 0 && (ItemBase<EnhancementVials>.instance.vialsVariant.Value == 1 || refreshVariant.Value))
             {
                 //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
                 //int itemCount = 0;
