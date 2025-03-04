@@ -1155,9 +1155,9 @@ namespace vanillaVoid.Items
             //Debug.Log("function ending, interactable credits after: " + obj.interactableCredit);
         }
 
-        private void BreakItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker)
+        private void BreakItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker, bool b1, bool b2)
         {
-            orig.Invoke(self, damageValue, damagePosition, damageIsSilent, attacker);
+            orig.Invoke(self, damageValue, damagePosition, damageIsSilent, attacker, b1, b2);
             //Debug.Log("attacker: " + attacker);
             if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<ClockworkMechanism>.instance.GetCount(self.body) > 0 && self.isHealthLow && !(self.GetComponent<CharacterBody>().GetBuffCount(recentBreak) > 0) && attacker && (bazaarHappen.Value || !isBazaarStage))
             {
@@ -1458,7 +1458,7 @@ namespace vanillaVoid.Items
         }
 
         public override PickupIndex GenerateDropPreReplacement(Xoroshiro128Plus rng){
-            int num = 0;
+            int num = 1;
 
             selector.Clear();
             Add(Run.instance.availableTier1DropList, tier1Weight);

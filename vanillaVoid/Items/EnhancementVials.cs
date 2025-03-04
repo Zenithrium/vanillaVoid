@@ -11,12 +11,14 @@ using UnityEngine.AddressableAssets;
 using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
+using System.Linq;
 
 namespace vanillaVoid.Items
 {
     public class EnhancementVials : ItemBase<EnhancementVials>
     {
-        //public ConfigEntry<int> refreshAmount;
+        public ConfigEntry<int> vialsVariant;
+        public ConfigEntry<bool> regenAnyway;
 
         private Xoroshiro128Plus potionVoidRng;
 
@@ -24,10 +26,21 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "EHANCE_VIALS_ITEM";
 
-        public override string ItemPickupDesc => $"Upgrade an item at low health. Consumed on use." +
-            (EmptyVials.instance.refreshAmount.Value > 0 ? $" At the start of each stage, {EmptyVials.instance.refreshAmount.Value} stack regenerates." : (EmptyVials.instance.refreshAmount.Value < 0 ? " At the start of each stage, all broken stacks refresh." : "")) + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+        //public override string ItemPickupDesc => (ShellTier1Weight.Value != 0 ? $"<color=#FFFFFF>{ShellTier1Weight.Value * 100}%</color>" : "") +$"Upgrade an item at low health. Consumed on use." +
+        //    (EmptyVials.instance.refreshAmount.Value > 0 ? $" At the start of each stage, {EmptyVials.instance.refreshAmount.Value} stack regenerates." : (EmptyVials.instance.refreshAmount.Value < 0 ? " At the start of each stage, all broken stacks refresh." : "")) + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemFullDescription => $"Taking damage to below <style=cIsHealth>25% health</style> <style=cIsUtility>consumes</style> this item, <style=cIsUtility>upgrading</style> another item. At the start of each stage, <style=cIsUtility>{EmptyVials.instance.refreshAmount.Value}</style> stack regenerates. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+        public override string ItemPickupDesc => (vialsVariant.Value == 0 ? $"Corrupt an item at low health. Consumed on use." : $"Upgrade an item at low health. Consumed on use. " +
+            (EmptyVials.instance.refreshAmount.Value > 0 ? $" At the start of each stage, {EmptyVials.instance.refreshAmount.Value} stack regenerates." :
+            (EmptyVials.instance.refreshAmount.Value < 0 ? " At the start of each stage, all broken stacks refresh." : ""))) + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+
+
+
+        //public override string ItemPickupDesc => (vialsVariant.Value == 0 ? $"Corrupt an item at low health. Consumed on use." : "Upgrade an item at low health. Consumed on use. " + 
+        //    (EmptyVials.instance.refreshAmount.Value > 0 ? $" At the start of each stage, {EmptyVials.instance.refreshAmount.Value} stack regenerates." : 
+        //    (EmptyVials.instance.refreshAmount.Value < 0 ? " At the start of each stage, all broken stacks refresh." : ""))) + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+
+
+        public override string ItemFullDescription => $"Taking damage to below <style=cIsHealth>25% health</style> <style=cIsUtility>consumes</style> this item, " + (vialsVariant.Value == 0 ? $"<style=cIsUtility>corrupting</style> a random corruptible item. Grants an additional <style=cIsUtility>0</style> <style=cStack>(+1 per stack)</style> copies of the corrupted item. " : $"<style=cIsUtility>upgrading</style> another item. At the start of each stage, <style=cIsUtility>{EmptyVials.instance.refreshAmount.Value}</style> stack regenerates. ") + $"<style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemLore => $"\"What an experiment this will be...our first forray into the void! Gather round, for this will forever change each and every one of our lives!\" \n\nA few days later, a janitor discovered a strange pile of objects scattered around various colorful test tubes. They thought little of it.";
 
@@ -101,6 +114,10 @@ namespace vanillaVoid.Items
 
         public override void CreateConfig(ConfigFile config){
             //consumeStack = config.Bind<bool>("Item: " + ItemName, "Consume Stack", false, "Adjust if each potion should upgrade a whole stack, like benthic, or only one.");
+
+            vialsVariant = config.Bind<int>("Item: " + ItemName, "Variant of Item", 0, "Adjust which version of " + ItemName + " you'd prefer to use. Variant 0 corrupts items on break, while Variant 1 upgrades items like Benthic on break, and regenerates every stage.");
+            //regenAnyway = config.Bind<bool>("Item: " + ItemName, "Regen Anyway", false, "Variant 0: Makes it so the item regenerates itself using the config in Empty Vials.");
+
             //refreshAmount = config.Bind<int>("Item: " + ItemName, "Refresh Amount", 1, "Adjust how many empty potions refresh at the start of a new stage. A negative number will refresh all stacks.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "HealingPotion", "Adjust which item this is the void pair of.");
         }
@@ -662,10 +679,98 @@ namespace vanillaVoid.Items
         }
 
         public override void Hooks(){
-            On.RoR2.HealthComponent.UpdateLastHitTime += BreakItem;
+            if(vialsVariant.Value == 0)
+            {
+                //On.RoR2.Items.ContagiousItemManager.Init += StoreTable;
+                On.RoR2.HealthComponent.UpdateLastHitTime += CorruptItem;
+            }
+            else
+            {
+                On.RoR2.HealthComponent.UpdateLastHitTime += BreakItem;
+            }
+
+            
 
             //for broken item
             //RoR2.SceneDirector.onPrePopulateSceneServer += RefreshVials;
+        }
+
+        //private void StoreTable(ContagiousItemManager.orig_Init orig)
+        //{
+        //    orig();
+        //    
+        //}
+
+        private void CorruptItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker, bool delayedDamage, bool firstHitOfDelayedDamage)
+        {
+            orig(self, damageValue, damagePosition, damageIsSilent, attacker, delayedDamage, firstHitOfDelayedDamage);
+            int potionCount = GetCount(self.body);
+            if (NetworkServer.active && (bool)self && (bool)self.body && GetCount(self.body) > 0 && self.isHealthLow)
+            {
+                if (potionVoidRng == null)
+                {
+                    potionVoidRng = new Xoroshiro128Plus(Run.instance.seed);
+                }
+
+                var list = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem];
+                List<ItemIndex> allVoids = new List<ItemIndex>();
+                Dictionary<ItemIndex, ItemIndex> pairs = new Dictionary<ItemIndex, ItemIndex>();
+                foreach (var item in list)
+                {
+                    allVoids.Add(item.itemDef1.itemIndex);
+                    try
+                    {
+                        pairs.Add(item.itemDef1.itemIndex, item.itemDef2.itemIndex);
+                    }catch(Exception e)
+                    {
+                        Debug.Log("Already added " + item.itemDef1.itemIndex + " | " + item.itemDef2.itemIndex + " ||| " + e);
+                    }
+                    
+                }
+                var items = self.body.inventory.itemAcquisitionOrder;
+
+
+                List<ItemIndex> newList = allVoids.Where(i => items.Contains(i)).ToList();
+
+                foreach(var item in newList)
+                {
+                    Debug.Log("in newlist: " + ItemCatalog.GetItemDef(item).name + " | " + ItemCatalog.GetItemDef(item).nameToken);
+                }
+                
+                if(newList.Count > 0)
+                {
+                    var index = newList[potionVoidRng.RangeInt(0, newList.Count)];
+                    ItemIndex pair;
+                    if (pairs.TryGetValue(index, out pair))
+                    {
+                        self.body.inventory.RemoveItem(index, 1);
+                        self.body.inventory.GiveItem(pair, potionCount);
+                        self.body.inventory.GiveItem(EmptyVials.instance.ItemDef, potionCount);
+                        self.body.inventory.RemoveItem(this.ItemDef, potionCount);
+                        CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, index, pair, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
+                        CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, this.ItemDef.itemIndex, EmptyVials.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
+
+                        EffectData effectData = new EffectData { origin = self.transform.position };
+                        effectData.SetNetworkedObjectReference(self.gameObject);
+                        EffectManager.SpawnEffect(HealthComponent.AssetReferences.shieldBreakEffectPrefab, effectData, transmit: true);
+                    }
+                }
+                else
+                {
+                    self.body.inventory.GiveItem(EmptyVials.instance.ItemDef, potionCount);
+                    self.body.inventory.RemoveItem(this.ItemDef, potionCount);
+                    CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, this.ItemDef.itemIndex, ShatteredVials.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
+                    EffectData effectData = new EffectData { origin = self.transform.position };
+                    effectData.SetNetworkedObjectReference(self.gameObject);
+                    EffectManager.SpawnEffect(HealthComponent.AssetReferences.shieldBreakEffectPrefab, effectData, transmit: true);
+                }
+                
+
+
+                //vanilla item 1 // void item 2
+                //ContagiousItemManager.
+            }
+
         }
 
         private void RefreshVials(SceneDirector obj)
@@ -705,74 +810,95 @@ namespace vanillaVoid.Items
             //Debug.Log("function ending, interactable credits after: " + obj.interactableCredit);
         }
 
-        private void BreakItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker){
-            orig.Invoke(self, damageValue, damagePosition, damageIsSilent, attacker);
-            if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<EnhancementVials>.instance.GetCount(self.body) > 0 && self.isHealthLow){
+        private void BreakItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker, bool b1, bool b2){
+            orig(self, damageValue, damagePosition, damageIsSilent, attacker, b1, b2);
+            if (NetworkServer.active && (bool)self && (bool)self.body && GetCount(self.body) > 0 && self.isHealthLow){
                 if (potionVoidRng == null){
                     potionVoidRng = new Xoroshiro128Plus(Run.instance.seed);
                 }
                 bool isDone = false;
-                int potionCount = ItemBase<EnhancementVials>.instance.GetCount(self.body);
+                int potionCount = EnhancementVials.instance.GetCount(self.body);
                 int potionLeftCount = potionCount;
                 int oldItemCount = 0;
                 var brokenItemDef = ItemBase<EmptyVials>.instance.ItemDef;
-                while (!isDone){
-                    List<ItemIndex> inventoryList = new List<ItemIndex>(self.body.inventory.itemAcquisitionOrder);
-                    List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier2DropList);
-                    List<PickupIndex> redList = new List<PickupIndex>(Run.instance.availableTier3DropList);
+                //if (vialsVariant.Value == 0){
+                //    Util.ShuffleList(corruptibleItems, potionVoidRng);
+                //    foreach (var pair in corruptibleItems){
+                //        int count = self.body.inventory.GetItemCount(pair.itemDef1);
+                //        if (count > 0){
+                //            self.body.inventory.RemoveItem(pair.itemDef1, count);
+                //            self.body.inventory.GiveItem(pair.itemDef2, count);
+                //            --potionLeftCount;
+                //        }
+                //        if (potionLeftCount < 1){
+                //            break;
+                //        }
+                //    }
+                //
+                //    self.body.inventory.RemoveItem(EnhancementVials.instance.ItemDef, potionCount);
+                //    self.body.inventory.GiveItem(brokenItemDef, potionCount);
+                //    CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, brokenItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
+                //    EffectData effectData = new EffectData { origin = self.transform.position };
+                //    effectData.SetNetworkedObjectReference(self.gameObject);
+                //    EffectManager.SpawnEffect(HealthComponent.AssetReferences.shieldBreakEffectPrefab, effectData, transmit: true);
+                //
+                //}else{
+                    while (!isDone){
+                        List<ItemIndex> inventoryList = new List<ItemIndex>(self.body.inventory.itemAcquisitionOrder);
+                        List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier2DropList);
+                        List<PickupIndex> redList = new List<PickupIndex>(Run.instance.availableTier3DropList);
 
-                    ItemIndex itemIndex = ItemIndex.None;
-                    ItemIndex itemResult = ItemIndex.None;
-                    Util.ShuffleList(inventoryList, potionVoidRng);
-                    foreach (ItemIndex item in inventoryList){
-                        ItemDef itemDef = ItemCatalog.GetItemDef(item);
-                        if ((bool)itemDef && itemDef.tier != ItemTier.NoTier){
-                            if(itemDef.tier == ItemTier.Tier1){
-                                itemIndex = item;
-                                oldItemCount = self.body.inventory.GetItemCount(item);
-                                
-                                Util.ShuffleList(greenList, potionVoidRng);
-                                itemResult = greenList[0].itemIndex;
-                                break;
-                            }else if(itemDef.tier == ItemTier.Tier2){
-                                itemIndex = item;
-                                oldItemCount = self.body.inventory.GetItemCount(item);
-                                
-                                Util.ShuffleList(redList, potionVoidRng);
-                                itemResult = redList[0].itemIndex;
-                                break;
+                        ItemIndex itemIndex = ItemIndex.None;
+                        ItemIndex itemResult = ItemIndex.None;
+                        Util.ShuffleList(inventoryList, potionVoidRng);
+                        foreach (ItemIndex item in inventoryList){
+                            ItemDef itemDef = ItemCatalog.GetItemDef(item);
+                            if ((bool)itemDef && itemDef.tier != ItemTier.NoTier){
+                                if (itemDef.tier == ItemTier.Tier1){
+                                    itemIndex = item;
+                                    oldItemCount = self.body.inventory.GetItemCount(item);
+
+                                    Util.ShuffleList(greenList, potionVoidRng);
+                                    itemResult = greenList[0].itemIndex;
+                                    break;
+                                }
+                                else if (itemDef.tier == ItemTier.Tier2){
+                                    itemIndex = item;
+                                    oldItemCount = self.body.inventory.GetItemCount(item);
+
+                                    Util.ShuffleList(redList, potionVoidRng);
+                                    itemResult = redList[0].itemIndex;
+                                    break;
+                                }
                             }
                         }
-                    }
+                        if (itemIndex != ItemIndex.None){
+                            if (oldItemCount > potionLeftCount){
+                                oldItemCount = potionLeftCount;
+                            }
 
-                    if (itemIndex != ItemIndex.None){
-                        if(oldItemCount > potionLeftCount){
-                            oldItemCount = potionLeftCount;
-                        }
-
-                        self.body.inventory.RemoveItem(itemIndex, oldItemCount);
-                        self.body.inventory.GiveItem(itemResult, oldItemCount);
-                        CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, itemResult, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
-                        potionLeftCount -= oldItemCount;
-                        if(potionLeftCount < 1){
+                            self.body.inventory.RemoveItem(itemIndex, oldItemCount);
+                            self.body.inventory.GiveItem(itemResult, oldItemCount);
+                            CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, itemResult, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
+                            potionLeftCount -= oldItemCount;
+                            if (potionLeftCount < 1){
+                                isDone = true;
+                            }
+                        }else{
                             isDone = true;
                         }
-                    }else{
-                        isDone = true;
                     }
-                }
 
-                self.body.inventory.RemoveItem(ItemBase<EnhancementVials>.instance.ItemDef, potionCount);
-                self.body.inventory.GiveItem(brokenItemDef, potionCount);
-                CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, brokenItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
-                EffectData effectData = new EffectData
-                {
-                    origin = self.transform.position
-                };
-                effectData.SetNetworkedObjectReference(self.gameObject);
-                EffectManager.SpawnEffect(HealthComponent.AssetReferences.shieldBreakEffectPrefab, effectData, transmit: true);
+                    self.body.inventory.RemoveItem(ItemBase<EnhancementVials>.instance.ItemDef, potionCount);
+                    self.body.inventory.GiveItem(brokenItemDef, potionCount);
+                    CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, brokenItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
+                    EffectData effectData = new EffectData{ origin = self.transform.position };
+                    effectData.SetNetworkedObjectReference(self.gameObject);
+                    EffectManager.SpawnEffect(HealthComponent.AssetReferences.shieldBreakEffectPrefab, effectData, transmit: true);
+                //}
             }
-            orig(self, damageValue, damagePosition, damageIsSilent, attacker);
         }
+
+
     }
 }

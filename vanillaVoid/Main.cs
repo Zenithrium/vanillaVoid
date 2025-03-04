@@ -55,7 +55,7 @@ namespace vanillaVoid {
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.5.17";
+        public const string ModVer = "1.6.0";
 
         public static ExpansionDef sotvDLC;
         public static ExpansionDef sotvDLC2;
@@ -78,6 +78,8 @@ namespace vanillaVoid {
         public static GameObject lotusCollider;
 
         public static GameObject exhaustVFX;
+
+        public static List<ItemDef.Pair> corruptibleItems = new List<ItemDef.Pair>();
 
         public Xoroshiro128Plus genericRng;
 
@@ -142,6 +144,7 @@ namespace vanillaVoid {
             //On.RoR2.GenericSkill.RunRecharge += Ah2;
 
             On.RoR2.Language.GetLocalizedStringByToken += (orig, self, token) => {
+                //Debug.Log("token: " + token);
                 if (ItemBase.TokenToVoidPair.ContainsKey(token))
                 {
                     ItemIndex idx = ItemCatalog.FindItemIndex(ItemBase.TokenToVoidPair[token]);
@@ -329,18 +332,19 @@ namespace vanillaVoid {
         private void AddUnlocksToVoidItems(On.RoR2.ItemCatalog.orig_Init orig)
         {
             orig();
-            if (lockVoidsBehindPair.Value)
+            foreach (var voidpair in ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem])
             {
-                foreach (var voidpair in ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem])
+                //corruptibleItems.Add(voidpair);
+                if (lockVoidsBehindPair.Value)
                 {
                     if (voidpair.itemDef1.unlockableDef != null && voidpair.itemDef2.unlockableDef == null)
                     {
                         Debug.Log("Updating unlock condition for " + voidpair.itemDef2.nameToken + " to " + voidpair.itemDef1.nameToken + "'s.");
                         voidpair.itemDef2.unlockableDef = voidpair.itemDef1.unlockableDef;
                     }
-                    //Debug.Log("voidpair: " + voidpair.itemDef1 + " | " + voidpair.itemDef2 + " | " + voidpair.ToString());
-
                 }
+                //Debug.Log("voidpair: " + voidpair.itemDef1 + " | " + voidpair.itemDef2 + " | " + voidpair.ToString());
+
             }
         }
 

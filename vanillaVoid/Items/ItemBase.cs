@@ -76,8 +76,17 @@ namespace vanillaVoid.Items
             LanguageAPI.Add("VV_ITEM_" + ItemLangTokenName + "_DESCRIPTION", ItemFullDescription);
             if (voidPair != null)
             {
-                TokenToVoidPair.Add("VV_ITEM_" + ItemLangTokenName + "_PICKUP", voidPair.Value);
-                TokenToVoidPair.Add("VV_ITEM_" + ItemLangTokenName + "_DESCRIPTION", voidPair.Value);
+                if(voidPair.Value.Contains(", "))
+                {
+                    var intermediate = voidPair.Value.Split(", ");
+                    TokenToVoidPair.Add("VV_ITEM_" + ItemLangTokenName + "_PICKUP", intermediate[0]);
+                    TokenToVoidPair.Add("VV_ITEM_" + ItemLangTokenName + "_DESCRIPTION", intermediate[0]);
+                }
+                else
+                {
+                    TokenToVoidPair.Add("VV_ITEM_" + ItemLangTokenName + "_PICKUP", voidPair.Value);
+                    TokenToVoidPair.Add("VV_ITEM_" + ItemLangTokenName + "_DESCRIPTION", voidPair.Value);
+                }
             }
             LanguageAPI.Add("VV_ITEM_" + ItemLangTokenName + "_LORE", ItemLore);
 
@@ -120,21 +129,43 @@ namespace vanillaVoid.Items
             
             string pair = VoidPair();
             //Debug.Log("hello chat " + pair);
-            if(pair != null)
+            if (pair != null)
             {
-                var pairDef = ItemCatalog.GetItemDef(ItemCatalog.FindItemIndex(pair)); //lol
-                //Debug.Log("chat " + pairDef);
-                if (pairDef != null)
+                if (pair.Contains(","))
                 {
-                    //Debug.Log("goodbye chat " + pairDef);
-                    //var voidPairs = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem].Where(x => x.itemDef1 != VoidParent.ItemDef); -- Use to overwrite other mods
-                    ItemDef.Pair newVoidPair = new ItemDef.Pair()
+                    var strings = pair.Split(", ");
+                    Debug.Log("strings - " + strings[0]);
+                    Debug.Log("strings2- " + strings[1]);
+                    foreach (var single in strings)
                     {
-                        itemDef1 = pairDef,
-                        itemDef2 = ItemDef
-                    };
-                    newVoidPairs.Add(newVoidPair);
-                    //Debug.Log("Added new pair of " + pairDef.name + " and " + ItemDef.name);
+                        var pairDef = ItemCatalog.GetItemDef(ItemCatalog.FindItemIndex(single));
+                        if(pairDef != null)
+                        {
+                            ItemDef.Pair newVoidPair = new ItemDef.Pair()
+                            {
+                                itemDef1 = pairDef,
+                                itemDef2 = ItemDef
+                            };
+                            newVoidPairs.Add(newVoidPair);
+                        }
+                    }
+                }
+                else
+                {
+                    var pairDef = ItemCatalog.GetItemDef(ItemCatalog.FindItemIndex(pair)); //lol
+                                                                                           //Debug.Log("chat " + pairDef);
+                    if (pairDef != null)
+                    {
+                        //Debug.Log("goodbye chat " + pairDef);
+                        //var voidPairs = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem].Where(x => x.itemDef1 != VoidParent.ItemDef); -- Use to overwrite other mods
+                        ItemDef.Pair newVoidPair = new ItemDef.Pair()
+                        {
+                            itemDef1 = pairDef,
+                            itemDef2 = ItemDef
+                        };
+                        newVoidPairs.Add(newVoidPair);
+                        //Debug.Log("Added new pair of " + pairDef.name + " and " + ItemDef.name);
+                    }
                 }
             }
         }
@@ -177,7 +208,7 @@ namespace vanillaVoid.Items
             ItemDef.deprecatedTier = Tier;
 
             if (ItemTags.Length > 0) { ItemDef.tags = ItemTags; }
-
+            Debug.Log(ItemDef.nameToken + " initalized");
             ItemAPI.Add(new CustomItem(ItemDef, CreateItemDisplayRules()));
         }
 

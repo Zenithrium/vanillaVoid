@@ -13,6 +13,8 @@ using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
 using RoR2.Projectile;
 using System.Collections;
+using MonoMod.Cil;
+using Mono.Cecil.Cil;
 
 namespace vanillaVoid.Items
 {
@@ -69,6 +71,7 @@ namespace vanillaVoid.Items
         public float lotusTimer;
         //public float lotusDuration = 25f;
         AnimationCurve speedCurve;
+        public static AnimationCurve speedCurveRise;
 
         static Vector3 teleporterPos;
         GameObject tempLotusObject;
@@ -87,7 +90,7 @@ namespace vanillaVoid.Items
             CreateConfig(config);
 
             switch (LotusVariant.Value)
-            { 
+            {
 
                 case 1:
                     tempItemPickupDesc = $"Periodically release a barrier nova during the Teleporter event and 'Holdout Zones' such as the Void Fields. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
@@ -101,7 +104,7 @@ namespace vanillaVoid.Items
                     tempItemFullDescription = $"Release a <style=cIsUtility>slowing pulse</style> during the Teleporter event, <style=cIsUtility>slowing enemies and projectiles</style> by up to <style=cIsUtility>{(1 - LotusSlowPercent.Value) * 100}%</style> for {LotusDuration.Value} seconds. Occurs <style=cIsHealing>{pulseCountStacking.Value}</style> <style=cStack>(+{pulseCountStacking.Value} per stack)</style> times. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     tempLore = $"\"I've been holed up here for... god knows how long now. I thought... I thought these plants would be... valuable, that..that it would be fine if I went and just... grabbed one - nature wouldn't mind... right? But ever since I grabbed it...I just feel.. so sluggish.. What...did I do wrong?\"\n\n- Lost Recording, Recovered from Petrichor V";
 
-                    break;                
+                    break;
             }
 
             CreateLang();
@@ -153,11 +156,20 @@ namespace vanillaVoid.Items
             speedCurve = new AnimationCurve();
             speedCurve.keys = new Keyframe[] {
             new Keyframe(0, LotusSlowPercent.Value, 0.33f, 0.33f),
-            new Keyframe(0.5f, 0.3f, 0.33f, 0.33f),
+            new Keyframe(0.75f, 0.33f, 0.33f, 0.33f),
             new Keyframe(1, 1, 0.33f, 0.33f)
             };
 
-            Hooks(); 
+            speedCurveRise = new AnimationCurve();
+            speedCurveRise.keys = new Keyframe[] {
+            new Keyframe(0, 0),
+            new Keyframe(.25f, .062f),
+            new Keyframe(.5f, .25f),
+            new Keyframe(.75f, .56f),
+            new Keyframe(1, .95f)
+            };
+
+            Hooks();
         }
 
         public override void CreateConfig(ConfigFile config)
@@ -168,8 +180,8 @@ namespace vanillaVoid.Items
             string lotusname = "Crystalline Lotus";
 
             LotusVariant = config.Bind<int>("Item: " + lotusname, "Variant of Item", 0, "Adjust which version of " + lotusname + " you'd prefer to use. Variant 0 releases slowing novas per pulse, which reduce enemy and projectile speed, while Variant 1 provides 50% barrier per pulse.");
-            LotusDuration = config.Bind<float>("Item: " + lotusname, "Slow Duration", 30f, "Variant 0: Adjust how long the slow should last per pulse. A given slow is replaced by the next slow, so with enough lotuses, the full duration won't get used. However, increasing this also decreases the rate at which the slow fades.");
-            LotusSlowPercent = config.Bind<float>("Item: " + lotusname, "Slow Percent", 0.075f, "Variant 0: Adjust the strongest slow percent (between 0 and 1). Increasing this also makes it so the slow 'feels' shorter, as high values (near 1) feel very minor. Note that this is inverted, where 0 = 100% slow and 1 = 0% slow.");
+            LotusDuration = config.Bind<float>("Item: " + lotusname, "Slow Duration", 25f, "Variant 0: Adjust how long the slow should last per pulse. A given slow is replaced by the next slow, so with enough lotuses, the full duration won't get used. However, increasing this also decreases the rate at which the slow fades.");
+            LotusSlowPercent = config.Bind<float>("Item: " + lotusname, "Slow Intensity", 0, "Variant 0: Adjust the strongest slow percent (between 0 and 1). Increasing this also makes it so the slow 'feels' shorter, as high values (near 1) feel very minor. Note that this is inverted, where 0 = 100% slow and 1 = 0% slow.");
 
             barrierAmount = config.Bind<float>("Item: " + lotusname, "Percent Barrier Provided", .5f, "Variant 1: Adjust percent of health that the barrier pulse provides.");
             pulseCountStacking = config.Bind<float>("Item: " + lotusname, "Activations per Stack", 1f, "Variant 1: Adjust the number of pulses each stack provides.");
@@ -429,7 +441,7 @@ namespace vanillaVoid.Items
                     localScale = new Vector3(.005f, .005f, .005f)
                 }
             });
-            rules.Add("mdlPaladin", new RoR2.ItemDisplayRule[] 
+            rules.Add("mdlPaladin", new RoR2.ItemDisplayRule[]
             {
                 new RoR2.ItemDisplayRule
                 {
@@ -735,15 +747,15 @@ namespace vanillaVoid.Items
             Texture tex = MainAssets.LoadAsset<Texture>("texRampIce4.png");
             var tempmaterial = Addressables.LoadAssetAsync<Material>("RoR2/Base/Common/matSlow80Debuff.mat").WaitForCompletion();
             lotusMaterial = Material.Instantiate(tempmaterial);
-            lotusMaterial.name = "LotusSlowMat";
+            lotusMaterial.name = "VVLotusSlowMaterial";
             //lotusMaterial.SetFloat("_BrightnessBoost", 1.25f)
             //edit alpha boost
             //lotusMaterial.SetFloat("_")
             //Debug.Log("boost: " + matInstance.GetFloat("_Boost"));
             //matInstance.SetTexture("_RemapTex", tex);
-            Debug.Log("_AlphaBoost: " + lotusMaterial.GetFloat("_AlphaBoost")); //1.17
-            //lotusMaterial.SetFloat("_Boost", 1);
-            
+            //Debug.Log("_AlphaBoost: " + lotusMaterial.GetFloat("_AlphaBoost")); //1.17
+                                                                                //lotusMaterial.SetFloat("_Boost", 1);
+            lotusMaterial.SetFloat("_AlphaBoost", 0);
             //lotusMaterial.SetFloat("_AlphaBoost", matInstance.GetFloat("_AlphaBoost"));
             lotusMaterial.SetTexture("_RemapTex", tex);
             ///////matInstance.SetFloat("_Boost", matInstance.GetFloat("_Boost") - (coeff * 2));////
@@ -770,9 +782,87 @@ namespace vanillaVoid.Items
 
             On.RoR2.BuffWard.BuffTeam += LotusTeamBuff;
 
-            On.RoR2.CharacterBody.OnBuffFinalStackLost += RemoveLotusToken; 
+            On.RoR2.CharacterBody.OnBuffFinalStackLost += RemoveLotusToken;
             //On.RoR2.CharacterBody.AddTimedBuff_BuffIndex_float += LotusAddBuff;
+
+            //On.RoR2.TemporaryOverlayInstance.CleanupEffect += StopDoingThat;
+
+            //IL.RoR2.TemporaryOverlayInstance.CleanupEffect += il =>
+            //{
+            //    var ilCursor = new ILCursor(il);
+            //    ilCursor.Emit(OpCodes.Ldarg_0);
+            //    ilCursor.Emit<TemporaryOverlayInstance>(OpCodes.Ldfld, nameof(TemporaryOverlayInstance.assignedCharacterModel));
+            //    ilCursor.Emit<CharacterModel>(OpCodes.Ldfld, nameof(CharacterModel.body));
+            //    if (ilCursor.TryGotoNext(
+            //            x => x.MatchLdarg(0),
+            //            x => x.MatchLdfld<TemporaryOverlayInstance>(nameof(TemporaryOverlayInstance.materialInstance)),
+            //            x => x.MatchCall<UnityEngine.Object>("op_Implicit"),
+            //            x => x.MatchBrfalse(out _)))
+            //    {
+            //        ILLabel ilLabel = ilCursor.DefineLabel();
+            //
+            //        ilCursor.EmitDelegate<Func<CharacterBody, bool>>(body => false);
+            //        ilCursor.Emit(OpCodes.Brfalse, ilLabel);
+            //        if (ilCursor.TryGotoNext(
+            //                x => x.MatchLdarg(0),
+            //                x => x.MatchLdfld<TemporaryOverlayInstance>(nameof(TemporaryOverlayInstance.destroyObjectOnEnd)),
+            //                x => x.MatchBrtrue(out _),
+            //                x => x.MatchLdarg(0),
+            //                x => x.MatchLdfld<TemporaryOverlayInstance>(nameof(TemporaryOverlayInstance.destroyComponentOnEnd)),
+            //                x => x.MatchBrtrue(out _)))
+            //        {
+            //            ilCursor.MarkLabel(ilLabel);
+            //        }
+            //    }
+            //};
+            //IL.RoR2.TemporaryOverlayInstance.CleanupEffect += StopDoingThat;
         }
+
+        //private void StopDoingThat(ILContext il) {
+        //    ILCursor c = new ILCursor(il);
+        //
+        //    bool ILFound2 = c.TryGotoNext(MoveType.After,
+        //    x => x.MatchLdarg(0));
+        //    if (ILFound2)
+        //    {
+        //        c.EmitDelegate<Func<RoR2.TemporaryOverlayInstance, CharacterBody>>((self) =>
+        //        {
+        //            CharacterBody body = null;
+        //            if (self.assignedCharacterModel && self.assignedCharacterModel.body) {
+        //                body = self.assignedCharacterModel.body;
+        //            }
+        //            return body;
+        //        });
+        //        c.Emit(OpCodes.Stfld, typeof(RoR2.CharacterBody));
+        //
+        //    }
+        //
+        //    bool ILFound = c.TryGotoNext(MoveType.After,
+        //    x => x.MatchLdarg(0),
+        //    x => x.MatchLdfld<RoR2.TemporaryOverlayInstance>(nameof(RoR2.TemporaryOverlayInstance.materialInstance)),
+        //    x => x.MatchCallOrCallvirt(typeof(UnityEngine.Object).GetMethod("op_Implicit"))
+        //    );
+        //
+        //    if (ILFound){
+        //        c.Emit(OpCodes.Ldarg, 0);
+        //        c.Emit(OpCodes.Ldloc, typeof(RoR2.CharacterBody));
+        //        c.EmitDelegate<Func<bool, RoR2.TemporaryOverlayInstance, CharacterBody, bool>>((boolean, self, body) => {
+        //            Debug.Log("hiiiii hello");
+        //            if (body){
+        //                Debug.Log("yeah: " + body + " | ");
+        //                var handler = body.GetComponent<LotusHandler>();
+        //                if (handler && self.materialInstance == handler.matInstance){
+        //                    Debug.Log("It was the real mateiral ");
+        //                    return false;
+        //                }
+        //                Debug.Log("it wasnt ");
+        //            }
+        //            return boolean;
+        //        });
+        //    }else{
+        //        Debug.Log("ah fuck,,");
+        //    }
+        //}
 
         private void RemoveLotusToken(On.RoR2.CharacterBody.orig_OnBuffFinalStackLost orig, CharacterBody self, BuffDef buffDef){
             orig(self, buffDef);
@@ -799,7 +889,7 @@ namespace vanillaVoid.Items
 
         private void ClearLotusTeleporter(SceneDirector obj)
         {
-            Debug.Log("clearing tp location ");
+            //Debug.Log("clearing tp location ");
             teleporterPos = Vector3.zero;
         }
 
@@ -812,13 +902,17 @@ namespace vanillaVoid.Items
                 itemCount += player.master.inventory.GetItemCount(CrystalLotus.instance.ItemDef);
                 teamDex = player.master.teamIndex;
             }
-
-            teleporterPos = teleporter.transform.position;
-            if (teleporter.name.Contains("Lunar")){
-                teleporterPos += new Vector3(0, -.675f, 0);
+            if (teleporter)
+            {
+                teleporterPos = teleporter.transform.position;
+                if (teleporter.name.Contains("Lunar"))
+                {
+                    teleporterPos += new Vector3(0, -.675f, 0);
+                }
             }
 
-            if (itemCount > 0){
+            if (itemCount > 0 && teleporterPos != Vector3.zero)
+            {
                 Quaternion rot = Quaternion.Euler(1.52666613f, 180, 9.999999f);
                 var tempLotus = GameObject.Instantiate(lotusObject, teleporterPos, rot);
                 tempLotus.GetComponent<TeamFilter>().teamIndex = teamDex;
@@ -864,25 +958,24 @@ namespace vanillaVoid.Items
             }
         }
 
-        private void LotusTeamBuff(On.RoR2.BuffWard.orig_BuffTeam orig, BuffWard self, IEnumerable<TeamComponent> recipients, float radiusSqr, Vector3 currentPosition)
-        {
+        private void LotusTeamBuff(On.RoR2.BuffWard.orig_BuffTeam orig, BuffWard self, IEnumerable<TeamComponent> recipients, float radiusSqr, Vector3 currentPosition){
             //Debug.Log("handler  and body");
             orig(self, recipients, radiusSqr, currentPosition);
+            //Debug.Log("Teambuff"); oops..
             if (self && self.buffDef == lotusSlow)
             {
-
                 var collidertoken = self.gameObject.GetComponent<LotusToken>();
                 if (collidertoken)
                 {
                     var handler = collidertoken.handler;
                     if (handler)
                     {
-                        Debug.Log("part 2");
+                        //Debug.Log("part 2");
                         foreach (TeamComponent teamComponent in recipients)
                         {
 
                             CharacterBody body = teamComponent.GetComponent<CharacterBody>();
-                            Debug.Log("body in radius:" + body.name + " | " + body.baseNameToken);
+                            //Debug.Log("body in radius:" + body.name + " | " + body.baseNameToken);
                             Vector3 vector = teamComponent.transform.position - currentPosition;
                             bool skip = false;
                             bool real = false;
@@ -894,7 +987,7 @@ namespace vanillaVoid.Items
                                     foreach (var overlay in body.modelLocator.modelTransform.GetComponent<CharacterModel>().temporaryOverlays)
                                     {
                                         //Debug.Log("overlay:  " + overlay + " | om: " + overlay.originalMaterial + " | mi: " + overlay.materialInstance);
-                                        if (overlay.materialInstance == handler.matInstance)
+                                        if (overlay.materialInstance.name.Contains("VVLotusSlowMaterial"))
                                         {
                                             //Debug.Log("overlay stopwatch: " + overlay.stopwatch + " | " + overlay.duration + body.name + " | " + body.baseNameToken);
                                             //overlay.stopwatch = 0;
@@ -910,19 +1003,30 @@ namespace vanillaVoid.Items
                                 //charactermodel.temporary overlay
                                 var transform = body.modelLocator.modelTransform;
 
+                                //Debug.Log("Adding overlay;");
+                                //TemporaryOverlay overlayreal = new TemporaryOverlay();
+                                //overlayreal.materialInstance = handler.matInstance;
+                                //overlayreal.duration = 5;
+
                                 var overlay = TemporaryOverlayManager.AddOverlay(transform.gameObject);
                                 overlay.duration = 5;
                                 //overlay.alphaCurve = AnimationCurve.EaseInOut(0, 1, 1, .5f);
                                 //overlay.animateShaderAlpha = true;
                                 overlay.destroyComponentOnEnd = true;
-                                overlay.materialInstance = handler.matInstance;
+                                overlay.originalMaterial = handler.matInstance;
+                                //overlay.materialInstance = handler.matInstance;
                                 //overlay.material
+                                //overlay.componentReference 
+                                var model = transform.GetComponent<RoR2.CharacterModel>();
+                                //Debug.Log("grahh: " + model);
                                 //body.gameObject.AddComponent<LotusBodyToken>();
-                                overlay.AddToCharacterModel(transform.GetComponent<RoR2.CharacterModel>());
+                                overlay.AddToCharacterModel(model);
                                 var token = body.gameObject.GetComponent<LotusToken>();
                                 if (!token)
                                 {
                                     token = body.gameObject.AddComponent<LotusToken>();
+                                    token.model = model;
+                                    token.overlay = overlay;
                                 }
                                 token.handler = handler;
                             }
@@ -936,8 +1040,7 @@ namespace vanillaVoid.Items
         {
             int itemCount = 0;
             TeamIndex teamDex = default;
-            foreach (var player in PlayerCharacterMasterController.instances)
-            {
+            foreach (var player in PlayerCharacterMasterController.instances){
                 itemCount += player.master.inventory.GetItemCount(CrystalLotus.instance.ItemDef);
                 teamDex = player.master.teamIndex;
             }
@@ -946,30 +1049,38 @@ namespace vanillaVoid.Items
             //Debug.Log("pre " + coeff);
             lotusTimer += Time.fixedDeltaTime;
             if (handler && handler.slowCoeffValue < 1){
-                //Debug.Log("coeff " + coeff);
-                coeff = speedCurve.Evaluate(lotusTimer / LotusDuration.Value);
-                handler.slowCoeffValue = coeff;
-                Debug.Log("Handler matertial" + handler.matInstance + " | " + coeff);
-                if (!handler.matInstance)
-                {
-                    Debug.Log("WHAT THE FUCK");
-                    //var temp = Material.Instantiate(lotusMaterial);
-                    //handler.matInstance = temp;
+                if (handler.rise){
+                    //handler.matInstance.SetFloat("_AlphaBoost", coeff * 3);
+                    coeff = speedCurve.Evaluate(lotusTimer / LotusDuration.Value);
+                    handler.slowCoeffValue = coeff;
+                    handler.risingCoeffValue = speedCurveRise.Evaluate(lotusTimer / 1.15f);
+                    //Debug.Log("handler.risingCoeffValue: " + handler.risingCoeffValue);
+                    //handler.risingCoeffValue = 1 - (coeff * 20);
+                    //Debug.Log("rising " + (1 - (coeff * 20)) + " | " + handler.risingCoeffValue);
                 }
-                handler.matInstance.SetFloat("_AlphaBoost", 1 - coeff);
+                else{
+                    //handler.matInstance.SetFloat("_AlphaBoost", 1 - coeff);
+                    coeff = speedCurve.Evaluate(lotusTimer / LotusDuration.Value);
+                    handler.slowCoeffValue = coeff;
+                    //Debug.Log("handler.slowCoeffValue: " + handler.slowCoeffValue);
+                    //Debug.Log("falling " + coeff);
+                }
+
+                //handler.matInstance.SetFloat("_AlphaBoost", 1 - coeff);
                 if(coeff >= 1){
                     coeff = 1;
-                    handler.matInstance.SetFloat("_AlphaBoost", 0);
+                    //handler.matInstance.SetFloat("_AlphaBoost", 0);
                     handler.slowCoeffValue = 1;
                     handler.slowComp.enabled = false;
                     handler.buffComp.enabled = false;
-                    Debug.Log("Burst complete");
+                    //Debug.Log("Burst complete");
                 }
             }
+
             if (itemCount > 0 && isCharging){
                 if (NetworkServer.active && Time.fixedDeltaTime > 0f){
                     if (!handler){
-                        Debug.Log("makinng handler");
+                        //Debug.Log("makinng handler");
                         handler = self.gameObject.AddComponent<LotusHandler>();
 
                         var matInstance = Material.Instantiate(lotusMaterial);
@@ -1023,7 +1134,7 @@ namespace vanillaVoid.Items
                     if (secondsUntilAttempt > 0f){
                         secondsUntilAttempt -= Time.fixedDeltaTime;
                     }else{
-                        Debug.Log("attemnpt");
+                        //Debug.Log("attemnpt");
                         if (currentCharge > self.charge){
                             previousPulseFraction = 0;
                             currentCharge = self.charge;
@@ -1036,7 +1147,7 @@ namespace vanillaVoid.Items
                                     //endtoken.handler = handler;
                                     //endtoken.ticking = true;
                                     handler.EndSlowIntermediate();
-                                    Debug.Log("ending");
+                                    //Debug.Log("ending");
                                 }
                             }
                         }
@@ -1057,13 +1168,28 @@ namespace vanillaVoid.Items
                                 lotusTimer = 0;
                                 
                                 handler.slowCoeffValue = speedCurve.Evaluate(lotusTimer / LotusDuration.Value);
+                                handler.risingCoeffValue = speedCurveRise.Evaluate(lotusTimer / 1.15f);
+
                                 handler.slowComp.enabled = true;
                                 handler.buffComp.enabled = true;
-                                Debug.Log("ward buff: " + ward.buffDef + " | " + ward.enabled);
+                                for (TeamIndex teamIndex = TeamIndex.Neutral; teamIndex < TeamIndex.Count; teamIndex += 1){
+                                    if (teamIndex != handler.buffComp.teamFilter.teamIndex){
+                                        //handler.buffComp.BuffTeam(TeamComponent.GetTeamMembers(teamIndex), radiusSqr, position);
+                                        handler.buffComp.BuffTeam(TeamComponent.GetTeamMembers(teamIndex), handler.buffComp.calculatedRadius * handler.buffComp.calculatedRadius, handler.buffComp.transform.position);
+
+                                    }
+                                    //else
+                                    //{
+                                    //    Debug.Log("Teamindex skippped " + teamIndex + " | " + TeamComponent.GetTeamMembers(teamIndex));
+                                    //}
+                                }
+                                //handler.buffComp.BuffTeam(TeamComponent.GetTeamMembers(handler.buffComp.teamFilter.teamIndex), handler.buffComp.calculatedRadius * handler.buffComp.calculatedRadius, handler.buffComp.transform.position);
+                                //Debug.Log("ward buff: " + ward.buffDef + " | " + ward.enabled);
                                 //StartCoroutine(Lotus2ExplosionThing(self.gameObject));
                                 //var vfxtoken = self.gameObject.AddComponent<LotusVFXEnder>();
                                 //vfxtoken.PlayEffect(self.gameObject);
                                 handler.PlayEffect(self.gameObject);
+                                handler.rise = true;
                             }
 
                             previousPulseFraction = nextPulseFraction;
@@ -1165,6 +1291,11 @@ namespace vanillaVoid.Items
             public Material matInstance;
             public float slowCoeffValue;
             public bool isEnding = false;
+            public float risingCoeffValue;
+
+
+            public bool rise = false;
+
             public SlowDownProjectiles slowComp;
             public BuffWard buffComp;
             Vector3 heightAdjustPulse = new Vector3(0, 2.5f, 0);
@@ -1175,14 +1306,14 @@ namespace vanillaVoid.Items
                 Vector3 pulsepos = this.transform.position + heightAdjustPulse;
 
                 EffectManager.SimpleEffect(lotusEffect, pulsepos, new Quaternion(0, 0, 0, 0), true);
-
+                rise = true;
                 StartCoroutine(DelayedSoundEnd(soundID, pulsepos));
             }
 
             IEnumerator DelayedSoundEnd(uint soundID, Vector3 pulsepos){
                 yield return new WaitForSeconds(1.15f);
                 AkSoundEngine.StopPlayingID(soundID);
-
+                rise = false;
                 //detonationTime = false;
                 //gameobject.gameObject.transform.position
                 string effect1 = "RoR2/DLC1/VoidSuppressor/SuppressorRetreatToShellEffect.prefab"; //"RoR2/DLC1/VoidRaidCrab/LaserImpactEffect.prefab";
@@ -1203,7 +1334,7 @@ namespace vanillaVoid.Items
                     slowComp.slowDownCoefficient = slowCoeffValue;
                     yield return .1f;
                 }
-                Debug.Log("offies!");
+                //Debug.Log("offies!");
                 slowComp.enabled = false;
                 buffComp.enabled = false;
                 //if (handler.slowCoeffValue >= 1)
@@ -1218,7 +1349,38 @@ namespace vanillaVoid.Items
         public class LotusToken : MonoBehaviour
         {
             public LotusHandler handler;
+            public CharacterModel model;
+            public TemporaryOverlayInstance overlay;
+            //public bool lateAdded = true;
+            //public float lateRiseCoeff;
+            public float duration = 0;
             //public bool onBody = true;
+            public void FixedUpdate(){
+                if (overlay != null && handler){
+                    //Debug.Log("overlay: " + overlay + " | " + handler)
+                    if (overlay.materialInstance){
+                        if (handler.rise){
+                            //lateAdded = false;
+                            overlay.materialInstance.SetFloat("_AlphaBoost", handler.risingCoeffValue);
+                        }else{
+                            //if (!lateAdded && !handler.rise){
+                            //    duration += Time.fixedDeltaTime;
+                            //    lateRiseCoeff = (speedCurveRise.Evaluate(duration / .65f)) * handler.slowCoeffValue;
+                            //
+                            //    overlay.materialInstance.SetFloat("_AlphaBoost", lateRiseCoeff);
+                            //    //if(lotusTimer+)
+                            //    if(duration >= .65f){
+                            //        lateAdded = false;
+                            //    }
+                            //}else{
+                            overlay.materialInstance.SetFloat("_AlphaBoost", 1 - handler.slowCoeffValue);
+                            //}
+                        }
+                        //Debug.Log("material isntancce is updated");
+                    }
+                }
+
+            }
         }
 
         //public class LotusBodyToken : MonoBehaviour

@@ -25,7 +25,7 @@ namespace vanillaVoid.Items
 
         public override string ItemPickupDesc => "The experiment has completed, for now...";
 
-        public override string ItemFullDescription => $"The experiment has completed, for now...";
+        public override string ItemFullDescription => "The experiment has completed, for now...";
 
         public override string ItemLore => $"Hi! Hope you're enjoying the mod, or whatever you're doing in order to have seen this. Have a nice day!";
 

@@ -834,6 +834,7 @@ namespace vanillaVoid.Items
 
         private void CalculateStatsCryoHook(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args)
         {
+            //Debug.Log("buh");
             if (sender)
             {
                 int buffCount = sender.GetBuffCount(preFreezeSlow);
