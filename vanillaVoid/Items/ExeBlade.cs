@@ -18,8 +18,6 @@ namespace vanillaVoid.Items
 {
     public class ExeBlade : ItemBase<ExeBlade>
     {
-        //public ConfigEntry<float> luckBonus;
-
         public ConfigEntry<float> additionalProcs;
 
         public ConfigEntry<float> deathDelay;

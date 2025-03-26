@@ -39,7 +39,8 @@ namespace vanillaVoid {
     [BepInDependency("com.bepis.r2api.prefab", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("com.bepis.r2api.recalculatestats", BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency("com.bepis.r2api.director", BepInDependency.DependencyFlags.HardDependency)]
-    //[BepInDependency("com.bepis.r2api.networking", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("com.bepis.r2api.orb", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("com.bepis.r2api.networking", BepInDependency.DependencyFlags.HardDependency)]
 
     //[BepInDependency("com.RumblingJOSEPH.VoidItemAPI", BepInDependency.DependencyFlags.HardDependency)]
     //[BepInDependency(VoidItemAPI.VoidItemAPI.MODGUID)]
@@ -365,8 +366,8 @@ namespace vanillaVoid {
                     Debug.Log("Skipping " + item.ItemName);
                 }
             }
-            var key = DLC1Content.ItemRelationshipTypes.ContagiousItem;
-            Debug.Log(key);
+           // var key = DLC1Content.ItemRelationshipTypes.ContagiousItem;
+            //Debug.Log(key);
             var voidPairs = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem];
             ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem] = voidPairs.Union(newVoidPairs).ToArray();
             Debug.Log("Finishing appending VanillaVoid item transformations.");

@@ -31,7 +31,7 @@ namespace vanillaVoid.Items
 
         public override string ItemFullDescription => $"<style=cIsUtility>Slow</style> effects apply <style=cIsDamage>drown</style>, dealing <style=cIsDamage>{baseDamageDot.Value * 100}%</style> <style=cStack>(+{stackingDamageDot.Value * 100}% per stack)</style> base damage per <style=cIsUtility>10% slow</style>. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemLore => $"The horngus of a dongfish is attached by a scungle to a kind of dillsack (the nutte sac).";
+        public override string ItemLore => "<style=cMono>\n========================================\n====   MyBabel Machine Translator   ====\n====     [Version 12.45.1.009 ]   ======\n========================================\nTraining... <100000000 cycles>\nTraining... <8475128 cycles>\nComplete!\nDisplay result? Y/N\nY\n========================================\n\n{Initiate Suit Recording}</style>\n\n...Look here. Body of a stranger.\n\nRansack it for everything it may give us.\n\nUnderstood. Meat and scraps?\n\nYes, the usual elements.\n\n...There is little here. This one has been picked clean already.\n\nWhat of this? This could be useful.\n\n...Too heavy. Take it to the cliff and let [the crustaceans] take it.\n\nWhat does this read? I cannot parse the language.\n\nTarry not, [friend]. And do not drop it. We cannot know what horrible things are sealed in there.\n\nYou underestimate me. Watch, and see that I am-\n\n[loud crash, undecipherable shouting, explosion]\n\n<style=cMono>{End Suit Recording}\n\n========================================</style>";
 
         public override ItemTier Tier => ItemTier.VoidTier2;
 
@@ -82,7 +82,7 @@ namespace vanillaVoid.Items
         public void CreateBuff(){
             drownDamage = ReserveDamageType();
             drownBuff = ScriptableObject.CreateInstance<BuffDef>();
-            drownBuff.buffColor = Color.magenta;
+            drownBuff.buffColor = Color.white;
             drownBuff.canStack = false;
             drownBuff.isDebuff = false;
             drownBuff.name = "DmVV" + "drownDot";
@@ -90,7 +90,7 @@ namespace vanillaVoid.Items
             ContentAddition.AddBuffDef(drownBuff);
 
             //DotAPI.CustomDotBehaviour drownDotBehavior = DrownDotBehavior;
-            drownDotIndex = DotAPI.RegisterDotDef(0.33f, (1 * 0.33f), DamageColorIndex.Void, drownBuff, null, null);
+            drownDotIndex = DotAPI.RegisterDotDef(0.33f, (1 * 0.30f), DamageColorIndex.Void, drownBuff, null, null);
         }
 
         //public void DrownDotBehavior(DotController self, DotController.DotStack dotStack){
@@ -138,8 +138,8 @@ namespace vanillaVoid.Items
 
         public override void CreateConfig(ConfigFile config)
         {
-            baseDamageDot = config.Bind<float>("Item: " + ItemName, "Base Dot Damage", .33f, "Adjust the percent of base damage drown does per 10% slow.");
-            stackingDamageDot = config.Bind<float>("Item: " + ItemName, "Stacking Dot Damage", .33f, "Adjust the damage percent drown does per 10% slow per stack.");
+            baseDamageDot = config.Bind<float>("Item: " + ItemName, "Base Dot Damage", .3f, "Adjust the percent of base damage drown does per 10% slow.");
+            stackingDamageDot = config.Bind<float>("Item: " + ItemName, "Stacking Dot Damage", .2f, "Adjust the damage percent drown gains per 10% slow per stack.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "StrengthenBurn", "Adjust which item this is the void pair of.");
         }
 
@@ -774,7 +774,7 @@ namespace vanillaVoid.Items
         public override void Hooks()
         {
             IL.RoR2.CharacterBody.RecalculateStats += CheckSlowAmount2; //HUGE
-            On.RoR2.HealthComponent.TakeDamage += ApplySlowDot;
+            On.RoR2.HealthComponent.TakeDamage += UpdateRecentPlayer;
 
             On.RoR2.HealthComponent.TakeDamage += wawa;
 
@@ -805,7 +805,7 @@ namespace vanillaVoid.Items
                     };
                     DotController.InflictDot(ref dotInfo);
                 }
-                else if(!(mult > 1) && self.characterBody.HasBuff(drownBuff))
+                else if(!(mult > 1) && self.characterBody.HasBuff(drownBuff) && NetworkServer.active)
                 {
                     var dotCtrl = DotController.FindDotController(self.gameObject);
                     if (dotCtrl)
@@ -833,7 +833,7 @@ namespace vanillaVoid.Items
                 comp.isFrozen = false;
                 var mult = comp.slowAmount + (comp.isFrozen ? 1.5f : (comp.isStopped ? 1 : 0)) + (self.characterBody.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0); //shoutout to rex weaken being the only one done differently
 
-                if (mult > 1 && self.characterBody.HasBuff(drownBuff))
+                if (mult > 1 && self.characterBody.HasBuff(drownBuff) && NetworkServer.active)
                 {
                     //Debug.Log("removing DOT from CheckFrozenState");
                     var dotCtrl = DotController.FindDotController(self.gameObject);
@@ -863,22 +863,22 @@ namespace vanillaVoid.Items
                 float mult;
                 var comp = self.body.gameObject.GetComponent<CorrosiveCounter>();
                 if (comp) {
-                    //Debug.Log("comp.isFrozen: " + comp.isFrozen);
+                    //Debug.Log("comp.isFrozen: " + comp.isFrozen + " | isStopped: " + comp.isStopped + " | has buff: " + self.body.HasBuff(RoR2.RoR2Content.Buffs.Weak));
                     mult = comp.slowAmount + (comp.isFrozen ? 1.5f : (comp.isStopped ? 1 : 0)) + (self.body.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0); //shoutout to rex weaken being the only one done differently
-                    
+                    //Debug.Log("mult: " + mult);
                     if (mult > 1){
                         //Debug.Log("update damage");
                         //self.RemoveDotStackAtServer()
                         var cb = comp.recentPlayer;
                         var count = cb.inventory.GetItemCount(ItemDef);
                         // Debug.Log("The j: " + baseDamageDot.Value * attacker.damage + (stackingDamageDot.Value * (count - 1)));
-                        damageInfo.damage = mult * (baseDamageDot.Value * cb.damage + (stackingDamageDot.Value * (count - 1)));
+                        damageInfo.damage = mult * (cb.damage * (baseDamageDot.Value + (stackingDamageDot.Value * (count - 1))));
                         //dotStack.AddModdedDamageType(drownDamage);
                     }
                     else
                     {
                         //Debug.Log("Removing DOT from TakeDamage");
-                        if (self.body.HasBuff(drownBuff))
+                        if (self.body.HasBuff(drownBuff) && NetworkServer.active)
                         {
                             var dotCtrl = DotController.FindDotController(self.gameObject);
                             if (dotCtrl)
@@ -924,20 +924,16 @@ namespace vanillaVoid.Items
                     }
                     //Debug.Log("increase: " + );
                     //Debug.Log("decrease:" + decrease);
-                    token.slowAmount = decrease + (self.HasBuff(RoR2Content.Buffs.Weak) ? .6f : 0);
+                    token.slowAmount = decrease;// + (self.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0);
 
-                    if(self.moveSpeed == 0 && self.acceleration == 80){
-                        token.isStopped = true;
-                    }else{
-                        token.isStopped = false;
-                    }
+                    token.isStopped = self.moveSpeed == 0 && self.acceleration == 80;
 
                     token.isFrozen = self.healthComponent.isInFrozenState;
                     //Debug.Log("RecalcStats : slowamount:" + token.slowAmount + " | " + token.isStopped + " | " + token.isFrozen);
-
+                    var tempslow = token.slowAmount + (self.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0);
                     if (token.recentPlayer && token.recentPlayer.inventory.GetItemCount(ItemDef) > 0){
                         if (!self.HasBuff(drownBuff)){
-                            if(token.slowAmount > 1 || token.isFrozen || token.isStopped){
+                            if(tempslow > 1 || token.isFrozen || token.isStopped){
                                 //Debug.Log("applying DOT from stack gain");
                                 var dotInfo = new InflictDotInfo {
                                     attackerObject = token.recentPlayer.gameObject,
@@ -951,7 +947,7 @@ namespace vanillaVoid.Items
                         }
                     }
 
-                    if (token.slowAmount == 1 && !token.isStopped && !token.isFrozen){
+                    if (tempslow == 1 && !token.isStopped && !token.isFrozen && NetworkServer.active){
                         var dotCtrl = DotController.FindDotController(self.gameObject);
                         if (dotCtrl)
                         {
@@ -970,7 +966,7 @@ namespace vanillaVoid.Items
             } else { Debug.Log("ah fuck (corrosive)"); }
         }
 
-        private void ApplySlowDot(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo){
+        private void UpdateRecentPlayer(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo){
             orig(self, damageInfo);
             if (damageInfo.attacker){
                 CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -1007,10 +1003,5 @@ namespace vanillaVoid.Items
 
         public CharacterBody recentPlayer;
         public CharacterBody currentPlayer;
-    }
-
-    public class CorrosiveToken : MonoBehaviour
-    {
-        public CharacterBody body;
     }
 }

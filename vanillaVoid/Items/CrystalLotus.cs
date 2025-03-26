@@ -99,7 +99,7 @@ namespace vanillaVoid.Items
 
                 default:
                     tempItemPickupDesc = $"Periodically release slowing pulses during the Teleporter event and 'Holdout Zones' such as the Void Fields. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
-                    tempItemFullDescription = $"Release a <style=cIsUtility>slowing pulse</style> during the Teleporter event, <style=cIsUtility>slowing enemies and projectiles</style> by up to <style=cIsUtility>{(1 - LotusSlowPercent.Value) * 100}%</style> for {LotusDuration.Value} seconds. Occurs <style=cIsHealing>{pulseCountStacking.Value}</style> <style=cStack>(+{pulseCountStacking.Value} per stack)</style> times. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+                    tempItemFullDescription = $"Release a <style=cIsUtility>slowing pulse</style> during the Teleporter event, <style=cIsUtility>slowing enemies and projectiles</style> by up to <style=cIsUtility>{(1 - LotusSlowPercent.Value) * 100}%</style> for <style=cIsUtility>{LotusDuration.Value}</style> seconds. Occurs <style=cIsHealing>{pulseCountStacking.Value}</style> <style=cStack>(+{pulseCountStacking.Value} per stack)</style> times. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
                     tempLore = $"\"I've been holed up here for... god knows how long now. I thought... I thought these plants would be... valuable, that..that it would be fine if I went and just... grabbed one - nature wouldn't mind... right? But ever since I grabbed it...I just feel.. so sluggish.. What...did I do wrong?\"\n\n- Lost Recording, Recovered from Petrichor V";
 
                     break;

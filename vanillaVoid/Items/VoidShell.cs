@@ -1038,8 +1038,6 @@ namespace vanillaVoid.Items
             IL.EntityStates.DeepVoidPortalBattery.Charged.OnEnter += OverrideBatteryChargedEnter;
         }
 
-
-
         private void OverrideBatteryChargingEnter(ILContext il)
         {
             ILCursor c = new ILCursor(il);

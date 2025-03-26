@@ -73,6 +73,8 @@ namespace vanillaVoid.Items
 
         public static GameObject iceDeathAOEObject { get; set; } = MainAssets.LoadAsset<GameObject>("IceExplosionAoe");
 
+        public static GameObject iceDeathAOE2 { get; set; } = MainAssets.LoadAsset<GameObject>("CryoExplosionAOE");
+
         //GameObject gameObject = UnityEngine.Object.Instantiate(iceDeathAOEObject, position, Quaternion.identity);
 
 
@@ -89,12 +91,43 @@ namespace vanillaVoid.Items
             vfxattr.vfxPriority = VFXAttributes.VFXPriority.Low;
             vfxattr.vfxIntensity = VFXAttributes.VFXIntensity.Low;
 
-            var effectcomp = iceDeathAOEObject.AddComponent<EffectComponent>();
+            var effect = iceDeathAOEObject.AddComponent<EffectComponent>();
+            effect.applyScale = true;
             //effectcomp.positionAtReferencedTransform = false;
 
             iceDeathAOEObject.AddComponent<DestroyOnParticleEnd>();
 
             ContentAddition.AddEffect(iceDeathAOEObject);
+
+
+            var efc = iceDeathAOE2.AddComponent<EffectComponent>();
+            efc.soundName = "Play_item_proc_iceRingSpear";
+            efc.applyScale = true;
+
+            var light = iceDeathAOE2.transform.Find("Point Light");
+            var lic = light.gameObject.AddComponent<LightIntensityCurve>();
+
+            AnimationCurve cryocurve = new AnimationCurve {
+                keys = new Keyframe[] { new Keyframe(0, 1), new Keyframe(.5f, .25f), new Keyframe(1, 0) },
+                preWrapMode = WrapMode.ClampForever,
+                postWrapMode = WrapMode.ClampForever
+            };
+
+            lic.curve = cryocurve;
+            lic.timeMax = .3f;
+
+            light.gameObject.AddComponent<LightScaleFromParent>();
+
+            var vfx = iceDeathAOE2.AddComponent<VFXAttributes>();
+            vfx.vfxPriority = VFXAttributes.VFXPriority.Medium;
+            vfx.vfxIntensity = VFXAttributes.VFXIntensity.Medium;
+
+            vfx.optionalLights = new Light[1];
+            vfx.optionalLights[0] = light.gameObject.GetComponent<Light>();
+
+            iceDeathAOE2.AddComponent<DestroyOnParticleEnd>();
+
+            ContentAddition.AddEffect(iceDeathAOE2);
 
             //RoR2/Base/EliteIce/AffixWhiteExplosion.prefab
             //string aoePath = "RoR2/Base/Common/VFX/OmniImpactVFXFrozen.prefab"; // "RoR2 /Base/Common/VFX/OmniImpactVFXFrozen.prefab";
@@ -779,12 +812,11 @@ namespace vanillaVoid.Items
             }
 
             CharacterBody victimBody = obj.victimBody;
-            //dmgReport.victimBody.gameObject.AddComponent<ExeToken>();
             CharacterBody attackerBody = obj.attackerBody;
             
             if (attackerBody.inventory)
             {
-                var cryoCount = attackerBody.inventory.GetItemCount(ItemBase<CryoCanister>.instance.ItemDef);
+                var cryoCount = attackerBody.inventory.GetItemCount(this.ItemDef);
                 if (cryoCount > 0)
                 {
                     float stackRadius = aoeRangeBase.Value + (aoeRangeStacking.Value * (float)(cryoCount - 1));
@@ -871,6 +903,13 @@ namespace vanillaVoid.Items
                     EffectManager.SpawnEffect(iceDeathAOEObject, new EffectData
                     {
                         origin = corePosition,
+                        scale = effectiveRadius/9,
+                        rotation = Util.QuaternionSafeLookRotation(obj.damageInfo.force)
+                    }, true);
+
+                    EffectManager.SpawnEffect(iceDeathAOE2, new EffectData
+                    {
+                        origin = corePosition,
                         scale = effectiveRadius,
                         rotation = Util.QuaternionSafeLookRotation(obj.damageInfo.force)
                     }, true);
@@ -922,6 +961,7 @@ namespace vanillaVoid.Items
                 }
             }
         }
+        
         public class CryoToken : MonoBehaviour
         {
         }

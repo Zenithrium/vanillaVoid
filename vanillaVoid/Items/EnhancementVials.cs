@@ -52,6 +52,8 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
+        public static GameObject vialsVFX { get; set; } = MainAssets.LoadAsset<GameObject>("VialsVFX");
+
         public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.Utility, ItemTag.LowHealth };
 
         // -- broken vials -- //
@@ -87,7 +89,57 @@ namespace vanillaVoid.Items
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
             //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
 
-            Hooks(); 
+            Hooks();
+
+
+
+            var efc = vialsVFX.AddComponent<EffectComponent>();
+            efc.soundName = "Play_item_proc_healingPotion";
+            efc.applyScale = false;
+            efc.positionAtReferencedTransform = true;
+            efc.parentToReferencedTransform = true;
+
+            var light = vialsVFX.transform.Find("Point Light");
+            var lic = light.gameObject.AddComponent<LightIntensityCurve>();
+
+            AnimationCurve cryocurve = new AnimationCurve
+            {
+                keys = new Keyframe[] { new Keyframe(0, 1), new Keyframe(.5f, .25f), new Keyframe(1, 0) },
+                preWrapMode = WrapMode.ClampForever,
+                postWrapMode = WrapMode.ClampForever
+            };
+
+            lic.curve = cryocurve;
+            lic.timeMax = 1f;
+
+            light.gameObject.AddComponent<LightScaleFromParent>();
+
+            var vfx = vialsVFX.AddComponent<VFXAttributes>();
+            vfx.vfxPriority = VFXAttributes.VFXPriority.Always;
+            vfx.vfxIntensity = VFXAttributes.VFXIntensity.Medium;
+
+            vfx.optionalLights = new Light[1];
+            vfx.optionalLights[0] = light.gameObject.GetComponent<Light>();
+
+            var destroy = vialsVFX.AddComponent<DestroyOnTimer>();
+            destroy.duration = 3;
+
+            var shake = vialsVFX.AddComponent<ShakeEmitter>();
+            shake.shakeOnStart = true;
+            shake.shakeOnEnable = false;
+            Wave wave = new Wave();
+            wave.amplitude = 1;
+            wave.frequency = 20;
+            wave.cycleOffset = 0;
+            shake.wave = wave;
+            shake.duration = .1f;
+            shake.radius = 20f;
+            shake.amplitudeTimeDecay = true;
+            shake.scaleShakeRadiusWithLocalScale = false;
+
+            ContentAddition.AddEffect(vialsVFX);
+
+
         }
 
         //protected void CreateBrokenItem()
@@ -796,7 +848,7 @@ namespace vanillaVoid.Items
 
                         EffectData effectData = new EffectData { origin = self.transform.position };
                         effectData.SetNetworkedObjectReference(self.gameObject);
-                        EffectManager.SpawnEffect(HealthComponent.AssetReferences.shieldBreakEffectPrefab, effectData, transmit: true);
+                        EffectManager.SpawnEffect(vialsVFX, effectData, transmit: true);
                     }
                 }
                 else
@@ -806,7 +858,7 @@ namespace vanillaVoid.Items
                     CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, this.ItemDef.itemIndex, ShatteredVials.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
                     EffectData effectData = new EffectData { origin = self.transform.position };
                     effectData.SetNetworkedObjectReference(self.gameObject);
-                    EffectManager.SpawnEffect(HealthComponent.AssetReferences.shieldBreakEffectPrefab, effectData, transmit: true);
+                    EffectManager.SpawnEffect(vialsVFX, effectData, transmit: true);
                 }
                 
 
@@ -938,7 +990,7 @@ namespace vanillaVoid.Items
                     CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, brokenItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
                     EffectData effectData = new EffectData{ origin = self.transform.position };
                     effectData.SetNetworkedObjectReference(self.gameObject);
-                    EffectManager.SpawnEffect(HealthComponent.AssetReferences.shieldBreakEffectPrefab, effectData, transmit: true);
+                    EffectManager.SpawnEffect(vialsVFX, effectData, transmit: true);
                 //}
             }
         }

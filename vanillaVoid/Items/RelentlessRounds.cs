@@ -67,11 +67,13 @@ namespace vanillaVoid.Items
         public static Material rentlessTrail => vanillaVoidPlugin.MainAssets.LoadAsset<Material>("matRentlessTrail");
 
         //public static Material
+        public static GameObject relentlessSplashVFX { get; set; } = MainAssets.LoadAsset<GameObject>("RelentlessSplashVFX");
 
         public static GameObject rentlessBolt => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("RoundsOrbEffect");
 
         public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
 
+        
         //public BuffDef relentlessDef { get; private set; }
 
         //public static DotController.DotIndex dotIndex;
@@ -89,6 +91,54 @@ namespace vanillaVoid.Items
 
             //SetupALot();
             Hooks();
+
+            var efc = relentlessSplashVFX.AddComponent<EffectComponent>();
+            efc.positionAtReferencedTransform = true;
+            efc.parentToReferencedTransform = false;
+            efc.applyScale = false;
+            efc.disregardZScale = false;
+            efc.soundName = "";
+
+            var vfx = relentlessSplashVFX.AddComponent<VFXAttributes>();
+            vfx.vfxPriority = VFXAttributes.VFXPriority.Low;
+            vfx.vfxIntensity = VFXAttributes.VFXIntensity.Low;
+
+            var dest = relentlessSplashVFX.AddComponent<DestroyOnTimer>();
+            dest.duration = 2;
+            dest.resetAgeOnDisable = false;
+
+            var light = relentlessSplashVFX.transform.Find("Intermediate").Find("Point light");
+            var lic = light.gameObject.AddComponent<LightIntensityCurve>();
+
+            AnimationCurve relcurve = new AnimationCurve
+            {
+                keys = new Keyframe[] { new Keyframe(0, 1), new Keyframe(.5f, .25f), new Keyframe(1, 0) },
+                preWrapMode = WrapMode.ClampForever,
+                postWrapMode = WrapMode.ClampForever
+            };
+
+            lic.curve = relcurve;
+            lic.timeMax = .4f;
+            lic.enableNegativeLights = true;
+
+            var flicker = light.gameObject.AddComponent<FlickerLight>();
+            flicker.light = light.GetComponent<Light>();
+
+            flicker.sinWaves = new Wave[2];
+            Wave wave1 = new Wave();
+            wave1.amplitude = .1f;
+            wave1.frequency = 20;
+
+            Wave wave2 = new Wave();
+            wave2.amplitude = .1f;
+            wave2.frequency = 12;
+
+            flicker.sinWaves[0] = wave1;
+            flicker.sinWaves[1] = wave2;
+
+            ContentAddition.AddEffect(relentlessSplashVFX);
+
+
         }
 
         public void SetupALot(){
@@ -269,18 +319,18 @@ namespace vanillaVoid.Items
             //string orbTransp = "RoR2/DLC1/voidraid/matVoidRaidPlanetPurpleWave.mat"; 
             //string orbCore = "RoR2/DLC1/voidstage/matVoidCoralPlatformPurple.mat";
 
-            string orbTransp = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorLightning.mat";
-            string orbCore = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorPod.mat";
-
-            var adzeOrbsModelTransp = ItemModel.transform.Find("orbTransp").GetComponent<MeshRenderer>();
-            var adzeOrbsModelCore = ItemModel.transform.Find("orbCore").GetComponent<MeshRenderer>();
-            adzeOrbsModelTransp.material = Addressables.LoadAssetAsync<Material>(orbTransp).WaitForCompletion();
-            adzeOrbsModelCore.material = Addressables.LoadAssetAsync<Material>(orbCore).WaitForCompletion();
-
-            var adzeOrbsDisplayTransp = ItemBodyModelPrefab.transform.Find("orbTransp").GetComponent<MeshRenderer>();
-            var adzeOrbsDisplayCore = ItemBodyModelPrefab.transform.Find("orbCore").GetComponent<MeshRenderer>();
-            adzeOrbsDisplayTransp.material = Addressables.LoadAssetAsync<Material>(orbTransp).WaitForCompletion();
-            adzeOrbsDisplayCore.material = Addressables.LoadAssetAsync<Material>(orbCore).WaitForCompletion();
+            //string orbTransp = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorLightning.mat";
+            //string orbCore = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorPod.mat";
+            //
+            //var adzeOrbsModelTransp = ItemModel.transform.Find("orbTransp").GetComponent<MeshRenderer>();
+            //var adzeOrbsModelCore = ItemModel.transform.Find("orbCore").GetComponent<MeshRenderer>();
+            //adzeOrbsModelTransp.material = Addressables.LoadAssetAsync<Material>(orbTransp).WaitForCompletion();
+            //adzeOrbsModelCore.material = Addressables.LoadAssetAsync<Material>(orbCore).WaitForCompletion();
+            //
+            //var adzeOrbsDisplayTransp = ItemBodyModelPrefab.transform.Find("orbTransp").GetComponent<MeshRenderer>();
+            //var adzeOrbsDisplayCore = ItemBodyModelPrefab.transform.Find("orbCore").GetComponent<MeshRenderer>();
+            //adzeOrbsDisplayTransp.material = Addressables.LoadAssetAsync<Material>(orbTransp).WaitForCompletion();
+            //adzeOrbsDisplayCore.material = Addressables.LoadAssetAsync<Material>(orbCore).WaitForCompletion();
 
             var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
             itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);
@@ -869,6 +919,13 @@ namespace vanillaVoid.Items
                                 if (hurtBox){
                                     //Transform transform = this.childLocator.FindChild(this.muzzleString);
                                     //EffectManager.SimpleMuzzleFlash(this.muzzleflashEffectPrefab, base.gameObject, this.muzzleString, true);
+
+                                    EffectManager.SpawnEffect(relentlessSplashVFX, new EffectData {
+                                        origin = obj.victimBody.corePosition,
+                                        scale = 1,
+                                        rotation = Util.QuaternionSafeLookRotation(obj.damageInfo.force)
+                                    }, true);
+
                                     damageOrb.origin = obj.victimBody.corePosition;
                                     damageOrb.target = hurtBox;
                                     OrbManager.instance.AddOrb(damageOrb);
