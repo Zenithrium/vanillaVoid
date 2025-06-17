@@ -697,8 +697,6 @@ namespace vanillaVoid.Items
             float mult = 0;
             bool adjusted = false;
 
-            Debug.Log(self.body.baseNameToken);
-
             if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
             {
                 CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();

@@ -25,7 +25,7 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "FIN_ITEM";
 
-        public override string ItemPickupDesc => $"Deal more damage to enemies with lower health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+        public override string ItemPickupDesc => $"Leap off of enemies to slam them into the ground. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemFullDescription => $"Deal up to <style=cIsDamage>+{baseDamageBuff.Value * 100}%</style>" + (stackingBuff.Value != 0 ? $" <style=cStack>(+{stackingBuff.Value * 100}% per stack)</style>" : "") + $" damage to enemies with lower health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
@@ -54,8 +54,6 @@ namespace vanillaVoid.Items
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
             //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
-
-
 
             Hooks();
         }
@@ -891,7 +889,7 @@ namespace vanillaVoid.Items
         public GameObject effect1;
         public GameObject effect2;
         public HurtBox? nearest;
-
+        
         private bool canEnemyJump
         {
             get
@@ -997,7 +995,7 @@ namespace vanillaVoid.Items
                         procCoefficient = 1,
                         damageType = DamageType.Generic,
                         damageColorIndex = DamageColorIndex.Item,
-                        force = Vector3.down * 10
+                        force = Vector3.down * 25
                     };
                     nearest.healthComponent.TakeDamage(damageInfo);
 
