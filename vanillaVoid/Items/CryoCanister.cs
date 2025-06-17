@@ -848,7 +848,7 @@ namespace vanillaVoid.Items
                     {
                         HurtBox hurtBox = cryoAOEHurtBoxBuffer[i];
                         //Debug.Log("hurtbox " + hurtBox);
-                        if (hurtBox.healthComponent)
+                        if (hurtBox.healthComponent && hurtBox.healthComponent.alive)
                         {
                             hurtBox.healthComponent.body.AddTimedBuffAuthority(preFreezeSlow.buffIndex, duration);
                             
@@ -896,7 +896,8 @@ namespace vanillaVoid.Items
                         teamIndex = attackerTeamIndex,
                         position = corePosition,
                         //baseForce = 0,
-                        //damageType = DamageType.AOE
+                        damageType = DamageType.AOE
+                        
                     }.Fire();
 
                     //EntityStates.Mage.Weapon.IceNova.impactEffectPrefab
@@ -949,13 +950,8 @@ namespace vanillaVoid.Items
                     {
                         ratio = 1;
                     }
-                    float slowProportion = -(slowPercentage.Value / (slowPercentage.Value - 1f)); //converts an input of .5 -> 50% to 1 which if added as a reductionmultadd you get 50% slow
-                    //float stacks = requiredStacksForFreeze.Value - buffCount - 1; //4 - 3 - 1 = 0
-                    //float distFromMax1 = slowProportion / (requiredStacksForFreeze.Value - buffCount - 1); //converts the max slow into a proportion based on missing stacks 
-
+                    float slowProportion = slowPercentage.Value / .5f;  //it's that simple isnt it
                     float distFromMax = slowProportion * ratio; //this no longer accurately splits the slow up between each stack but who fucking cares
-
-                    //Debug.Log("ratio: " + ratio + " | " + distFromMax + " | " + buffCount + " | " + ((float)buffCount + 1f) / (float)requiredStacksForFreeze.Value);
 
                     args.moveSpeedReductionMultAdd += distFromMax;
                 }

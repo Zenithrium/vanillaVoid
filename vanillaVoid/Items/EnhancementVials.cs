@@ -18,7 +18,10 @@ namespace vanillaVoid.Items
     public class EnhancementVials : ItemBase<EnhancementVials>
     {
         public ConfigEntry<int> vialsVariant;
+        public ConfigEntry<int> refreshAmount;
         public ConfigEntry<bool> regenAnyway;
+
+
 
         private Xoroshiro128Plus potionVoidRng;
 
@@ -30,8 +33,8 @@ namespace vanillaVoid.Items
         //    (EmptyVials.instance.refreshAmount.Value > 0 ? $" At the start of each stage, {EmptyVials.instance.refreshAmount.Value} stack regenerates." : (EmptyVials.instance.refreshAmount.Value < 0 ? " At the start of each stage, all broken stacks refresh." : "")) + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemPickupDesc => (vialsVariant.Value == 0 ? $"Corrupt an item at low health. Consumed on use." : $"Upgrade an item at low health. Consumed on use. " +
-            (EmptyVials.instance.refreshAmount.Value > 0 ? $" At the start of each stage, {EmptyVials.instance.refreshAmount.Value} stack regenerates." :
-            (EmptyVials.instance.refreshAmount.Value < 0 ? " At the start of each stage, all broken stacks refresh." : ""))) + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+            (refreshAmount.Value > 0 ? $" At the start of each stage, {refreshAmount.Value} stack regenerates." :
+            (refreshAmount.Value < 0 ? " At the start of each stage, all broken stacks refresh." : ""))) + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
 
 
@@ -40,7 +43,7 @@ namespace vanillaVoid.Items
         //    (EmptyVials.instance.refreshAmount.Value < 0 ? " At the start of each stage, all broken stacks refresh." : ""))) + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
 
-        public override string ItemFullDescription => $"Taking damage to below <style=cIsHealth>25% health</style> <style=cIsUtility>consumes</style> this item, " + (vialsVariant.Value == 0 ? $"<style=cIsUtility>corrupting</style> a random corruptible item. Grants an additional <style=cIsUtility>0</style> <style=cStack>(+1 per stack)</style> copies of the corrupted item. " : $"<style=cIsUtility>upgrading</style> another item. At the start of each stage, <style=cIsUtility>{EmptyVials.instance.refreshAmount.Value}</style> stack regenerates. ") + $"<style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+        public override string ItemFullDescription => $"Taking damage to below <style=cIsHealth>25% health</style> <style=cIsUtility>consumes</style> this item, " + (vialsVariant.Value == 0 ? $"<style=cIsUtility>corrupting</style> a random corruptible item. Grants an additional <style=cIsUtility>0</style> <style=cStack>(+1 per stack)</style> copies of the corrupted item. " : $"<style=cIsUtility>upgrading</style> another item. ") + (vialsVariant.Value != 0 || (regenAnyway.Value && refreshAmount.Value > 0) ? $"At the start of each stage, <style=cIsUtility>{refreshAmount.Value}</style> stack regenerates. " : "") + $"<style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemLore => $"\"What an experiment this will be...our first forray into the void! Gather round, for this will forever change each and every one of our lives!\" \n\nA few days later, a janitor discovered a strange pile of objects scattered around various colorful test tubes. They thought little of it.";
 
@@ -168,8 +171,8 @@ namespace vanillaVoid.Items
             //consumeStack = config.Bind<bool>("Item: " + ItemName, "Consume Stack", false, "Adjust if each potion should upgrade a whole stack, like benthic, or only one.");
 
             vialsVariant = config.Bind<int>("Item: " + ItemName, "Variant of Item", 0, "Adjust which version of " + ItemName + " you'd prefer to use. Variant 0 corrupts items on break, while Variant 1 upgrades items like Benthic on break, and regenerates every stage.");
-            //regenAnyway = config.Bind<bool>("Item: " + ItemName, "Regen Anyway", false, "Variant 0: Makes it so the item regenerates itself using the config in Empty Vials.");
-
+            refreshAmount = config.Bind<int>("Item: " + ItemName, "Refresh Count", 1, "Adjust how many empty vials refresh at the start of a new stage. A negative number will refresh all stacks.");
+            regenAnyway = config.Bind<bool>("Item: " + ItemName, "Refresh Anyway", false, "Variant 0: Makes it possible for Variant 0 vials (corrupt) to regenerate like they do for Variant 1 (upgrade). As such, regens the amount defined by 'Refresh Amount.'");
             //refreshAmount = config.Bind<int>("Item: " + ItemName, "Refresh Amount", 1, "Adjust how many empty potions refresh at the start of a new stage. A negative number will refresh all stacks.");
             voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "HealingPotion", "Adjust which item this is the void pair of.");
         }
@@ -777,7 +780,6 @@ namespace vanillaVoid.Items
         public override void Hooks(){
             if(vialsVariant.Value == 0)
             {
-                //On.RoR2.Items.ContagiousItemManager.Init += StoreTable;
                 On.RoR2.HealthComponent.UpdateLastHitTime += CorruptItem;
             }
             else
@@ -785,7 +787,10 @@ namespace vanillaVoid.Items
                 On.RoR2.HealthComponent.UpdateLastHitTime += BreakItem;
             }
 
-            
+            if(vialsVariant.Value != 0 || (regenAnyway.Value && refreshAmount.Value > 0))
+            {
+                RoR2.SceneDirector.onPrePopulateSceneServer += RefreshVials;
+            }
 
             //for broken item
             //RoR2.SceneDirector.onPrePopulateSceneServer += RefreshVials;
@@ -825,13 +830,7 @@ namespace vanillaVoid.Items
                 }
                 var items = self.body.inventory.itemAcquisitionOrder;
 
-
                 List<ItemIndex> newList = allVoids.Where(i => items.Contains(i)).ToList();
-
-                foreach(var item in newList)
-                {
-                    Debug.Log("in newlist: " + ItemCatalog.GetItemDef(item).name + " | " + ItemCatalog.GetItemDef(item).nameToken);
-                }
                 
                 if(newList.Count > 0)
                 {
@@ -859,52 +858,45 @@ namespace vanillaVoid.Items
                     EffectData effectData = new EffectData { origin = self.transform.position };
                     effectData.SetNetworkedObjectReference(self.gameObject);
                     EffectManager.SpawnEffect(vialsVFX, effectData, transmit: true);
-                }
-                
-
-
-                //vanilla item 1 // void item 2
-                //ContagiousItemManager.
+                }   
             }
-
         }
 
         private void RefreshVials(SceneDirector obj)
         {
-            int refreshAmnt = EmptyVials.instance.refreshAmount.Value;
-            if (refreshAmnt != 0)
+            int refreshAmnt = refreshAmount.Value;
+            if (refreshAmnt != 0 && (ItemBase<EnhancementVials>.instance.vialsVariant.Value == 1 || regenAnyway.Value))
             {
                 //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
                 //int itemCount = 0;
                 foreach (var player in PlayerCharacterMasterController.instances)
                 {
                     int itemCount = 0;
-                    var brokenItemDef = ItemBase<EmptyVials>.instance.ItemDef;
-                    itemCount += player.master.inventory.GetItemCount(brokenItemDef);
+                    itemCount += player.master.inventory.GetItemCount(ItemBase<EmptyVials>.instance.ItemDef);
                     if (itemCount > 0 && refreshAmnt < 0)
                     {
                         player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, itemCount);
-                        player.master.inventory.RemoveItem(brokenItemDef, itemCount);
-                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, brokenItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
+                        player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, itemCount);
+                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
 
                     }
                     else if (itemCount > 0 && itemCount > refreshAmnt)
                     {
                         player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, refreshAmnt);
-                        player.master.inventory.RemoveItem(brokenItemDef, refreshAmnt);
-                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, brokenItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
+                        player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, refreshAmnt);
+                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
 
                     }
                     else if (itemCount > 0 && itemCount <= refreshAmnt)
                     {
                         player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, itemCount);
-                        player.master.inventory.RemoveItem(brokenItemDef, itemCount);
-                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, brokenItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
+                        player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, itemCount);
+                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
                     }
                 }
             }
-            //Debug.Log("function ending, interactable credits after: " + obj.interactableCredit);
         }
+
 
         private void BreakItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker, bool b1, bool b2){
             orig(self, damageValue, damagePosition, damageIsSilent, attacker, b1, b2);

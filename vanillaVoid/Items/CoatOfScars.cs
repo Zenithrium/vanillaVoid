@@ -25,7 +25,7 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "SHELL_ITEM";
 
-        public override string ItemPickupDesc => $"High damage hits expunge all debuffs from an enemy, dealing damage for each removed debuff. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+        public override string ItemPickupDesc => $"High damage hits expunge all debuffs from an enemy, granting chitin for each removed debuff. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemFullDescription => $"Deal up to <style=cIsDamage>+{baseDamageBuff.Value * 100}%</style>" + (stackingBuff.Value != 0 ? $" <style=cStack>(+{stackingBuff.Value * 100}% per stack)</style>" : "") + $" damage to enemies with lower health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 

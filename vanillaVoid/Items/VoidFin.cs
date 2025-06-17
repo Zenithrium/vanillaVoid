@@ -11,31 +11,32 @@ using UnityEngine.AddressableAssets;
 using HarmonyLib;
 using static vanillaVoid.vanillaVoidPlugin;
 using On.RoR2.Items;
+using EntityStates;
 
 namespace vanillaVoid.Items
 {
-    public class AbyssalAdze : ItemBase<AbyssalAdze>
+    public class VoidFin : ItemBase<VoidFin>
     {
         public ConfigEntry<float> baseDamageBuff;
 
         public ConfigEntry<float> stackingBuff;
 
-        public override string ItemName => "Abyss-Touched Adze";
+        public override string ItemName => "VoidFin";
 
-        public override string ItemLangTokenName => "ADZE_ITEM";
+        public override string ItemLangTokenName => "FIN_ITEM";
 
         public override string ItemPickupDesc => $"Deal more damage to enemies with lower health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemFullDescription => $"Deal up to <style=cIsDamage>+{baseDamageBuff.Value * 100}%</style>" + (stackingBuff.Value != 0 ? $" <style=cStack>(+{stackingBuff.Value * 100}% per stack)</style>" : "") + $" damage to enemies with lower health. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemLore => $"<style=cMono>//-- AUTO-TRANSCRIPTION FROM CARGO BAY 6 OF UES [Redacted] --//</style>" + 
+        public override string ItemLore => $"<style=cMono>//-- AUTO-TRANSCRIPTION FROM CARGO BAY 6 OF UES [Redacted] --//</style>" +
             "\n\n\"So you're saying you destroyed-\" \n\n\"Traded!\"" +
             "\n\n\"...traded, our only crowbar. For that.\" \n\n\"Don't be so sour, come on! It's much better than a crowbar.\"" +
             "\n\n\"I don't even know what it is.\" \n\n\"It's an adze. It's like an...old time-y crowbar. More or less.\"" +
             "\n\n\"Ohh, so you decided our modern tools were too sensical, too useful for you?\" \n\n\"Oh quit the whining. This thing's a relic, it'd be worth way more than a crowbar. And it's probably way more useful, too. Just give it some time.\"" +
             "\n\n\"It'd better be.\"";
 
-        public override ItemTier Tier => ItemTier.VoidTier1;
+        public override ItemTier Tier => ItemTier.VoidTier2;
 
         public override GameObject ItemModel => vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlAdzePickup.prefab");
 
@@ -56,7 +57,7 @@ namespace vanillaVoid.Items
 
 
 
-            Hooks(); 
+            Hooks();
         }
 
         //public override string VoidPair()
@@ -69,12 +70,12 @@ namespace vanillaVoid.Items
         {
             baseDamageBuff = config.Bind<float>("Item: " + ItemName, "Base Percent Damage Increase", .3f, "Adjust the percent of extra damage dealt on the first stack.");
             stackingBuff = config.Bind<float>("Item: " + ItemName, "Stacking Percent Damage Increase", .3f, "Adjust the percent of extra damage dealt per stack.");
-            voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "Crowbar", "Adjust which item this is the void pair of.");
+            voidPair = config.Bind<string>("Item: " + ItemName, "Item to Corrupt", "KnockBackHitEnemies", "Adjust which item this is the void pair of.");
         }
 
         public override ItemDisplayRuleDict CreateItemDisplayRules()
         {
-            
+
             ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlAdzeDisplay.prefab");
             //string orbTransp = "RoR2/DLC1/voidraid/matVoidRaidPlanetPurpleWave.mat"; 
             //string orbCore = "RoR2/DLC1/voidstage/matVoidCoralPlatformPurple.mat";
@@ -101,7 +102,7 @@ namespace vanillaVoid.Items
             mpp.minDistance = 8f;
             mpp.maxDistance = 12f;
             mpp.modelRotation = Quaternion.Euler(new Vector3(0, 0, 0));
-            
+
             ItemDisplayRuleDict rules = new ItemDisplayRuleDict();
             rules.Add("mdlCommandoDualies", new RoR2.ItemDisplayRule[]{
                 new RoR2.ItemDisplayRule
@@ -189,7 +190,7 @@ namespace vanillaVoid.Items
                     localAngles = new Vector3(5.788457f, 7.310323f, 19.54668f),
                     localScale = new Vector3(.09f, .09f, .09f)
                 }
-                
+
             });
             rules.Add("mdlMerc", new RoR2.ItemDisplayRule[]
             {
@@ -689,46 +690,334 @@ namespace vanillaVoid.Items
 
         public override void Hooks()
         {
-            On.RoR2.HealthComponent.TakeDamage += AdzeDamageBonus;
+            On.RoR2.CharacterBody.OnInventoryChanged += AddJumpToken;
+
         }
 
-        private void AdzeDamageBonus(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo) {
-            float initialDmg = damageInfo.damage;
-            float mult = 0;
-            bool adjusted = false;
-
-            Debug.Log(self.body.baseNameToken);
-
-            if (damageInfo.attacker && damageInfo.attacker.GetComponent<CharacterBody>())
+        private void AddJumpToken(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self)
+        {
+            orig(self);
+            if (self.inventory)
             {
-                CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
-                if (attackerBody.inventory)
+                int itemCount = self.inventory.GetItemCount(ItemBase<VoidFin>.instance.ItemDef);
+                var token = self.gameObject.GetComponent<JumpToken>();
+                if (itemCount > 0)
                 {
-                    var stackCount = GetCount(attackerBody);
-        
-                    if (stackCount > 0)
+                    //var token = self.gameObject.GetComponent<AirdashToken>();
+                    if (!token)
                     {
-                        var healthFraction = Mathf.Clamp((1 - self.combinedHealthFraction), 0f, 1f);
-                        mult = healthFraction * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1)));
-        
-                        damageInfo.damage *= (1 + mult);
-                        float maxDamage = initialDmg + (initialDmg * (baseDamageBuff.Value + (stackingBuff.Value * (stackCount - 1))));
-        
-                        damageInfo.damage = Mathf.Min(damageInfo.damage, maxDamage);
-                        adjusted = true;
+                        token = self.gameObject.AddComponent<JumpToken>();
+                        token.body = self;
                     }
+                    Debug.Log("add token");
+                    token.jumpMax = itemCount * 1; // dashesPerStack.Value;
+
                 }
+                else if (token)
+                {
+                    GameObject.Destroy(token);
+                }
+
             }
-            
-            orig(self, damageInfo);
-            
-            if (adjusted)
-            {
-                damageInfo.damage /= (1 + mult);
-                //damageInfo.damage = initialDmg; //this also works
-            }
-            
         }
+
+
+
     }
 
+
+    //namespace RoR2.Items
+    //{
+    //    using BepInEx.Configuration;
+    //    using R2API;
+    //    using RoR2;
+    //    using vanillaVoid.Utils;
+    //    using System;
+    //    using System.Collections.Generic;
+    //    using System.Text;
+    //    using UnityEngine;
+    //    using UnityEngine.Networking;
+    //    using UnityEngine.AddressableAssets;
+    //    using HarmonyLib;
+    //    using static vanillaVoid.vanillaVoidPlugin;
+    //    using On.RoR2.Items;
+    //    using EntityStates;
+    //
+    //    public class VoidFinBehavior : BaseItemBodyBehavior
+    //    {
+    //        [ItemDefAssociation(useOnServer = true, useOnClient = true)]
+    //        private static ItemDef GetItemDef()
+    //        {
+    //            vvItemDefs.TryGetValue("FIN_ITEM", out var value);
+    //            return value;
+    //        }
+    //
+    //        public int jumpMax;
+    //        public int jumpCurrent;
+    //        int count = 0;
+    //        int previousCount = 0;
+    //        public float timer;
+    //        public float lastJumpTime;
+    //        //public CharacterBody body; //the player it's attached to
+    //
+    //        public GameObject effect1;
+    //        public GameObject effect2;
+    //
+    //
+    //        void Start()
+    //        {
+    //            Debug.Log("got");
+    //            timer = 0f;
+    //            jumpMax = body.inventory.GetItemCount(GetItemDef());
+    //            jumpCurrent = jumpMax;
+    //            count = 0;
+    //            string effectName = "RoR2/DLC1/MoveSpeedOnKill/MoveSpeedOnKillActivate.prefab";
+    //            effect1 = Addressables.LoadAssetAsync<GameObject>(effectName).WaitForCompletion();
+    //            string effectName2 = "RoR2/DLC1/VoidSuppressor/SuppressorDieEffect.prefab";
+    //            effect2 = Addressables.LoadAssetAsync<GameObject>(effectName2).WaitForCompletion();
+    //            Vector3 newScale = new Vector3(.5f, .5f, .5f);
+    //            effect2.transform.localScale = newScale;
+    //        }
+    //
+    //        private bool canEnemyJump
+    //        {
+    //            get
+    //            {
+    //                SphereSearch jumpSearch = new SphereSearch();
+    //                //List<HurtBox> cryoAOEHurtBoxBuffer = new List<HurtBox>();
+    //
+    //                jumpSearch.origin = body.transform.position;
+    //                jumpSearch.mask = LayerIndex.entityPrecise.mask;
+    //                jumpSearch.radius = body.radius * 1.5f;
+    //                jumpSearch.RefreshCandidates();
+    //                jumpSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetUnprotectedTeams(body.teamComponent.teamIndex));
+    //                jumpSearch.FilterCandidatesByDistinctHurtBoxEntities();
+    //                jumpSearch.OrderCandidatesByDistance();
+    //
+    //                List<Collider> candidates = new List<Collider>();
+    //                jumpSearch.GetColliders(candidates);
+    //
+    //                return candidates.Count > 0;
+    //
+    //                //cryoAOESphereSearch.GetHurtBoxes(cryoAOEHurtBoxBuffer);
+    //                //cryoAOESphereSearch.ClearCandidates();
+    //                //return Physics.CheckSphere(this.transform.position + (Vector3.up * 0.5f), body.radius * 1.5f, LayerIndex.world.mask, QueryTriggerInteraction.Collide);
+    //            }
+    //        }
+    //
+    //        private void FixedUpdate()
+    //        {
+    //            if (!body)
+    //            {
+    //                return;
+    //            }
+    //            if (!body.characterMotor)
+    //            {
+    //                return;
+    //            }
+    //
+    //            if (body.characterMotor.isGrounded)
+    //            {
+    //                jumpMax = body.inventory.GetItemCount(GetItemDef());
+    //                jumpCurrent = jumpMax;
+    //                count = 0;
+    //            }
+    //
+    //            if (!body.inputBank.jump.justPressed)
+    //            {
+    //                if (body.characterMotor.jumpCount != previousCount)
+    //                {
+    //                    count++;
+    //                    previousCount = body.characterMotor.jumpCount;
+    //                }
+    //            }
+    //            Debug.Log("can jump " + canEnemyJump + " | " + body.maxJumpCount);
+    //            //Debug.Log("jumpcount: " + body.characterMotor.jumpCount); //count >= body.maxJumpCount
+    //            if (body.inputBank.jump.justPressed && body.characterMotor.jumpCount == body.maxJumpCount && count >= body.maxJumpCount && jumpCurrent != 0 && body.moveSpeed != 0 && canEnemyJump)
+    //            {
+    //                Vector3 dir = body.inputBank.moveVector;
+    //                if (dir != Vector3.zero)
+    //                {
+    //                    //float dashVelo = 21;
+    //                    float vertStrength = 21;
+    //
+    //                    Quaternion quat = Quaternion.Euler(dir.x, dir.y, dir.z);
+    //                    float num = body.acceleration * body.characterMotor.airControl;
+    //                    float num2 = Mathf.Sqrt(vertStrength / num);
+    //                    float num3 = body.moveSpeed / num;
+    //                    float jumpStrength = (num2 + num3) / num3;
+    //
+    //                    GenericCharacterMain.ApplyJumpVelocity(body.characterMotor, body, num, jumpStrength, false);
+    //
+    //                    //string effectName = "RoR2/DLC1/MoveSpeedOnKill/MoveSpeedOnKillActivate.prefab";
+    //                    //GameObject effectPrefab = Addressables.LoadAssetAsync<GameObject>(effectName).WaitForCompletion();
+    //                    //string effect2 = "RoR2/DLC1/VoidSuppressor/SuppressorDieEffect.prefab";
+    //                    //GameObject effect2Prefab = Addressables.LoadAssetAsync<GameObject>(effect2).WaitForCompletion();
+    //                    //Vector3 newScale = new Vector3(.5f, .5f, .5f);
+    //                    //effect2Prefab.transform.localScale = newScale;
+    //
+    //                    EffectManager.SimpleImpactEffect(effect1, body.transform.position, dir, true);
+    //                    EffectManager.SimpleImpactEffect(effect2, body.transform.position, dir, true);
+    //
+    //                    jumpCurrent--;
+    //
+    //                }
+    //
+    //            }
+    //            else if (body.inputBank.jump.justPressed)
+    //            {
+    //                count++;
+    //            }
+    //
+    //            previousCount = body.characterMotor.jumpCount;
+    //
+    //        }
+    //
+    //    }
+    //}
+
+
+
+    public class JumpToken : MonoBehaviour
+    {
+        public int jumpMax;
+        public int jumpCurrent;
+        int count = 0;
+        int previousCount = 0;
+        public float timer;
+        public float lastJumpTime;
+        public CharacterBody body; //the player it's attached to
+
+        public GameObject effect1;
+        public GameObject effect2;
+        public HurtBox? nearest;
+
+        private bool canEnemyJump
+        {
+            get
+            {
+                SphereSearch jumpSearch = new SphereSearch();
+                List<HurtBox> jumpBoxList = new List<HurtBox>();
+
+                jumpSearch.origin = body.transform.position;
+                jumpSearch.mask = LayerIndex.entityPrecise.mask;
+                jumpSearch.radius = body.radius + 2.5f;
+                jumpSearch.RefreshCandidates();
+                jumpSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetUnprotectedTeams(body.teamComponent.teamIndex));
+                jumpSearch.FilterCandidatesByDistinctHurtBoxEntities();
+                jumpSearch.OrderCandidatesByDistance();
+                jumpSearch.GetHurtBoxes(jumpBoxList);
+                jumpSearch.ClearCandidates();
+
+
+                if (jumpBoxList.Count > 0)
+                {
+                    nearest = jumpBoxList[0];
+                    return true;
+                }
+
+                return false;
+
+                //cryoAOESphereSearch.GetHurtBoxes(cryoAOEHurtBoxBuffer);
+                //cryoAOESphereSearch.ClearCandidates();
+                //return Physics.CheckSphere(this.transform.position + (Vector3.up * 0.5f), body.radius * 1.5f, LayerIndex.world.mask, QueryTriggerInteraction.Collide);
+            }
+        }
+
+        void Awake()
+        {
+            timer = 0f;
+            jumpCurrent = jumpMax;
+            count = 0;
+            string effectName = "RoR2/DLC1/MoveSpeedOnKill/MoveSpeedOnKillActivate.prefab";
+            effect1 = Addressables.LoadAssetAsync<GameObject>(effectName).WaitForCompletion();
+            string effectName2 = "RoR2/DLC1/VoidSuppressor/SuppressorDieEffect.prefab";
+            effect2 = Addressables.LoadAssetAsync<GameObject>(effectName2).WaitForCompletion();
+            Vector3 newScale = new Vector3(.5f, .5f, .5f);
+            effect2.transform.localScale = newScale;
+            Debug.Log("bugthlhlgh");
+        }
+
+        private void FixedUpdate()
+        {
+            if (!body)
+            {
+                return;
+            }
+            if (!body.characterMotor)
+            {
+                return;
+            }
+
+            if (body.characterMotor.isGrounded)
+            {
+                jumpCurrent = jumpMax;
+                count = 0;
+            }
+
+            if (!body.inputBank.jump.justPressed)
+            {
+                if (body.characterMotor.jumpCount != previousCount)
+                {
+                    count++;
+                    previousCount = body.characterMotor.jumpCount;
+                }
+            }
+
+            Debug.Log("jumpcount: " + body.characterMotor.jumpCount + " | " + canEnemyJump + " | " + body.maxJumpCount + " | " + jumpCurrent + " | " + jumpMax); //count >= body.maxJumpCount
+            if (body.inputBank.jump.justPressed && body.characterMotor.jumpCount == body.maxJumpCount && count >= body.maxJumpCount && jumpCurrent != 0 && body.moveSpeed != 0 && canEnemyJump)
+            {
+                Vector3 dir = body.inputBank.moveVector;
+                if (dir != Vector3.zero)
+                {
+                    //float dashVelo = 21;
+                    float vertStrength = 1;
+
+                    Quaternion quat = Quaternion.Euler(dir.x, dir.y, dir.z);
+                    float num = body.acceleration * body.characterMotor.airControl;
+                    float num2 = Mathf.Sqrt(vertStrength / num);
+                    float num3 = body.moveSpeed / num;
+                    float jumpStrength = (num2 + num3) / num3;
+
+                    GenericCharacterMain.ApplyJumpVelocity(body.characterMotor, body, dir.sqrMagnitude, jumpStrength, false);
+
+                    //string effectName = "RoR2/DLC1/MoveSpeedOnKill/MoveSpeedOnKillActivate.prefab";
+                    //GameObject effectPrefab = Addressables.LoadAssetAsync<GameObject>(effectName).WaitForCompletion();
+                    //string effect2 = "RoR2/DLC1/VoidSuppressor/SuppressorDieEffect.prefab";
+                    //GameObject effect2Prefab = Addressables.LoadAssetAsync<GameObject>(effect2).WaitForCompletion();
+                    //Vector3 newScale = new Vector3(.5f, .5f, .5f);
+                    //effect2Prefab.transform.localScale = newScale;
+
+                    DamageInfo damageInfo = new DamageInfo
+                    {
+                        attacker = body.gameObject,
+                        crit = body.RollCrit(),
+                        damage = body.damage * 2.5f,
+                        position = body.transform.position,
+                        procCoefficient = 1,
+                        damageType = DamageType.Generic,
+                        damageColorIndex = DamageColorIndex.Item,
+                        force = Vector3.down * 10
+                    };
+                    nearest.healthComponent.TakeDamage(damageInfo);
+
+
+                    EffectManager.SimpleImpactEffect(effect1, body.transform.position, dir, true);
+                    EffectManager.SimpleImpactEffect(effect2, body.transform.position, dir, true);
+
+                    jumpCurrent--;
+
+                }
+
+            }
+            else if (body.inputBank.jump.justPressed)
+            {
+                count++;
+            }
+
+            previousCount = body.characterMotor.jumpCount;
+
+        }
+    }
 }
+

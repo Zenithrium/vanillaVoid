@@ -46,10 +46,11 @@ namespace vanillaVoid.Items
 
         public BuffDef drownBuff { get; private set; }
         public DotController.DotIndex drownDotIndex;
-        ModdedDamageType drownDamage;
+        public ModdedDamageType drownDamage;
 
         public GameObject drownVFX;
 
+        //maybe this shoukld have a "does have a debuff" check.
         public override void Init(ConfigFile config){
             CreateConfig(config);
             CreateLang();
@@ -80,7 +81,7 @@ namespace vanillaVoid.Items
         }
 
         public void CreateBuff(){
-            drownDamage = ReserveDamageType();
+            drownDamage = DamageAPI.ReserveDamageType();
             drownBuff = ScriptableObject.CreateInstance<BuffDef>();
             drownBuff.buffColor = Color.white;
             drownBuff.canStack = false;
@@ -90,50 +91,14 @@ namespace vanillaVoid.Items
             ContentAddition.AddBuffDef(drownBuff);
 
             //DotAPI.CustomDotBehaviour drownDotBehavior = DrownDotBehavior;
-            drownDotIndex = DotAPI.RegisterDotDef(0.33f, (1 * 0.30f), DamageColorIndex.Void, drownBuff, null, null);
+            drownDotIndex = DotAPI.RegisterDotDef(0.33f, (1 * 0.30f), DamageColorIndex.Void, drownBuff, DrownBehavior, null);
         }
 
-        //public void DrownDotBehavior(DotController self, DotController.DotStack dotStack){
-        //    if (dotStack.dotIndex == drownDotIndex){
-        //        CharacterBody attacker = dotStack.attackerObject.GetComponent<CharacterBody>();
-        //        int count = 1;
-        //        if (attacker.inventory){
-        //            count = GetCount(attacker);
-        //        }
-        //
-        //        float mult = 0;
-        //        var comp = self.victimBody.gameObject.GetComponent<CorrosiveCounter>();
-        //        if (comp) {
-        //            mult = comp.slowAmount + (comp.isFrozen ? 1.5f : (comp.isStopped ? 1 : 0)) + (self.victimBody.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0); //shoutout to rex weaken being the only one done differently
-        //
-        //            //self.victimBody.gameObject.GetComponent<SetStateOnHurt>().targetStateMachine
-        //        }
-        //
-        //        if(mult > 1){
-        //            Debug.Log("Removing old debuff");
-        //
-        //            for(int i = 0; i < self.dotStackList.Count; ++i){
-        //                if(self.dotStackList[i].dotIndex == drownDotIndex){
-        //                    self.RemoveDotStackAtServer(i);
-        //                    break;
-        //                }
-        //            }
-        //            //self.RemoveDotStackAtServer()
-        //
-        //           // Debug.Log("The j: " + baseDamageDot.Value * attacker.damage + (stackingDamageDot.Value * (count - 1)));
-        //            dotStack.damage = mult * (baseDamageDot.Value * attacker.damage + (stackingDamageDot.Value * (count - 1)));
-        //            dotStack.AddModdedDamageType(drownDamage);
-        //        }
-        //        else
-        //        {
-        //            //Debug.Log("Mult is not high enough");
-        //        }
-        //
-        //        //float baseDotDamage = self.victimBody.maxHealth * burnDamagePercent.Value / 100f / burnDamageDuration.Value * myDotDef.interval;
-        //        //float dotDamage = Math.Max(burnDamageMin.Value * attackerCharacterBody.damage, Math.Min(burnDamageMax.Value * attackerCharacterBody.damage, baseDotDamage)) / burnDamageDuration.Value * inventoryCount;
-        //        //dotStack.damage = dotDamage;
-        //    }
-        //}
+        private void DrownBehavior(DotController self, DotController.DotStack dotStack){
+            if (!dotStack.damageType.HasModdedDamageType(drownDamage)){ dotStack.damageType.AddModdedDamageType(drownDamage); }
+        }
+
+        //public static void DrownBehavior()
 
 
         public override void CreateConfig(ConfigFile config)
@@ -774,9 +739,9 @@ namespace vanillaVoid.Items
         public override void Hooks()
         {
             IL.RoR2.CharacterBody.RecalculateStats += CheckSlowAmount2; //HUGE
-            On.RoR2.HealthComponent.TakeDamage += UpdateRecentPlayer;
+            On.RoR2.HealthComponent.TakeDamageProcess += UpdateRecentPlayer;
 
-            On.RoR2.HealthComponent.TakeDamage += wawa;
+            On.RoR2.HealthComponent.TakeDamageProcess += wawa;
 
             On.EntityStates.FrozenState.OnEnter += CheckFrozenState;
             On.EntityStates.FrozenState.OnExit += RemoveFrozenState;
@@ -785,93 +750,101 @@ namespace vanillaVoid.Items
         private void CheckFrozenState(On.EntityStates.FrozenState.orig_OnEnter orig, EntityStates.FrozenState self)
         {
             orig(self);
-            var comp = self.characterBody.gameObject.GetComponent<CorrosiveCounter>();
-
-            if (comp)
+            if(self != null && self.characterBody)
             {
-                comp.isFrozen = true;
-                var mult = comp.slowAmount + (comp.isFrozen ? 1.5f : (comp.isStopped ? 1 : 0)) + (self.characterBody.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0); //shoutout to rex weaken being the only one done differently
-                
-                if (mult > 1 && !self.characterBody.HasBuff(drownBuff))
+                var comp = self.characterBody.gameObject.GetComponent<CorrosiveCounter>();
+
+                if (comp)
                 {
-                    //Debug.Log("applying DOT from CheckFrozenState");
-                    var dotInfo = new InflictDotInfo
+                    comp.isFrozen = true;
+                    var mult = comp.slowAmount + (comp.isFrozen ? 1.5f : (comp.isStopped ? 1 : 0)) + (self.characterBody.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0); //shoutout to rex weaken being the only one done differently
+
+                    if (mult > 1 && !self.characterBody.HasBuff(drownBuff) && comp.bestPlayer && GetCount(comp.bestPlayer) > 0)
                     {
-                        attackerObject = comp.recentPlayer.gameObject,
-                        victimObject = self.gameObject,
-                        damageMultiplier = 1f,
-                        dotIndex = drownDotIndex,
-                        duration = Mathf.Infinity,
-                    };
-                    DotController.InflictDot(ref dotInfo);
-                }
-                else if(!(mult > 1) && self.characterBody.HasBuff(drownBuff) && NetworkServer.active)
-                {
-                    var dotCtrl = DotController.FindDotController(self.gameObject);
-                    if (dotCtrl)
-                    {
-                        for (int i = 0; i < dotCtrl.dotStackList.Count; ++i)
+                        //Debug.Log("applying DOT from CheckFrozenState");
+                        try
                         {
-                            if (dotCtrl.dotStackList[i].dotIndex == drownDotIndex)
+                            var dotInfo = new InflictDotInfo
                             {
-                                dotCtrl.RemoveDotStackAtServer(i);
-                                break;
+                                attackerObject = comp.bestPlayer.gameObject,
+                                victimObject = self.gameObject,
+                                damageMultiplier = 1f,
+                                dotIndex = drownDotIndex,
+                                duration = Mathf.Infinity,
+                            };
+                            DotController.InflictDot(ref dotInfo);
+                        }
+                        catch(Exception e)
+                        {
+                            Debug.Log("Failed to apply corrosive DOT " + e);
+                        }
+                    }
+                    else if (!(mult > 1) && self.characterBody.HasBuff(drownBuff) && NetworkServer.active)
+                    {
+                        var dotCtrl = DotController.FindDotController(self.gameObject);
+                        if (dotCtrl)
+                        {
+                            for (int i = 0; i < dotCtrl.dotStackList.Count; ++i)
+                            {
+                                if (dotCtrl.dotStackList[i].dotIndex == drownDotIndex)
+                                {
+                                    dotCtrl.RemoveDotStackAtServer(i);
+                                    break;
+                                }
                             }
                         }
                     }
                 }
             }
-        
         }
 
         private void RemoveFrozenState(On.EntityStates.FrozenState.orig_OnExit orig, EntityStates.FrozenState self)
         {
             orig(self);
-            var comp = self.characterBody.gameObject.GetComponent<CorrosiveCounter>();
-            if (comp)
+            if(self != null && self.characterBody)
             {
-                comp.isFrozen = false;
-                var mult = comp.slowAmount + (comp.isFrozen ? 1.5f : (comp.isStopped ? 1 : 0)) + (self.characterBody.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0); //shoutout to rex weaken being the only one done differently
+                var comp = self.characterBody.gameObject.GetComponent<CorrosiveCounter>();
 
-                if (mult > 1 && self.characterBody.HasBuff(drownBuff) && NetworkServer.active)
+                if (comp)
                 {
-                    //Debug.Log("removing DOT from CheckFrozenState");
-                    var dotCtrl = DotController.FindDotController(self.gameObject);
-                    if (dotCtrl)
+                    comp.isFrozen = false;
+                    var mult = comp.slowAmount + (comp.isFrozen ? 1.5f : (comp.isStopped ? 1 : 0)) + (self.characterBody.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0); //shoutout to rex weaken being the only one done differently
+
+                    if (!(mult > 1) && self.characterBody.HasBuff(drownBuff) && NetworkServer.active)
                     {
-                        for (int i = 0; i < dotCtrl.dotStackList.Count; ++i)
+                        //Debug.Log("removing DOT from CheckFrozenState");
+                        var dotCtrl = DotController.FindDotController(self.gameObject);
+                        if (dotCtrl)
                         {
-                            if (dotCtrl.dotStackList[i].dotIndex == drownDotIndex)
+                            for (int i = 0; i < dotCtrl.dotStackList.Count; ++i)
                             {
-                                dotCtrl.RemoveDotStackAtServer(i);
-                                break;
+                                if (dotCtrl.dotStackList[i].dotIndex == drownDotIndex)
+                                {
+                                    dotCtrl.RemoveDotStackAtServer(i);
+                                    break;
+                                }
                             }
                         }
                     }
-                }
-                else
-                {
-                    //Debug.Log("Should keep dot");
+                    else
+                    {
+                        //Debug.Log("Should keep dot");
+                    }
                 }
             }
         }
 
-        private void wawa(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo)
+        private void wawa(On.RoR2.HealthComponent.orig_TakeDamageProcess orig, HealthComponent self, DamageInfo damageInfo)
         {
-            //Debug.Log("damagetype " + damageInfo.damageType + " | " + damageInfo.dotIndex);
-            if (damageInfo.dotIndex == drownDotIndex) {
+            if (!damageInfo.rejected && self && self.body && damageInfo.damageType.HasModdedDamageType(drownDamage)) {
                 float mult;
                 var comp = self.body.gameObject.GetComponent<CorrosiveCounter>();
                 if (comp) {
                     //Debug.Log("comp.isFrozen: " + comp.isFrozen + " | isStopped: " + comp.isStopped + " | has buff: " + self.body.HasBuff(RoR2.RoR2Content.Buffs.Weak));
                     mult = comp.slowAmount + (comp.isFrozen ? 1.5f : (comp.isStopped ? 1 : 0)) + (self.body.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0); //shoutout to rex weaken being the only one done differently
-                    //Debug.Log("mult: " + mult);
-                    if (mult > 1){
-                        //Debug.Log("update damage");
-                        //self.RemoveDotStackAtServer()
-                        var cb = comp.recentPlayer;
+                    if (mult > 1 && comp.bestPlayer){
+                        var cb = comp.bestPlayer;
                         var count = cb.inventory.GetItemCount(ItemDef);
-                        // Debug.Log("The j: " + baseDamageDot.Value * attacker.damage + (stackingDamageDot.Value * (count - 1)));
                         damageInfo.damage = mult * (cb.damage * (baseDamageDot.Value + (stackingDamageDot.Value * (count - 1))));
                         //dotStack.AddModdedDamageType(drownDamage);
                     }
@@ -888,17 +861,14 @@ namespace vanillaVoid.Items
                                     if (dotCtrl.dotStackList[i].dotIndex == drownDotIndex)
                                     {
                                         dotCtrl.RemoveDotStackAtServer(i);
+                                        damageInfo.damage = 0;
+                                        damageInfo.rejected = true;
                                         break;
                                     }
                                 }
                             }
-                        }
-                        damageInfo.damage = 0;
-                        damageInfo.rejected = true;
-
-
+                        }                   
                     }
-                    //self.victimBody.gameObject.GetComponent<SetStateOnHurt>().targetStateMachine
                 }
             }
             orig(self, damageInfo);
@@ -910,12 +880,11 @@ namespace vanillaVoid.Items
             bool ILFound = c.TryGotoNext(MoveType.After,
                 x => x.MatchLdarg(0), //searches for the end of the recalc stats function
                 x => x.MatchLdcI4(0),
-                x => x.MatchStfld("RoR2.CharacterBody", "statsDirty") //final line before the ret
+                x => x.MatchStfld("RoR2.CharacterBody", "statsDirty") //final line before the ret //why wouldn't i just search the ret, then MoveType.Before
             );
             
-            if (ILFound)
-            {
-                c.Emit(OpCodes.Ldloc, 86); //emits the slow variable, currently num72
+            if (ILFound){
+                c.Emit(OpCodes.Ldloc, 88); //emits the slow variable, currently num73 as of memops
                 c.Emit(OpCodes.Ldarg_0); //emits characterbody for the token
                 c.EmitDelegate<Action<float, CharacterBody>>((decrease, self) => { //eats the emitted variables with no return
                     var token = self.gameObject.GetComponent<CorrosiveCounter>();
@@ -926,17 +895,17 @@ namespace vanillaVoid.Items
                     //Debug.Log("decrease:" + decrease);
                     token.slowAmount = decrease;// + (self.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0);
 
-                    token.isStopped = self.moveSpeed == 0 && self.acceleration == 80;
+                    token.isStopped = (self.moveSpeed == 0 && self.acceleration == 80);
 
                     token.isFrozen = self.healthComponent.isInFrozenState;
                     //Debug.Log("RecalcStats : slowamount:" + token.slowAmount + " | " + token.isStopped + " | " + token.isFrozen);
                     var tempslow = token.slowAmount + (self.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0);
-                    if (token.recentPlayer && token.recentPlayer.inventory.GetItemCount(ItemDef) > 0){
+                    if (token.bestPlayer && token.bestPlayer.inventory.GetItemCount(ItemDef) > 0){
                         if (!self.HasBuff(drownBuff)){
                             if(tempslow > 1 || token.isFrozen || token.isStopped){
                                 //Debug.Log("applying DOT from stack gain");
                                 var dotInfo = new InflictDotInfo {
-                                    attackerObject = token.recentPlayer.gameObject,
+                                    attackerObject = token.bestPlayer.gameObject,
                                     victimObject = self.gameObject,
                                     damageMultiplier = 1f,
                                     dotIndex = drownDotIndex,
@@ -966,7 +935,7 @@ namespace vanillaVoid.Items
             } else { Debug.Log("ah fuck (corrosive)"); }
         }
 
-        private void UpdateRecentPlayer(On.RoR2.HealthComponent.orig_TakeDamage orig, HealthComponent self, DamageInfo damageInfo){
+        private void UpdateRecentPlayer(On.RoR2.HealthComponent.orig_TakeDamageProcess orig, HealthComponent self, DamageInfo damageInfo){
             orig(self, damageInfo);
             if (damageInfo.attacker){
                 CharacterBody attackerBody = damageInfo.attacker.GetComponent<CharacterBody>();
@@ -979,12 +948,10 @@ namespace vanillaVoid.Items
                         {
                             comp.isFrozen = self.isInFrozenState;
                             //Debug.Log("TakeDamage : is slowamount > 1?: " + (comp.slowAmount > 1) + " | is new count greater than old count?: " + (GetCount(comp.recentPlayer) < GetCount(attackerBody)) + " | stopped: " + comp.isStopped + " | slowamnt: " + comp.slowAmount + " | frozen: " + comp.isFrozen);
-                            comp.recentPlayer = attackerBody;
+                            //comp.recentPlayer = attackerBody;
                         }
-                        if (comp && (comp.slowAmount > 1 || GetCount(comp.recentPlayer) < GetCount(attackerBody) || comp.isStopped)){
-                            if(GetCount(comp.recentPlayer) < GetCount(attackerBody)){
-                                comp.recentPlayer = attackerBody;
-                            }
+                        if (comp && (comp.slowAmount > 1 || GetCount(comp.bestPlayer) < GetCount(attackerBody) || comp.isStopped) && attackerBody.healthComponent != self){
+                            comp.bestPlayer = attackerBody;
                         }
                     }
                 }
@@ -999,9 +966,9 @@ namespace vanillaVoid.Items
 
         public bool isStopped = false;
         public bool isFrozen = false;
-        public CharacterBody highestCountPlayer;
+        //public CharacterBody highestCountPlayer;
 
-        public CharacterBody recentPlayer;
-        public CharacterBody currentPlayer;
+        public CharacterBody bestPlayer;
+        //public CharacterBody currentPlayer;
     }
 }

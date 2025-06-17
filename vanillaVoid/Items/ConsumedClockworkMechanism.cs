@@ -34,7 +34,7 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
-        public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.AIBlacklist };
+        public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.AIBlacklist, };
 
         public override void Init(ConfigFile config)
         {
@@ -44,7 +44,6 @@ namespace vanillaVoid.Items
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
             voidPair = null;
             //Hooks();
-
 
             string orbTransp = "RoR2/Base/Croco/matBlighted.mat";
             

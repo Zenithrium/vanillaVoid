@@ -294,6 +294,7 @@ namespace vanillaVoid.Items
                 combatdir.teamIndex = TeamIndex.Void;
                 combatdir.monsterSpawnTimer = 0;
                 
+                
             }
 
             Transform center = PortalBattery.transform.Find("Model");
@@ -384,8 +385,9 @@ namespace vanillaVoid.Items
                     camp.campCenterTransform = center;
                     camp.baseMonsterCredit = 15;
                     camp.transform.position = zero;
+                    camp.eliteDef = null;
                 }
-
+               
                 camp2transf.SetParent(PortalBattery.transform);
                 camp2transf.transform.position = zero;
 

@@ -828,11 +828,21 @@ namespace vanillaVoid.Items
             public float lastJumpTime;
             public CharacterBody body; //the player it's attached to
 
+            public GameObject effect1;
+            public GameObject effect2;
+
+
             void Awake()
             {
                 timer = 0f;
                 dashCurrent = dashMax;
                 count = 0;
+                string effectName = "RoR2/DLC1/MoveSpeedOnKill/MoveSpeedOnKillActivate.prefab";
+                effect1 = Addressables.LoadAssetAsync<GameObject>(effectName).WaitForCompletion();
+                string effectName2 = "RoR2/DLC1/VoidSuppressor/SuppressorDieEffect.prefab";
+                effect2 = Addressables.LoadAssetAsync<GameObject>(effectName2).WaitForCompletion();
+                Vector3 newScale = new Vector3(.5f, .5f, .5f);
+                effect2.transform.localScale = newScale;
             }
 
             private void FixedUpdate()
@@ -872,15 +882,15 @@ namespace vanillaVoid.Items
 
                         GenericCharacterMain.ApplyJumpVelocity(body.characterMotor, body, horizontalBonus, vertStrength, false);
 
-                        string effectName = "RoR2/DLC1/MoveSpeedOnKill/MoveSpeedOnKillActivate.prefab";
-                        GameObject effectPrefab = Addressables.LoadAssetAsync<GameObject>(effectName).WaitForCompletion();
-                        string effect2 = "RoR2/DLC1/VoidSuppressor/SuppressorDieEffect.prefab";
-                        GameObject effect2Prefab = Addressables.LoadAssetAsync<GameObject>(effect2).WaitForCompletion();
-                        Vector3 newScale = new Vector3(.5f, .5f, .5f);
-                        effect2Prefab.transform.localScale = newScale;
+                        //string effectName = "RoR2/DLC1/MoveSpeedOnKill/MoveSpeedOnKillActivate.prefab";
+                        //GameObject effectPrefab = Addressables.LoadAssetAsync<GameObject>(effectName).WaitForCompletion();
+                        //string effect2 = "RoR2/DLC1/VoidSuppressor/SuppressorDieEffect.prefab";
+                        //GameObject effect2Prefab = Addressables.LoadAssetAsync<GameObject>(effect2).WaitForCompletion();
+                        //Vector3 newScale = new Vector3(.5f, .5f, .5f);
+                        //effect2Prefab.transform.localScale = newScale;
 
-                        EffectManager.SimpleEffect(effect2Prefab, body.transform.position, quat, true);
-                        EffectManager.SimpleImpactEffect(effectPrefab, body.transform.position, dir, true);
+                        EffectManager.SimpleImpactEffect(effect1, body.transform.position, dir, true);
+                        EffectManager.SimpleImpactEffect(effect2, body.transform.position, dir, true);
 
                         dashCurrent--;
 

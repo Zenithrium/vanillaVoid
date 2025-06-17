@@ -15,8 +15,6 @@ using RoR2.Projectile;
 using System.Collections;
 using RoR2.Items;
 
-#nullable enable 
-
 namespace vanillaVoid.Items
 {
     public class ExtraterrestrialExhaust : ItemBase<ExtraterrestrialExhaust>
@@ -57,6 +55,8 @@ namespace vanillaVoid.Items
         //public static GameObject RocketExplosion;
 
         public static GameObject ItemBodyModelPrefab;
+
+#nullable enable
 
         public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.Damage, ItemTag.AIBlacklist };
 

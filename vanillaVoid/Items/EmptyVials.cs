@@ -16,9 +16,6 @@ namespace vanillaVoid.Items
 {
     public class EmptyVials : ItemBase<EmptyVials>
     {
-
-        public ConfigEntry<int> refreshAmount;
-        public ConfigEntry<bool> refreshVariant;
         public override string ItemName => "Empty Vials";
 
         public override string ItemLangTokenName => "EMPTY_VIALS";
@@ -48,7 +45,6 @@ namespace vanillaVoid.Items
             voidPair = null;
             Hooks();
 
-
             //string orbTransp = "RoR2/Base/Croco/matBlighted.mat";
             //
             //var OrbsModelTransp = ItemModel.transform.Find("purpleguard").GetComponent<MeshRenderer>();
@@ -59,50 +55,12 @@ namespace vanillaVoid.Items
         }
         public override void Hooks()
         {
-            RoR2.SceneDirector.onPrePopulateSceneServer += RefreshVials;
         }
 
         public override void CreateConfig(ConfigFile config)
         {
             //consumeStack = config.Bind<bool>("Item: " + ItemName, "Consume Stack", false, "Adjust if each potion should upgrade a whole stack, like benthic, or only one.");
-            refreshAmount = config.Bind<int>("Item: " + ItemName, "Refresh Amount", 1, "Adjust how many empty vials refresh at the start of a new stage. A negative number will refresh all stacks.");
-            refreshVariant = config.Bind<bool>("Item: " + ItemName, "Variant 0 Refresh", false, "Makes it possible for Variant 0 vials (corrupt) to regenerate like they do for Variant 1 (upgrade).");
-        }
-
-        private void RefreshVials(SceneDirector obj)
-        {
-            int refreshAmnt = refreshAmount.Value;
-            if (refreshAmnt != 0 && (ItemBase<EnhancementVials>.instance.vialsVariant.Value == 1 || refreshVariant.Value))
-            {
-                //Debug.Log("function starting, interactable credits: " + obj.interactableCredit);
-                //int itemCount = 0;
-                foreach (var player in PlayerCharacterMasterController.instances)
-                {
-                    int itemCount = 0;
-                    itemCount += player.master.inventory.GetItemCount(ItemBase<EmptyVials>.instance.ItemDef);
-                    if(itemCount > 0 && refreshAmnt < 0)
-                    {
-                        player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, itemCount);
-                        player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, itemCount);
-                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
-
-                    }
-                    else if (itemCount > 0 && itemCount > refreshAmnt)
-                    {
-                        player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, refreshAmnt);
-                        player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, refreshAmnt);
-                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
-
-                    }
-                    else if(itemCount > 0 && itemCount <= refreshAmnt)
-                    {
-                        player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, itemCount);
-                        player.master.inventory.RemoveItem(ItemBase<EmptyVials>.instance.ItemDef, itemCount);
-                        CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<EmptyVials>.instance.ItemDef.itemIndex, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.RegeneratingScrapRegen);
-                    }
-                }  
-            }
-            //Debug.Log("function ending, interactable credits after: " + obj.interactableCredit);
+            
         }
 
         public override ItemDisplayRuleDict CreateItemDisplayRules()
@@ -138,10 +96,6 @@ namespace vanillaVoid.Items
                 }
             });
             return rules;
-
         }
-
-
-
     }
 }

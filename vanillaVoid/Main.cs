@@ -56,7 +56,7 @@ namespace vanillaVoid {
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.6.0";
+        public const string ModVer = "1.6.3";
 
         public static ExpansionDef sotvDLC;
         public static ExpansionDef sotvDLC2;
@@ -82,6 +82,8 @@ namespace vanillaVoid {
 
         public static List<ItemDef.Pair> corruptibleItems = new List<ItemDef.Pair>();
 
+        public static ItemDef.Pair[] voidItemPairs;
+
         public Xoroshiro128Plus genericRng;
 
         //public static ConfigEntry<bool> orreryCompat;
@@ -93,6 +95,7 @@ namespace vanillaVoid {
         public static ConfigEntry<bool> doVoidPickupBorders;
         public static ConfigEntry<bool> doVoidCommandVFX;
         public static ConfigEntry<bool> doSaleCradle;
+        public static ConfigEntry<bool> modifyVoidPing;
 
         GameObject tier1Clone;
         GameObject tier2Clone;
@@ -100,6 +103,9 @@ namespace vanillaVoid {
         GameObject tier4Clone;
         bool hasAdjustedTiers;
         bool hasAddedCommand;
+
+        //public static List<ItemDef> vvItemDefs = new List<ItemDef>();
+        public static Dictionary<string, ItemDef> vvItemDefs = new Dictionary<string, ItemDef>();
 
 
         private void Awake(){
@@ -112,7 +118,7 @@ namespace vanillaVoid {
             doVoidPickupBorders = Config.Bind<bool>("Tweaks: Void Items", "Improved Pickup Highlights", true, "If enabled, picking up a void item will show tier-appropriate item highlights rather the the default white highlights.");
             doVoidCommandVFX = Config.Bind<bool>("Tweaks: Void Items", "Improved Command VFX", true, "If enabled, void command cubes will have appropriate void vfx in the style of typical command VFX based on the actual void item VFX.");
             doSaleCradle = Config.Bind<bool>("Tweaks: Void Cradles", "Sale Star Functionality", true, "If enabled, Sale Star will work on Void Cradles.");
-
+            modifyVoidPing = Config.Bind<bool>("Tweaks: Void Seeds", "Improve Enemy Highlight", true, "If enabled, improves the ping indicating the positions of the final enemies of a void seed by making it fade back in and out over time.");
             ModLogger = Logger;
 
             var harm = new Harmony(Info.Metadata.GUID);
@@ -137,6 +143,13 @@ namespace vanillaVoid {
             Stage.onServerStageBegin += AddLocusStuff;
             On.RoR2.VoidStageMissionController.OnBatteryActivated += SpawnLocusPortal;
             RoR2.SceneDirector.onPrePopulateSceneServer += LocusDirectorHelp;
+
+            //On.RoR2.Chat.AddPickupMessage += AdjustCorruptMessage;
+
+            //On.RoR2.Items.ContagiousItemManager.Init += CreateVoidList;
+
+            //On.RoR2.GenericPickupController.HandlePickupMessage += InterceptStalePickup;
+
             //On.RoR2.Projectile.SlowDownProjectiles.OnTriggerEnter += fuck;
 
             //On.RoR2.ItemCatalog.Init += ItemCatalog_Init;
@@ -198,6 +211,44 @@ namespace vanillaVoid {
                         pi.saleStarCompatible = true;
                         On.RoR2.PurchaseInteraction.OnInteractionBegin += ImproveStarCradle;
                     }
+                }
+            }
+
+
+            if (modifyVoidPing.Value)
+            {
+                try
+                {
+                    var ping = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/VoidCamp/VoidCampPositionIndicator.prefab").WaitForCompletion();
+                    var target = ping.transform.Find("InsideFrameMarker").Find("Sprite");
+                    var flicker = target.GetComponent<ObjectScaleCurve>();
+                    //flicker.overallCurve
+                    Destroy(flicker);
+                    var loop = target.gameObject.AddComponent<ObjectScaleCurveLoop>();
+
+                    AnimationCurve pingcurve = new AnimationCurve
+                    {
+                        keys = new Keyframe[] { new Keyframe(0, 1), new Keyframe(.25f, .5f), new Keyframe(.5f, 0), new Keyframe(.75f, .5f), new Keyframe(1, 1) },
+                        preWrapMode = WrapMode.Loop,
+                        postWrapMode = WrapMode.Loop
+                    };
+                    loop.overallCurve = pingcurve;
+
+                    AnimationCurve filler = new AnimationCurve
+                    {
+                        keys = new Keyframe[] { new Keyframe(0, 1), new Keyframe(1, 1) },
+                        preWrapMode = WrapMode.Loop,
+                        postWrapMode = WrapMode.Loop
+                    };
+                    loop.curveX = filler;
+                    loop.curveY = filler;
+                    loop.curveZ = filler;
+
+                    loop.timeMax = 2.25f;
+                    loop.useOverallCurveOnly = false;
+
+                } catch (Exception e) {
+                    Debug.Log("VV - Failed to adjust void ping: " + e);
                 }
             }
 
@@ -313,6 +364,29 @@ namespace vanillaVoid {
 
         }
 
+        private void CreateVoidList(ContagiousItemManager.orig_Init orig)
+        {
+            orig();
+            voidItemPairs = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem];
+            foreach(ItemDef.Pair pair in voidItemPairs)
+            {
+
+            }
+        }
+
+        private void InterceptStalePickup(On.RoR2.GenericPickupController.orig_HandlePickupMessage orig, NetworkMessage netMsg)
+        {
+            orig(netMsg);
+        }
+
+        private void AdjustCorruptMessage(On.RoR2.Chat.orig_AddPickupMessage orig, CharacterBody body, string pickupToken, Color32 pickupColor, uint pickupQuantity)
+        {
+            //if(
+            
+            //orig(body, pickupToken, pickupColor, pickupQuantity);
+
+        }
+
         private void ImproveStarCradle(On.RoR2.PurchaseInteraction.orig_OnInteractionBegin orig, PurchaseInteraction self, Interactor activator)
         {
             if(self.displayNameToken == "VOID_CHEST_NAME")
@@ -360,6 +434,8 @@ namespace vanillaVoid {
                     //Debug.Log("adding pair " + item);
                     Debug.Log("Item Name: " + item.ItemName);
                     item.AddVoidPair(newVoidPairs);
+
+                    //vvItemDefs.Add(item.ItemName, item.ItemDef);
                 }
                 else
                 {
@@ -763,4 +839,92 @@ namespace vanillaVoid {
             }
         }
     }
+
+    public class ObjectScaleCurveLoop : MonoBehaviour
+    {
+
+        public float time { get; set; }
+
+        public Vector3 baseScale { get; set; }
+
+        private void Awake()
+        {
+            this.isAwake = true;
+            this.baseScale = base.transform.localScale;
+            if (this.resetOnAwake)
+            {
+                this.Reset();
+            }
+        }
+
+        // Token: 0x06003819 RID: 14361 RVA: 0x000FCA9C File Offset: 0x000FAC9C
+        private void OnEnable()
+        {
+            this.Reset();
+        }
+
+        // Token: 0x0600381A RID: 14362 RVA: 0x000FCAA4 File Offset: 0x000FACA4
+        public void Reset()
+        {
+            if (this.isAwake)
+            {
+                this.time = 0f;
+                this.UpdateScale(0f);
+            }
+        }
+
+        // Token: 0x0600381B RID: 14363 RVA: 0x000FCACB File Offset: 0x000FACCB
+        private void Update()
+        {
+            this.time += (this.useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime);
+            this.UpdateScale(this.time);
+        }
+
+        // Token: 0x0600381C RID: 14364 RVA: 0x000FCAFC File Offset: 0x000FACFC
+        private void UpdateScale(float time)
+        {
+            float time2 = (this.timeMax > 0f) ? Mathf.Clamp01(time / this.timeMax) : 0f;
+            float d = 1f;
+            if (this.overallCurve != null)
+            {
+                d = this.overallCurve.Evaluate(time2);
+            }
+            Vector3 a;
+            if (this.useOverallCurveOnly)
+            {
+                a = this.baseScale * d;
+            }
+            else
+            {
+                if (this.curveX == null || this.curveY == null || this.curveZ == null)
+                {
+                    return;
+                }
+                a = new Vector3(this.curveX.Evaluate(time2) * this.baseScale.x, this.curveY.Evaluate(time2) * this.baseScale.y, this.curveZ.Evaluate(time2) * this.baseScale.z);
+            }
+            base.transform.localScale = a * d;
+            if (time > this.timeMax)
+            {
+                this.time = 0;
+            }
+        }
+
+        public bool useOverallCurveOnly;
+
+        public bool resetOnAwake = true;
+
+        public bool useUnscaledTime;
+
+        public AnimationCurve curveX;
+        public AnimationCurve curveY;
+        public AnimationCurve curveZ;
+
+        public AnimationCurve overallCurve;
+
+        public float timeMax = 5f;
+
+        private bool isAwake;
+
+    }
+
 }

@@ -80,6 +80,7 @@ namespace vanillaVoid.Items
         //bool detonationTime = false;
         public Material lotusMaterial;
         //public static float slowCoeffValue = 1f;
+        public CharacterBody most;
 
         public static BuffDef lotusSlow { get; private set; }
 
@@ -824,7 +825,7 @@ namespace vanillaVoid.Items
 
             On.RoR2.BuffWard.BuffTeam += LotusTeamBuff;
 
-            On.RoR2.CharacterBody.OnBuffFinalStackLost += RemoveLotusToken;
+            //On.RoR2.CharacterBody.OnBuffFinalStackLost += RemoveLotusToken;
             //On.RoR2.CharacterBody.AddTimedBuff_BuffIndex_float += LotusAddBuff;
 
             //On.RoR2.TemporaryOverlayInstance.CleanupEffect += StopDoingThat;
@@ -933,17 +934,28 @@ namespace vanillaVoid.Items
         {
             //Debug.Log("clearing tp location ");
             teleporterPos = Vector3.zero;
+            lotusSpawned = false;
+            most = null;
         }
 
         private void AddLotus(On.RoR2.Run.orig_OnServerTeleporterPlaced orig, Run self, SceneDirector sceneDirector, GameObject teleporter){
             orig(self, sceneDirector, teleporter);
 
             int itemCount = 0;
+            int corrosiveMax = most ? GetCount(most) : 0; 
             TeamIndex teamDex = default;
             foreach (var player in PlayerCharacterMasterController.instances){
                 itemCount += player.master.inventory.GetItemCount(CrystalLotus.instance.ItemDef);
                 teamDex = player.master.teamIndex;
+
+                var temp = player.master.inventory.GetItemCount(CorrosiveCore.instance.ItemDef);
+                if (temp > corrosiveMax && temp != 0)
+                {
+                    corrosiveMax = temp;
+                    most = player.body;
+                }
             }
+
             if (teleporter)
             {
                 teleporterPos = teleporter.transform.position;
@@ -973,13 +985,19 @@ namespace vanillaVoid.Items
         {
             if (self){
                 orig(self);
-
                 if (!lotusSpawned){
                     int itemCount = 0;
+                    int corrosiveMax = most ? GetCount(most) : 0;
                     TeamIndex teamDex = default;
                     foreach (var player in PlayerCharacterMasterController.instances){
                         itemCount += player.master.inventory.GetItemCount(CrystalLotus.instance.ItemDef);
                         teamDex = player.master.teamIndex;
+
+                        var temp = player.master.inventory.GetItemCount(CorrosiveCore.instance.ItemDef);
+                        if(temp > corrosiveMax && temp != 0){
+                            corrosiveMax = temp;
+                            most = player.body;
+                        }
                     }
         
                     if (itemCount > 0 && teleporterPos != Vector3.zero){
@@ -989,12 +1007,24 @@ namespace vanillaVoid.Items
                         tempLotus.transform.position = teleporterPos + heightAdjust;
                         NetworkServer.Spawn(tempLotus);
                         tempLotusObject = tempLotus;
-                        
-                        lotusSpawned = true;
 
+                        lotusSpawned = true;
                         EffectData effectData = new EffectData { origin = tempLotus.transform.position };
                         effectData.SetNetworkedObjectReference(tempLotus.gameObject);
                         EffectManager.SpawnEffect(HealthComponent.AssetReferences.crowbarImpactEffectPrefab, effectData, transmit: true);
+                    }
+                }
+                else
+                {
+                    int corrosiveMax = most ? GetCount(most) : 0;
+                    //CharacterBody most = null;
+                    foreach (var player in PlayerCharacterMasterController.instances){
+
+                        var temp = player.master.inventory.GetItemCount(CorrosiveCore.instance.ItemDef);
+                        if (temp > corrosiveMax && temp != 0){
+                            corrosiveMax = temp;
+                            most = player.body;
+                        }
                     }
                 }
             }
@@ -1004,7 +1034,7 @@ namespace vanillaVoid.Items
             //Debug.Log("handler  and body");
             orig(self, recipients, radiusSqr, currentPosition);
             //Debug.Log("Teambuff"); oops..
-            if (self && self.buffDef == lotusSlow)
+            if (self && lotusSlow && self.buffDef == lotusSlow && self.gameObject)
             {
                 var collidertoken = self.gameObject.GetComponent<LotusToken>();
                 if (collidertoken)
@@ -1015,7 +1045,6 @@ namespace vanillaVoid.Items
                         //Debug.Log("part 2");
                         foreach (TeamComponent teamComponent in recipients)
                         {
-
                             CharacterBody body = teamComponent.GetComponent<CharacterBody>();
                             //Debug.Log("body in radius:" + body.name + " | " + body.baseNameToken);
                             Vector3 vector = teamComponent.transform.position - currentPosition;
@@ -1272,46 +1301,6 @@ namespace vanillaVoid.Items
             }
             return 1.1f;
         }
-        //IEnumerator LotusDelayedBarrier(HoldoutZoneController self, TeamIndex teamDex)
-        //{
-        //    yield return new WaitForSeconds(.5f);
-        //    foreach (var player in PlayerCharacterMasterController.instances)
-        //    {
-        //        if (self.IsBodyInChargingRadius(player.body) && player.body.teamComponent.teamIndex == teamDex)
-        //        {
-        //            //var playerHealthComp = player.GetComponent<HealthComponent>();
-        //            //player.body.healthComponent;
-        //            if (player.body.healthComponent)
-        //            {
-        //                //Debug.Log("yoo health component!!");
-        //                player.body.healthComponent.AddBarrier(player.body.healthComponent.fullCombinedHealth * ItemBase<CrystalLotus>.instance.barrierAmount.Value); //25% 
-        //                //string effect2 = "RoR2/DLC1/VoidSuppressor/SuppressorClapEffect.prefab";
-        //                //GameObject effect2Prefab = Addressables.LoadAssetAsync<GameObject>(effect2).WaitForCompletion();
-        //                //EffectManager.SimpleImpactEffect(effect2Prefab, player.body.transform.position, player.body.aimOrigin, true);
-        //            }
-        //            else
-        //            {
-        //                //Debug.Log("no suitable health component.");
-        //            }
-        //
-        //        }
-        //    }
-        //}
-
-        //IEnumerator SlowLotusDelayedEnd()
-        //{
-        //    //Debug.Log("Delayed end called");
-        //    var comp = tempLotusCollider.GetComponent<SlowDownProjectiles>();
-        //    while (slowCoeffValue < 1)
-        //    {
-        //        yield return .1f;
-        //        slowCoeffValue += .0015f;
-        //        comp.slowDownCoefficient = slowCoeffValue;
-        //    }
-        //    slowCoeffValue = 1;
-        //    comp.slowDownCoefficient = 1;
-        //
-        //}
 
         private void LotusSlowStatsHook(CharacterBody sender, RecalculateStatsAPI.StatHookEventArgs args){
             if (sender){
@@ -1324,6 +1313,51 @@ namespace vanillaVoid.Items
                     //Debug.Log("slow: " + slow);
                     args.moveSpeedReductionMultAdd += slow;
                     args.attackSpeedMultAdd -= slow / 2;
+
+                    var comp = sender.gameObject.GetComponent<CorrosiveCounter>();
+                    if (comp && (comp.bestPlayer || (most)))
+                    {
+                        comp.bestPlayer ??= most;
+
+                        comp.isFrozen = true;
+                        var mult = comp.slowAmount + (comp.isFrozen ? 1.5f : (comp.isStopped ? 1 : 0)) + (sender.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0); //shoutout to rex weaken being the only one done differently
+
+                        if (mult > 1 && !sender.HasBuff(CorrosiveCore.instance.drownBuff) && comp.bestPlayer && GetCount(comp.bestPlayer) > 0)
+                        {
+                            //Debug.Log("applying DOT from CheckFrozenState");
+                            try
+                            {
+                                var dotInfo = new InflictDotInfo
+                                {
+                                    attackerObject = comp.bestPlayer.gameObject,
+                                    victimObject = sender.gameObject,
+                                    damageMultiplier = 1f,
+                                    dotIndex = CorrosiveCore.instance.drownDotIndex,
+                                    duration = Mathf.Infinity,
+                                };
+                                DotController.InflictDot(ref dotInfo);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.Log("Failed to apply corrosive DOT from Lotus: " + e);
+                            }
+                        }
+                        else if (!(mult > 1) && sender.HasBuff(CorrosiveCore.instance.drownBuff) && NetworkServer.active)
+                        {
+                            var dotCtrl = DotController.FindDotController(sender.gameObject);
+                            if (dotCtrl)
+                            {
+                                for (int i = 0; i < dotCtrl.dotStackList.Count; ++i)
+                                {
+                                    if (dotCtrl.dotStackList[i].dotIndex == CorrosiveCore.instance.drownDotIndex)
+                                    {
+                                        dotCtrl.RemoveDotStackAtServer(i);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1423,6 +1457,11 @@ namespace vanillaVoid.Items
                 }
 
             }
+        }
+
+        public class LotusCorrosiveReference : MonoBehaviour
+        {
+            public CharacterBody body; //the player body who has the most corrosive cores lmao
         }
 
         //public class LotusBodyToken : MonoBehaviour

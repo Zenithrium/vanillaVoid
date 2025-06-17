@@ -43,7 +43,7 @@ namespace vanillaVoid.Items
 
         public ItemDef ItemDef;
         //public abstract string VoidVariant { get; }
-        public virtual bool CanRemove { get; } = true;
+        public virtual bool CanRemove { get; set; } = true;
 
         public virtual bool AIBlacklisted { get; set; } = false;
 
@@ -196,7 +196,7 @@ namespace vanillaVoid.Items
             ItemDef.pickupModelPrefab = ItemModel;
             ItemDef.pickupIconSprite = ItemIcon;
             ItemDef.hidden = false;
-            ItemDef.canRemove = CanRemove;
+
             ////The tier determines what rarity the item is:
             ////Tier1=white, Tier2=green, Tier3=red, Lunar=Lunar, Boss=yellow,
             ////and finally NoTier is generally used for helper items, like the tonic affliction
@@ -206,10 +206,14 @@ namespace vanillaVoid.Items
             //// Instead of loading the itemtierdef directly, you can also do this like below as a workaround
             ////myItemDef.deprecatedTier = ItemTier.Tier2;
             ItemDef.deprecatedTier = Tier;
+            ItemDef.canRemove = Tier != ItemTier.NoTier;
 
             if (ItemTags.Length > 0) { ItemDef.tags = ItemTags; }
             Debug.Log(ItemDef.nameToken + " initalized");
             ItemAPI.Add(new CustomItem(ItemDef, CreateItemDisplayRules()));
+
+            vanillaVoidPlugin.vvItemDefs.Add(ItemDef.name, ItemDef);
+
         }
 
         public virtual void Hooks() { }

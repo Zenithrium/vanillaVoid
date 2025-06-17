@@ -48,7 +48,6 @@ namespace vanillaVoid.Items
             voidPair = null;
             Hooks();
 
-
             //string orbTransp = "RoR2/Base/Croco/matBlighted.mat";
             //
             //var OrbsModelTransp = ItemModel.transform.Find("purpleguard").GetComponent<MeshRenderer>();
