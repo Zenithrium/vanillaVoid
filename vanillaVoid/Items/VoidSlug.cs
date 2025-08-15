@@ -20,7 +20,7 @@ namespace vanillaVoid.Items
         public ConfigEntry<float> baseRegen;
 
         public ConfigEntry<float> baseRegenPerStack;
-        public override string ItemName => "Well Stocked Stocki"; //Well Stocked Stocki
+        public override string ItemName => "Well-Stocked Stocki"; //Well Stocked Stocki
 
         public override string ItemLangTokenName => "SLUG_ITEM";
 

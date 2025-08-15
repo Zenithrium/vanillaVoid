@@ -52,8 +52,7 @@ namespace vanillaVoid.Items
             (slowDurationStacking.Value != 0 ? $" <style=cStack>(+{slowDurationStacking.Value} per stack)</style>" : "") + $" seconds. Upon applying <style=cIsUtility>{requiredStacksForFreeze.Value} stacks</style> of <style=cIsUtility>slow</style> to an enemy, they are <style=cIsDamage>frozen</style>. " +
             (requiredStacksForBossFreeze.Value > 0 ? $"Freezing is less effective on bosses." : "Cannot freeze bosses.") + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemLore => $"<style=cSub>Order: Supercritical Coolant \nTracking Number: 03691215 \nEstimated Delivery: 25/10/2112 \nShipping Method: High Priority/Fragile \nShipping Address: [REDACTED] \nShipping Details: \n\n</style>" +
-            "Originally we studied Void occurrences from afar, observing and cataloguing the distribution of galaxies and refining cosmological evolution models. We are in a new age of cosmic exploration. Advancements in space travel partnered with determined curiosity have brought us closer to our object of study, and with it, revelation.";
+        public override string ItemLore => $"<style=cSub>Order: Supercritical Coolant\nTracking Number: 34928592\nEstimated Delivery: 25/10/2056-7\nShipping Method: Field Found \nShipping Address: [REDACTED] \nShipping Details:</style>\n\nOriginally, we were just finding these void? Thingies... scattered around in what looked like? Chests? Neither me, nor my team could really tell, the scout we got called them \"Cradles\"... That scout also decided to put something in there. 'put in tracking id number 34928592... The boy disappeared, and the cradle opened up leaving this god forsaken coolant.";
 
         public override ItemTier Tier => ItemTier.VoidTier1;
 

@@ -52,9 +52,6 @@ namespace vanillaVoid.Items
             CreateLang();
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
-            //VoidItemAPI.VoidTransformation.CreateTransformation(ItemDef, voidPair.Value);
-
-
 
             Hooks(); 
         }

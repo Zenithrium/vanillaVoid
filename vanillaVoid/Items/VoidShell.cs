@@ -394,7 +394,7 @@ namespace vanillaVoid.Items
                 //Debug.Log("set camps's parent");
             }
 
-            var exprc = PortalBattery.GetComponent<ExpansionRequirementComponent>();
+            //var exprc = PortalBattery.GetComponent<ExpansionRequirementComponent>();
             //if (exprc)
             //{
             //    //Debug.Log("exprc found");

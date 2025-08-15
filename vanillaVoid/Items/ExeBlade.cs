@@ -42,12 +42,7 @@ namespace vanillaVoid.Items
 
         public override string ItemFullDescription => $"Your <style=cIsDamage>On-Kill</style> effects occur <style=cIsDamage>{additionalProcs.Value}</style>" + (additionalProcs.Value != 0 ? $" <style=cStack>(+{additionalProcs.Value} per stack)</style>" : "") + $" additional times upon killing an elite." + (aoeRangeBaseExe.Value != 0 && baseDamageAOEExe.Value != 0 ? $" Additionally causes a <style=cIsDamage>{aoeRangeBaseExe.Value}m</style> explosion, dealing <style=cIsDamage>{baseDamageAOEExe.Value * 100}%</style> base damage." : "") + $" <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
-        public override string ItemLore => $"<style=cMono>//-- AUTO-TRANSCRIPTION FROM CARGO BAY 14 OF UES [Redacted] --//</style>" +
-            "\n\n\"Hey Joe, how are things g....what is all that. Why do you have so many swords.\"" +
-            "\n\n\"Oh hi! Remember when I started, uh, trading with the void? Found a new candidate. Those rusty guillitones? Void loves 'em.\"" +
-            "\n\n\"I..sure. Wait a sec, how many guillotines did you have?\"" +
-            "\n\n\"...enough? Why's it matter?\"\n\n\"No no it's just that like, how are you supposed to use like, more than one of these things? Doesn't seem as applicable than having a guillotine strapped to everything.\"" +
-            "\n\n\"That doesn't make any sense either though! Why did that ship have so many [REDACTED] guillotines anyway!\"";
+        public override string ItemLore => $"<style=cMono>//-- AUTO-TRANSCRIPTION FROM CARGO BAY 14 OF UES [Redacted] --//</style>\n\n\"Hey Joe, how are things g....what is all that. Why do you have so many swords.\"\n\n\"funn?y\"\n\n\"You're-... Getting fired for this, how many- how many do you even have?!?!\"\n\n\"umm...? twelve..\"\n\n\"I... what do you mean TWELVE?!?!?!?!?!\"\n\n\"uhhhmm.?.. uhhhh...??\"\n\n\"Just spit it out ALREADY - where did you get TWELVE [redacted] swords from?!?!\"\n\n\"voi?d\"\n\n\"What-... What do you mean VOID?!?!?! You expect me to just know what you mean by 'void', did [redacted] c'thulu give you these?!?!?! Would explain why you're [redacted] suit is all of a sudden a completely different color?!?! How is it pink now?!?\"\n\n\"d?etain??... m?en?t\"\n\n<style=cMono>[a large, heavy swoosh, followed by a helmet clattering upon the ground]</style>";
 
         public override ItemTier Tier => ItemTier.VoidTier2;
 

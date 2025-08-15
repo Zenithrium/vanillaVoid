@@ -499,10 +499,10 @@ namespace vanillaVoid.Items
                 {
                     ruleType = ItemDisplayRuleType.ParentedPrefab,
                     followerPrefab = ItemBodyModelPrefab,
-                    childName = "Pelvis",
-                    localPos = new Vector3(0, 0, 0),
-                    localAngles = new Vector3(0, 0, 0),
-                    localScale = new Vector3(1, 1, 1)
+                    childName = "Stomach",
+                    localPos = new Vector3(0.00435F, 0.23075F, 0.27775F),
+                    localAngles = new Vector3(8.67568F, 189.3726F, 272.617F),
+                    localScale = new Vector3(0.11F, 0.11F, 0.11F)
                 }
             });
             rules.Add("mdlHANDOverclocked", new RoR2.ItemDisplayRule[]

@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 482552152
+CRC: 1344516945
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: ec730fa030a653e3b11c7d2810a46a50
+    Hash: 1ebf26202a04e586099a26d1a6cae3b4
   TypeTreeHash:
     serializedVersion: 2
     Hash: 7205fed4546c9a2e510a871e25a03472
@@ -69,6 +69,7 @@ Assets:
 - Assets/Models/Prefabs/Item/BladeItem/mdlBladeDisplay.prefab
 - Assets/Models/Prefabs/Item/VialsItem/texCloudOrganic3.png
 - Assets/Models/Prefabs/Item/ExtVent/ventOrbMat.mat
+- Assets/Models/Prefabs/Item/Fin/matVoidJailerClaw.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texNullifierSky.png
 - Assets/Models/Prefabs/Item/Core/glassnormal.png
 - Assets/Models/Prefabs/Item/Core/coremodel_texturedthistimewithouttheuncoiledpart.fbx
@@ -78,8 +79,10 @@ Assets:
 - Assets/Models/Prefabs/Item/CryoItem/preFreezeSlow.png
 - Assets/Models/Prefabs/Item/ExtVent/extSmokeMat.mat
 - Assets/Models/Prefabs/Item/WhorlItem/cornucopiaIcon512.png
+- Assets/Models/Prefabs/Item/Fin/mdlCrabClawFinal.prefab
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/matVoidBlinkBillboard.mat
 - Assets/Models/VFX/texCloudIce.png
+- Assets/Models/Prefabs/Item/Fin/FinVfx.prefab
 - Assets/Sprites/texUICornerTier1.png
 - Assets/Models/Prefabs/Item/OrreryItem/mdlOrreryPickup.prefab
 - Assets/Models/VFX/texBehemothTileMask.png
@@ -88,6 +91,7 @@ Assets:
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texNormalInvertConeFade.png
 - Assets/Models/Misc/CommandVFX/matGenericFlash.mat
 - Assets/Models/Prefabs/Item/Core/animcCorrosive.controller
+- Assets/Models/Prefabs/Item/Fin/mdlCrabClawReal.prefab
 - Assets/Models/Misc/CommandVFX/matNullifierStarPortalEdge.mat
 - Assets/Models/Prefabs/Item/WhorlItem/texParticlesGalaxy.png
 - Assets/Models/Prefabs/Item/OrreryItem/newOrreryMaterial.mat
@@ -105,13 +109,16 @@ Assets:
 - Assets/Models/Prefabs/Item/CryoItem/mdlCryoPickup.prefab
 - Assets/Models/Prefabs/Item/RoundsItem/matJailerEnergyTether.mat
 - Assets/Models/Prefabs/Item/CryoItem/meshCryoExplosion.mesh
+- Assets/Models/Prefabs/Item/Fin/texVoidJailerTentacleMask2.png
 - Assets/Models/Prefabs/Item/VialsItem/mdlInvertedEmptyDisplay.prefab
 - Assets/Models/Prefabs/Item/AbyssalAdze/adzeCoreMat.mat
 - Assets/Models/Misc/matPurpleGrassyStone.mat
 - Assets/Models/Prefabs/Item/AbyssalAdze/adzeMatDisplay.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/MessItem/mdlMessDisplay.prefab
+- Assets/Models/Prefabs/Item/Fin/mdlCrabClawReal 1.prefab
 - Assets/Models/Prefabs/Item/CryoItem/texChargeShadow.png
 - Assets/Models/Prefabs/Item/RoundsItem/matOmniHitsparkVoid.mat
+- Assets/Models/Prefabs/Item/Fin/texRampVoidMegaCrabEyes.png
 - Assets/Models/Prefabs/Item/VialsItem/mdlVialsFinalPickup.prefab
 - Assets/raw/lotus/lotusmaterial.mat
 - Assets/Models/Prefabs/Item/RoundsItem/matOmniHitspark1Void.mat
@@ -135,6 +142,7 @@ Assets:
 - Assets/Models/Prefabs/Item/ExtVent/extVentMatDisplay.mat
 - Assets/Models/Misc/Interactables/texCloudIce.png
 - Assets/Models/Misc/fbxVoidPlatform.fbx
+- Assets/Models/Prefabs/Item/Fin/matJailerEnergyTether.mat
 - Assets/Models/Prefabs/Item/VialsItem/matBlueHealingPotionGoo.mat
 - Assets/Models/Misc/CommandVFX/VoidSystem.prefab
 - Assets/Sprites/texUICornerTier4.png
@@ -146,6 +154,7 @@ Assets:
 - Assets/Models/Prefabs/Item/LotusItem/texRampIce3.png
 - Assets/Models/Prefabs/Item/AbyssalAdze/old/MiscMetalTexture.mat
 - Assets/raw/microbe/rac.fbx
+- Assets/Models/Prefabs/Item/Fin/clutchIcon512.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/watchIcon512.png
 - Assets/Models/Prefabs/Item/Core/VFX/texRampVoidRaidCrabEyeWider.png
 - Assets/Models/Misc/VoidShrine.prefab
@@ -154,14 +163,17 @@ Assets:
 - Assets/Models/Prefabs/Item/CryoItem/matClayBossLightshaft.mat
 - Assets/Models/Prefabs/Item/RoundsItem/RelentlessSplashVFX.prefab
 - Assets/Models/Misc/Interactables/interactablePortalSymbol.mat
+- Assets/Models/Prefabs/Item/Fin/donut6Mesh.asset
 - Assets/Sprites/texUICornerTier2.png
 - Assets/Models/Prefabs/Item/ExtVent/mdlVentPickup.prefab
 - Assets/Models/Prefabs/Item/AbyssalAdze/old/orbCoreTexture.mat
 - Assets/Models/Prefabs/Item/Core/rake.png
 - Assets/Models/Prefabs/Item/RoundsItem/vfx/texHuntressArrowBigMask.png
 - Assets/Models/Misc/fbxVoidArch.fbx
+- Assets/Models/Prefabs/Item/Fin/texVoidMegaCrabEmission.png
 - Assets/Models/Prefabs/Item/Core/texRampBanditSplatter.png
 - Assets/Models/Prefabs/Item/Core/corediffuse3.png
+- Assets/Models/Prefabs/Item/Fin/mdlClaw.prefab
 - Assets/Models/Prefabs/Item/RoundsItem/texCloudWaterRipples.png
 - Assets/Models/Prefabs/Item/WhorlItem/whorlShellMatDisplay.mat
 - Assets/Models/Misc/CommandVFX/matNullifierStarTrail.mat
@@ -193,8 +205,10 @@ Assets:
 - Assets/Models/Prefabs/Item/RoundsItem/vfx/texMagmaCloud.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texCloudCrackedIce.png
 - Assets/Textures/Icons/Item/OrbItem/OrbIcon 1.png
+- Assets/Models/Prefabs/Item/Fin/texTrimsheetJailerDiffuseLight.png
 - Assets/Models/Prefabs/Item/RoundsItem/vfx/texRampVoidSoft2.png
 - Assets/Models/Prefabs/Item/ExtVent/orbFlare1Mat.mat
+- Assets/Models/Prefabs/Item/Fin/texTrimsheetJailerHighlightDiffuse.png
 - Assets/Textures/Icons/Buffs/drownDot.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/pillarMat.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/MessItem/mdlMessPickup.prefab
@@ -224,10 +238,12 @@ Assets:
 - Assets/Models/Prefabs/Item/WhorlItem/texRingLightningMask.png
 - Assets/Models/Prefabs/Item/AbyssalAdze/old/HeadMaterial.mat
 - Assets/Models/Prefabs/Item/WhorlItem/texRingRamp.png
+- Assets/Models/Prefabs/Item/Fin/wardenIcon512.png
 - Assets/Models/Prefabs/Item/RoundsItem/RelentlessOrbEffect.prefab
 - Assets/Models/Prefabs/Item/Core/gloopemissive.png
 - Assets/Models/Prefabs/Item/RoundsItem/RentlessProjectile.prefab
 - Assets/Models/Prefabs/Item/AbyssalAdze/adzeCoreMatDisplay.mat
+- Assets/Models/Prefabs/Item/Fin/mdlCrabClawOldReal.prefab
 - Assets/Models/Prefabs/Item/VialsItem/texRampCrocoFuschia.png
 - Assets/Models/Prefabs/Item/WhorlItem/matRings.mat
 - Assets/Models/Prefabs/Item/RoundsItem/texNormalInvertConeFade.png
@@ -307,6 +323,7 @@ Assets:
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texLightning2Mask.png
 - Assets/Models/Prefabs/Item/CryoItem/cryoMatDisplay.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/gearMat.mat
+- Assets/Models/Prefabs/Item/Fin/texTrimsheetJailerDiffuse.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/clkwkTranspTopMat.mat
 - Assets/Models/Prefabs/Item/LotusItem/texCloudDifferenceBW1.png
 - Assets/Models/Prefabs/Item/ExtVent/extVentGuardMat.mat
@@ -318,12 +335,15 @@ Assets:
 - Assets/Models/Prefabs/Item/Core/coreLight.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texNullifierSky2.png
 - Assets/Models/Prefabs/Item/WhorlItem/matParticles.mat
+- Assets/Models/Prefabs/Item/Fin/texTrimsheetJailerDiffuseLighter.png
 - Assets/Models/Prefabs/Item/VialsItem/matHealingCross.mat
 - Assets/Models/Prefabs/Item/VialsItem/texFluidSprayLarge.png
 - Assets/Models/Prefabs/Item/Core/old/coremodel_textured.fbx
+- Assets/Models/Prefabs/Item/Fin/texTrimsheetCrabNormal.png
 - Assets/Models/Prefabs/Item/VialsItem/VialsVFX.prefab
 - Assets/Models/Prefabs/Item/ClockworkWatch/valveMatDisplay.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/mainGrayMat.mat
+- Assets/Models/Prefabs/Item/Fin/claw10.fbx
 - Assets/Models/Prefabs/Item/AbyssalAdze/adzeTranspMat.mat
 - Assets/Models/Prefabs/Item/LotusItem/texRampIce2.png
 - Assets/Models/Prefabs/Item/WhorlItem/whorlIcon512.png
@@ -346,11 +366,13 @@ Assets:
 - Assets/Models/Prefabs/Item/CryoItem/CryoAOEExplosionEffect.prefab
 - Assets/Models/Prefabs/Item/CryoItem/texDistortionNormal.jpg
 - Assets/Models/Prefabs/Item/WhorlItem/mdlWhorlDisplay.prefab
+- Assets/Models/Prefabs/Item/Fin/mdlCrabClawReal 2.prefab
 - Assets/raw/quill/quillsolo.fbx
 - Assets/Models/Prefabs/Item/VialsItem/vialsIcon512.png
 - Assets/Models/Prefabs/Item/LotusItem/mdlFinalLotusPickupReal.prefab
 - Assets/Models/Prefabs/Item/AbyssalAdze/old/HandleLowerTexture.mat
 - Assets/Models/Prefabs/Item/RoundsItem/texCloudCaustic3.png
+- Assets/Models/Prefabs/Item/Fin/mdlCrabClawDisplay.prefab
 - Assets/Models/Prefabs/Item/Core/old/mdlCorePickup.prefab
 - Assets/Models/Prefabs/Item/WhorlItem/whorlMeteorMat.mat
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/texCloudCrackedIceInverted.png
@@ -381,6 +403,6 @@ Assets:
 - Assets/Models/Prefabs/Item/SlugItem/slugIcon512.png
 - Assets/Models/Prefabs/Item/Core/texRampBanditSlash.png
 - Assets/Models/Misc/CommandVFX/matTracerBright.mat
-- Assets/Models/Prefabs/Item/RoundsItem/matJailerPortal.mat
+- Assets/Models/Prefabs/Item/Fin/matJailerPortal.mat
 Dependencies:
 - C:/Users/Zynth/ItemTest/nth/source/repos/_unityAssetBundlesssetBundles/razorhiveassets

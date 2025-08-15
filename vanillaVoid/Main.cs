@@ -52,11 +52,13 @@ namespace vanillaVoid {
 
     //[BepInDependency(VoidItemAPI.VoidItemAPI.MODGUID)]
 
+    
+
     public class vanillaVoidPlugin : BaseUnityPlugin
     {
         public const string ModGuid = "com.Zenithrium.vanillaVoid";
         public const string ModName = "vanillaVoid";
-        public const string ModVer = "1.6.4";
+        public const string ModVer = "1.7.0";
 
         public static ExpansionDef sotvDLC;
         public static ExpansionDef sotvDLC2;

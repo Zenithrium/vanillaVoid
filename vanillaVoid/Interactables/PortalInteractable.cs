@@ -47,18 +47,21 @@ namespace vanillaVoid.Interactables
         public static CostTypeDef voidCostDef;
         public static int voidCostTypeIndex;
 
-        public int hasAddedMonolith;
+        public bool hasAddedMonolith;
         public static DirectorCard MonolithCard;
         //public Transform symbolTransform;
 
+        public Xoroshiro128Plus portalInteractableRNG;
+
         public override void Init(ConfigFile config)
         {
-            hasAddedMonolith = -1;
+            hasAddedMonolith = false;
             CreateConfig(config);
             CreateLang();
 
             CostTypeCatalog.modHelper.getAdditionalEntries += addVoidCostType;
-            On.RoR2.CampDirector.SelectCard += VoidCampAddMonolith;
+            //On.RoR2.CampDirector.SelectCard += VoidCampAddMonolith;
+            On.RoR2.CampDirector.Start += VoidCampTrySpawnMonolith;
             On.RoR2.PurchaseInteraction.GetDisplayName += MonolithName;
             RoR2.SceneDirector.onPrePopulateSceneServer += SetPortalCard;
             //On.RoR2.CampDirector.SelectCard
@@ -73,9 +76,37 @@ namespace vanillaVoid.Interactables
             //Hooks();
         }
 
+        private void VoidCampTrySpawnMonolith(On.RoR2.CampDirector.orig_Start orig, CampDirector self)
+        {
+            Debug.Log("wtf"); //  * Fixed Shattered Monolith breaking other camp directors. Updated it to spawn as void seeds spawn
+            orig(self);
+
+            if(portalInteractableRNG == null)
+            {
+                portalInteractableRNG = new Xoroshiro128Plus(Run.instance.seed);
+            }
+
+            //portalInteractableRNG.RangeFloat(0, 1) >= .75f
+            if (self.gameObject && self.gameObject.name.Contains("Void Monsters & Interactables") && !hasAddedMonolith && portalInteractableRNG.RangeFloat(0, 1) <= voidSeedWeight.Value)
+            {
+                
+                GameObject exists = DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(interactableSpawnCard, new DirectorPlacementRule
+                {
+                    minDistance = self.campMinimumRadius,
+                    maxDistance = self.campMaximumRadius,
+                    placementMode = DirectorPlacementRule.PlacementMode.Approximate,
+                    position = self.campCenterTransform.position,
+                    spawnOnTarget = self.campCenterTransform
+                }, Run.instance.stageRng));
+                Debug.Log("Spawning guy : " + exists);
+                hasAddedMonolith = true;
+            }
+        
+        }
+
         private void SetPortalCard(SceneDirector obj)
         {
-            hasAddedMonolith = -1 ;
+            hasAddedMonolith = false;
         }
 
         private void addVoidCostType(List<CostTypeDef> obj)
@@ -95,9 +126,9 @@ namespace vanillaVoid.Interactables
 
         private void CreateConfig(ConfigFile config)
         {
-            voidSeedWeight = config.Bind<float>("Interactable: " + InteractableName, "Void Seed Selection Weight", .125f, "How likely should this interactable be chosen to spawn in a void seed? (For reference - 1 = Void Coin Barrel, .5 = Void Cradle, .333 = Void Potential Chest)");
+            voidSeedWeight = config.Bind<float>("Interactable: " + InteractableName, "Void Seed Spawn Chance", .2f, "How likely should this interactable be chosen to additionally spawn with a void seed? (1 = in every seed, 0 = will never spawn).");
             normalWeight = config.Bind<int>("Interactable: " + InteractableName, "Regular Stage Selection Weight", 1, "How likely should this be to spawn outside of void seeds? (For reference, 24 = Normal Chest, 8 = Multishop, 1 = Lunar Pod (depends on stage, but generally these are accurate))");
-            spawnCost = config.Bind<int>("Interactable: " + InteractableName, "Credit Cost", 10, "How expensive should this interactable be? (For reference, 15 = Normal Chest, 20 = Multishop & Chance Shrine, 25 = Lunar Pod)");
+            spawnCost = config.Bind<int>("Interactable: " + InteractableName, "Credit Cost", 10, "How expensive should this interactable be when spawned normally? (For reference, 15 = Normal Chest, 20 = Multishop & Chance Shrine, 25 = Lunar Pod)");
         }
 
         public void CreateInteractable()
@@ -231,6 +262,14 @@ namespace vanillaVoid.Interactables
                 //allowAmbushSpawn = true, TODO removed i think?
             };
 
+            var CampCard = new DirectorCard
+            {
+                selectionWeight = 1,
+                spawnCard = interactableSpawnCard,
+                minimumStageCompletions = 1,
+
+                //allowAmbushSpawn = true, TODO removed i think?
+            };
             //DirectorAPI.Helpers.AddNewInteractable(directorCard, DirectorAPI.InteractableCategory.VoidStuff);
 
             //            RoR2/Base/SceneGroups/sgStage1.asset 	RoR2.SceneCollection
@@ -309,6 +348,10 @@ namespace vanillaVoid.Interactables
             //    minimumStageCompletions = 999999,
             //};
             //DirectorAPI.Helpers.AddNewInteractableToStage(directorCard2, DirectorAPI.InteractableCategory.VoidStuff, DirectorAPI.Stage.Bazaar);
+            //DirectorCardCategorySelection dccsCamp = Addressables.LoadAssetAsync<DirectorCardCategorySelection>("RoR2/DLC1/VoidCamp/dccsVoidCampInteractables.asset").WaitForCompletion();
+
+           // dccsCamp.AddCategory("Special", .33f);
+            //dccsCamp.AddCard(1, CampCard);
 
             //DirectorAPI.Helpers.AddNewInteractable(directorCard2, DirectorAPI.InteractableCategory.VoidStuff);
 
@@ -323,103 +366,6 @@ namespace vanillaVoid.Interactables
             }
             return orig(self);
         }
-
-        //private void HopefullyFixIncompat(Stage obj)
-        //{
-        //    Debug.Log("begin fix - " + obj.sceneDef.cachedName + " | " + obj.sceneDef.nameToken + " | ");
-        //    if(obj.sceneDef.cachedName == "forgottenhaven")
-        //    {
-        //
-        //    }
-        //    
-        //}
-
-        //private void Test(On.RoR2.SceneDirector.orig_Start orig, SceneDirector self)
-        //{
-        //    Debug.Log("begin test - " + self.name);
-        //    foreach (Transform g in self.transform.GetComponentsInChildren<Transform>())
-        //    {
-        //        Debug.Log(g.name);
-        //    }
-        //    orig(self);
-        //}
-
-        private DirectorCard VoidCampAddMonolith(On.RoR2.CampDirector.orig_SelectCard orig, CampDirector self, WeightedSelection<DirectorCard> deck, int maxCost)
-        {
-            //hasAddedMonolith = false;
-            //Debug.Log("void camp add monolith start ! " + hasAddedMonolith);
-            if (self.name == "Camp 1 - Void Monsters & Interactables" && hasAddedMonolith == -1)
-            {
-                for (int i = deck.Count - 1; i >= 0; i--)
-                {
-                    //Debug.Log("name: " + deck.GetChoice(i).value.spawnCard.name + " | cost: " + deck.GetChoice(i).value.cost);
-                    if (deck.GetChoice(i).value.spawnCard.name == "iscVoidPortalInteractable")
-                    {
-                        //hasAddedMonolith = 0;
-                        hasAddedMonolith = 0;
-                        break;
-                    }
-                    //Debug.Log("card name: " + deck.GetChoice(i).value.spawnCard.name + " | weight: " + deck.GetChoice(i).weight);
-                }
-                //Debug.Log("name: " + self.name + " | elite: " + self.eliteDef);
-                //WeightedSelection<DirectorCard> ah = new WeightedSelection<DirectorCard>.ChoiceInfo()-
-                if(MonolithCard == null)
-                {
-                    Debug.Log("MonolithCard was not available.");
-                    CreateInteractableSpawnCard();
-                }
-                
-                if (MonolithCard != null && hasAddedMonolith == -1)
-                {
-                    deck.AddChoice(MonolithCard, voidSeedWeight.Value);
-                    hasAddedMonolith = 0;
-                    //Debug.Log("adding monolith");
-                    //hasAddedMonolith = true;
-                }
-                else if(MonolithCard == null){
-                    Debug.Log("MonolithCard was STILL not available?");
-                }
-                //else if (!MonolithCard.IsAvailable())
-                //{
-                //    Debug.Log("MonolithCard was not available.");
-                //    //CreateInteractableSpawnCard();
-                //}
-            }
-
-            var yeah = orig(self, deck, maxCost);
-            if (yeah != null)
-            {
-                //Debug.Log("yeah: " + yeah + " is available");
-                if (yeah.IsAvailable())
-                {
-                    if (yeah.spawnCard)
-                    {
-                        //Debug.Log("yeah: " + yeah.spawnCard + " exists");
-                        if (yeah.spawnCard.name == MonolithCard.spawnCard.name)
-                        {
-                            for (int i = deck.Count - 1; i >= 0; i--)
-                            {
-                                //Debug.Log("name: " + deck.GetChoice(i).value.spawnCard.name + " | cost: " + deck.GetChoice(i).value.cost);
-                                if (deck.GetChoice(i).value.spawnCard.name == "iscVoidPortalInteractable")
-                                {
-                                    //Debug.Log("removing monolith");
-                                    deck.RemoveChoice(i);
-                                    hasAddedMonolith = 1;
-                                    break;
-                                }
-                                //Debug.Log("card name: " + deck.GetChoice(i).value.spawnCard.name + " | weight: " + deck.GetChoice(i).weight);
-                            }
-                        }
-                    }
-                }
-            }
-            //Debug.Log("yeah: " + yeah + " | " + yeah.spawnCard + " | " + yeah.spawnCard);
-
-
-            return yeah;
-        }
-
-
 
         private static class VoidItemCostTypeHelper
         {
