@@ -811,6 +811,7 @@ namespace vanillaVoid.Items
         int count = 0;
         int previousCount = 0;
         public float timer;
+        public float timer2;
         public float lastJumpTime;
         public CharacterBody body; //the player it's attached to
     
@@ -826,9 +827,21 @@ namespace vanillaVoid.Items
         {
             if (value)
             {
-                Debug.Log("Set jump " + value);
+                Debug.Log("test : " + timer + " | " + jumpInput + " | " + (body.characterMotor.jumpCount == body.maxJumpCount) + " | " + (count >= body.maxJumpCount) + " | " + (jumpCurrent != 0) + " | " + (body.moveSpeed != 0) + " | " + canEnemyJump);
             }
             jumpInput = value;
+        }
+
+        [Command]
+        public void CmdClutchDamageTarget(HealthComponent hc, DamageInfo info)
+        {
+            hc.TakeDamage(info);
+        }
+
+        [Command]
+        public void CmdClutchDamageTargetForce(HealthComponent hc, Vector3 dir)
+        {
+            hc.TakeDamageForce(dir, true, true);
         }
 
         public bool canEnemyJump;
@@ -843,7 +856,7 @@ namespace vanillaVoid.Items
     
         public bool TestEnemyJump()
         {
-            Debug.Log("testing");
+            //Debug.Log("testing");
             SphereSearch jumpSearch = new SphereSearch();
             jumpBoxList = new List<HurtBox>();
 
@@ -904,13 +917,13 @@ namespace vanillaVoid.Items
                 jumpCurrent = jumpMax;
                 count = 0;
             }
-            
+
+            canEnemyJump = TestEnemyJump();
+
             if (body.hasEffectiveAuthority)
             {
                 CmdSetJumpInput(body.inputBank.jump.justPressed);
-                canEnemyJump = TestEnemyJump();
-
-                Debug.Log("test : " + timer + " | " + jumpInput + " | " + (body.characterMotor.jumpCount == body.maxJumpCount) + " | " + (count >= body.maxJumpCount) + " | " + (jumpCurrent != 0) + " | " + (body.moveSpeed != 0) + " | " + canEnemyJump);
+                //canEnemyJump = TestEnemyJump();
             }
 
             if (!jumpInput)
@@ -920,11 +933,17 @@ namespace vanillaVoid.Items
                     previousCount = body.characterMotor.jumpCount;
                 }
             }
-    
+            timer2 -= Time.fixedDeltaTime;
+            if(timer2 < 0)
+            {
+                timer2 = 1;
+                Debug.Log("jumpcount: " + body.characterMotor.jumpCount + " | jump input: " + jumpInput + " | canenemyjump" + canEnemyJump + " | " + body.maxJumpCount + " | " + jumpCurrent + " | " + jumpMax); //count >= body.maxJumpCount
+            }
             timer -= Time.fixedDeltaTime;
             //Debug.Log("jumpcount: " + body.characterMotor.jumpCount + " | " + canEnemyJump + " | " + body.maxJumpCount + " | " + jumpCurrent + " | " + jumpMax); //count >= body.maxJumpCount
             if (timer <= 0 && jumpInput && body.characterMotor.jumpCount == body.maxJumpCount && count >= body.maxJumpCount && jumpCurrent != 0 && body.moveSpeed != 0 && canEnemyJump){
                 timer = .1375f;
+                Debug.Log("attempting to kick");
                 Vector3 dir = body.inputBank.moveVector;
                 if (dir != Vector3.zero){
                     //float dashVelo = 21;
