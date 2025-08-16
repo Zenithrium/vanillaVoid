@@ -29,7 +29,7 @@ namespace vanillaVoid.Items
         public static ConfigEntry<int> stackingKicks;
 
         public static ConfigEntry<bool> invertForce;
-
+        public static ConfigEntry<float> kickRange;
         //public ConfigEntry<float> stackingBuff;
 
         public override string ItemName => "Warden's Clutch"; // Marauder's Clutch, Brachial, Sessile , Plunderer's Pincer, Ichthyic Invertebrate, Briny Bivalve, Anchor, Clutch, Loch, Thalassic, Incisor, Chisel
@@ -81,7 +81,7 @@ namespace vanillaVoid.Items
             ContentAddition.AddEffect(jumpVFX);
 
             clutchAttachment = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("ClutchAttachment.prefab");
-            clutchAttachment.AddComponent<NetworkIdentity>();
+            clutchAttachment.AddComponent<NetworkIdentity>().localPlayerAuthority = true;
             clutchAttachment.AddComponent<NetworkedBodyAttachment>().shouldParentToAttachedBody = true;
 
             clutchAttachment.AddComponent<ClutchNetBehavior>();
@@ -108,9 +108,9 @@ namespace vanillaVoid.Items
             baseKicks = config.Bind<int>("Item: " + name, "Base Enemy Kicks", 1, "Adjust how many enemy kickoffs the first stack grants.");
             stackingKicks = config.Bind<int>("Item: " + name, "Enemy Kicks Per Stack", 1, "Adjust how many enemy kickoffs gained per stack.");
 
+            kickRange = config.Bind<float>("Item: " + name, "Kick Range", 3f, "Adjust the radius of valid kicking range. This is added ontop of the radius of the body trying to use it.");
             invertForce = config.Bind<bool>("Item: " + name, "Invert Kick Force", false, "If false, kickoffs launch enemies towards the player's movement direction - if true, it pushes opposite of your inputs. More logical, but less fun to combo with.");
 
-            //stackingBuff = config.Bind<float>("Item: " + ItemName, "Stacking Percent Damage Increase", , "Adjust the percent of extra damage dealt per stack.");
             voidPair = config.Bind<string>("Item: " + name, "Item to Corrupt", "KnockBackHitEnemies", "Adjust which item this is the void pair of.");
         }
 
@@ -780,15 +780,15 @@ namespace vanillaVoid.Items
     public sealed class ClutchBehavior : BaseItemBodyBehavior {
 
         [ItemDefAssociation]
-        private static ItemDef GetItemDef() => VoidFin.staticDef;
+        private static ItemDef GetItemDef() { return ItemBase<VoidFin>.instance?.ItemDef; }
 
         public NetworkedBodyAttachment attachment;
         public ClutchNetBehavior token;
 
         private void OnEnable()
         {
-            attachment = VoidFin.clutchAttachment.GetComponent<NetworkedBodyAttachment>();
-            attachment.AttachToGameObjectAndSpawn(base.body.gameObject, null);
+            attachment = UnityEngine.Object.Instantiate<GameObject>(VoidFin.clutchAttachment, body.transform).GetComponent<NetworkedBodyAttachment>();
+            attachment.AttachToGameObjectAndSpawn(body.gameObject, null);
             token = this.attachment.GetComponent<ClutchNetBehavior>();
             Debug.Log("attach: " + attachment + " | " + token);
         }
@@ -824,37 +824,60 @@ namespace vanillaVoid.Items
         [Command]
         public void CmdSetJumpInput(bool value)
         {
+            if (value)
+            {
+                Debug.Log("Set jump " + value);
+            }
             jumpInput = value;
         }
 
-        private bool canEnemyJump
+        public bool canEnemyJump;
+
+        //{
+        //    get
+        //    {
+        //        return TestEnemyJump();
+        //    }
+        //    set
+        //}
+    
+        public bool TestEnemyJump()
         {
-            get
+            Debug.Log("testing");
+            SphereSearch jumpSearch = new SphereSearch();
+            jumpBoxList = new List<HurtBox>();
+
+            jumpSearch.origin = body.transform.position;
+            jumpSearch.mask = LayerIndex.entityPrecise.mask;
+            jumpSearch.radius = body.radius + VoidFin.kickRange.Value;
+            jumpSearch.RefreshCandidates();
+            jumpSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetUnprotectedTeams(body.teamComponent.teamIndex));
+            jumpSearch.FilterCandidatesByDistinctHurtBoxEntities();
+            jumpSearch.OrderCandidatesByDistance();
+            jumpSearch.GetHurtBoxes(jumpBoxList);
+            jumpSearch.ClearCandidates();
+
+            if (jumpBoxList.Count > 0)
             {
-                SphereSearch jumpSearch = new SphereSearch();
-                jumpBoxList = new List<HurtBox>();
-    
-                jumpSearch.origin = body.transform.position;
-                jumpSearch.mask = LayerIndex.entityPrecise.mask;
-                jumpSearch.radius = body.radius + 2.75f;
-                jumpSearch.RefreshCandidates();
-                jumpSearch.FilterCandidatesByHurtBoxTeam(TeamMask.GetUnprotectedTeams(body.teamComponent.teamIndex));
-                jumpSearch.FilterCandidatesByDistinctHurtBoxEntities();
-                jumpSearch.OrderCandidatesByDistance();
-                jumpSearch.GetHurtBoxes(jumpBoxList);
-                jumpSearch.ClearCandidates();
-    
-                if (jumpBoxList.Count > 0){
-                    nearest = jumpBoxList[0];
-                    return true;
-                }
-    
-                return false;
+                nearest = jumpBoxList[0];
+                return true;
             }
+
+            return false;
         }
-    
+
         void Awake(){
-            body = gameObject.transform.parent.GetComponent<CharacterBody>();
+            try
+            {
+                body = gameObject.transform.parent.GetComponent<CharacterBody>();
+                int stack = body.inventory.GetItemCount(VoidFin.instance?.ItemDef);
+                jumpMax = VoidFin.baseKicks.Value + (VoidFin.stackingKicks.Value * (stack - 1));
+
+            }
+            catch (Exception e)
+            {
+
+            }
             
             timer = 0f;
             jumpCurrent = jumpMax;
@@ -864,13 +887,20 @@ namespace vanillaVoid.Items
     
         private void FixedUpdate(){
             if (!body){
-                return;
+                body = gameObject.transform.parent.GetComponent<CharacterBody>();
+                if (!body)
+                {
+                    return;
+                }
             }
             if (!body.characterMotor){
                 return;
             }
     
             if (body.characterMotor.isGrounded){
+                int stack = body.inventory.GetItemCount(VoidFin.instance?.ItemDef);
+                jumpMax = VoidFin.baseKicks.Value + (VoidFin.stackingKicks.Value * (stack - 1));
+
                 jumpCurrent = jumpMax;
                 count = 0;
             }
@@ -878,6 +908,9 @@ namespace vanillaVoid.Items
             if (body.hasEffectiveAuthority)
             {
                 CmdSetJumpInput(body.inputBank.jump.justPressed);
+                canEnemyJump = TestEnemyJump();
+
+                Debug.Log("test : " + timer + " | " + jumpInput + " | " + (body.characterMotor.jumpCount == body.maxJumpCount) + " | " + (count >= body.maxJumpCount) + " | " + (jumpCurrent != 0) + " | " + (body.moveSpeed != 0) + " | " + canEnemyJump);
             }
 
             if (!jumpInput)
