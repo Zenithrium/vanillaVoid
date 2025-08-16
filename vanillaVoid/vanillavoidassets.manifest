@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 1344516945
+CRC: 2046107155
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: 1ebf26202a04e586099a26d1a6cae3b4
+    Hash: 58a8bd7621002770b2c4407ea80fbc97
   TypeTreeHash:
     serializedVersion: 2
     Hash: 7205fed4546c9a2e510a871e25a03472
@@ -315,6 +315,7 @@ Assets:
 - Assets/Models/Prefabs/Item/OrreryItem/orreryIcon512.png
 - Assets/Models/Prefabs/Item/VialsItem/matGenericHealingPotionGoo.mat
 - Assets/Models/Misc/mdlVoidPlatform.prefab
+- Assets/Models/Prefabs/Item/Fin/ClutchAttachment.prefab
 - Assets/Models/Prefabs/Item/ClockworkWatch/valveMat.mat
 - Assets/Models/Misc/Interactables/portalInteractableSymbol.png
 - Assets/Models/Prefabs/Item/ClockworkWatch/vfx/matVoidBlinkTrail.mat

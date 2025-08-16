@@ -42,6 +42,7 @@ namespace vanillaVoid.Items
         public abstract Sprite ItemIcon { get; }
 
         public ItemDef ItemDef;
+        public static ItemDef staticDef;
         //public abstract string VoidVariant { get; }
         public virtual bool CanRemove { get; set; } = true;
 
@@ -211,6 +212,8 @@ namespace vanillaVoid.Items
             if (ItemTags.Length > 0) { ItemDef.tags = ItemTags; }
             Debug.Log(ItemDef.nameToken + " initalized");
             ItemAPI.Add(new CustomItem(ItemDef, CreateItemDisplayRules()));
+
+            staticDef = ItemDef;
 
             vanillaVoidPlugin.vvItemDefs.Add(ItemDef.name, ItemDef);
 

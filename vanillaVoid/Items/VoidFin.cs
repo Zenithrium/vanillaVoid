@@ -53,6 +53,8 @@ namespace vanillaVoid.Items
         public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
 
         public static GameObject jumpVFX = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("FinVfx.prefab");
+        
+        public static GameObject clutchAttachment;
 
         public override void Init(ConfigFile config)
         {
@@ -78,7 +80,13 @@ namespace vanillaVoid.Items
 
             ContentAddition.AddEffect(jumpVFX);
 
+            clutchAttachment = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("ClutchAttachment.prefab");
+            clutchAttachment.AddComponent<NetworkIdentity>();
+            clutchAttachment.AddComponent<NetworkedBodyAttachment>().shouldParentToAttachedBody = true;
 
+            clutchAttachment.AddComponent<ClutchNetBehavior>();
+
+            PrefabAPI.RegisterNetworkPrefab(clutchAttachment);
         }
 
         //public override string VoidPair()
@@ -717,47 +725,48 @@ namespace vanillaVoid.Items
 
         public override void Hooks()
         {
-            On.RoR2.CharacterBody.OnInventoryChanged += AddJumpToken;
+            //On.RoR2.CharacterBody.OnInventoryChanged += AddJumpToken;
             //On.EntityStates.GenericCharacterMain.ProcessJump += TryClutch;
         }
 
-        //private void TryClutch(On.EntityStates.GenericCharacterMain.orig_ProcessJump orig, GenericCharacterMain self)
-        //{
-        //    if (self.hasCharacterMotor && self.hasInputBank && self.isAuthority)
-        //    {
-        //        NetworkUser networkUser = NetworkUser.readOnlyLocalPlayersList[0];
-        //        bool? flag;
-        //        if (networkUser == null)
-        //        {
-        //            flag = null;
-        //        }
-        //        else
-        //        {
-        //            LocalUser localUser = networkUser.localUser;
-        //            flag = ((localUser != null) ? new bool?(localUser.userProfile.toggleArtificerHover) : null);
-        //        }
-        //        if (flag ?? true)
-        //        {
-        //            if (self.inputBank.jump.down)
-        //            {
-        //            }
-        //
-        //        }
-        //    }
-        //                orig(self); 
-        //    
-        //}
+        private void TryClutch(On.EntityStates.GenericCharacterMain.orig_ProcessJump orig, GenericCharacterMain self)
+        {
+            if (self.hasCharacterMotor && self.hasInputBank && self.isAuthority)
+            {
+                NetworkUser networkUser = NetworkUser.readOnlyLocalPlayersList[0];
+                bool? flag;
+                if (networkUser == null)
+                {
+                    flag = null;
+                }
+                else
+                {
+                    LocalUser localUser = networkUser.localUser;
+                    flag = ((localUser != null) ? new bool?(localUser.userProfile.toggleArtificerHover) : null);
+                }
+                if (flag ?? true)
+                {
+                    if (self.inputBank.jump.down)
+                    {
+
+                    }
+        
+                }
+            }
+                        orig(self); 
+            
+        }
 
         private void AddJumpToken(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self) {
             orig(self);
             if (self.inventory) {
                 int itemCount = self.inventory.GetItemCount(ItemBase<VoidFin>.instance.ItemDef);
-                var token = self.gameObject.GetComponent<ClutchToken>();
+                var token = self.gameObject.GetComponent<ClutchNetBehavior>();
                 if (itemCount > 0) {
                     //var token = self.gameObject.GetComponent<AirdashToken>();
                     if (!token) {
-                        token = self.gameObject.AddComponent<ClutchToken>();
-                        token.body = self;
+                        token = self.gameObject.AddComponent<ClutchNetBehavior>();
+                        //token.body = self;
                     }
                     Debug.Log("add token");
                     token.jumpMax = itemCount * 1; // dashesPerStack.Value;
@@ -768,7 +777,35 @@ namespace vanillaVoid.Items
         }
     }
 
-    public class ClutchToken : NetworkBehaviour { //give it a cooldown
+    public sealed class ClutchBehavior : BaseItemBodyBehavior {
+
+        [ItemDefAssociation]
+        private static ItemDef GetItemDef() => VoidFin.staticDef;
+
+        public NetworkedBodyAttachment attachment;
+        public ClutchNetBehavior token;
+
+        private void OnEnable()
+        {
+            attachment = VoidFin.clutchAttachment.GetComponent<NetworkedBodyAttachment>();
+            attachment.AttachToGameObjectAndSpawn(base.body.gameObject, null);
+            token = this.attachment.GetComponent<ClutchNetBehavior>();
+            Debug.Log("attach: " + attachment + " | " + token);
+        }
+
+        private void OnDisable()
+        {
+            Debug.Log("attach: " + attachment + " | " + token);
+            if (attachment)
+            {
+                Destroy(attachment);
+            }
+            attachment = null;
+            token = null;
+        }
+    }
+
+    public class ClutchNetBehavior : NetworkBehaviour { //give it a cooldown
         public int jumpMax;
         public int jumpCurrent;
         int count = 0;
@@ -817,6 +854,8 @@ namespace vanillaVoid.Items
         }
     
         void Awake(){
+            body = gameObject.transform.parent.GetComponent<CharacterBody>();
+            
             timer = 0f;
             jumpCurrent = jumpMax;
             count = 0;
@@ -835,8 +874,8 @@ namespace vanillaVoid.Items
                 jumpCurrent = jumpMax;
                 count = 0;
             }
-
-            if (Util.HasEffectiveAuthority(body.networkIdentity))
+            
+            if (body.hasEffectiveAuthority)
             {
                 CmdSetJumpInput(body.inputBank.jump.justPressed);
             }
