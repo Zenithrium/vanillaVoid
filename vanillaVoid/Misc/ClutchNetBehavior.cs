@@ -24,53 +24,24 @@ namespace vanillaVoid.Misc
         public HurtBox? nearest;
         public List<HurtBox> jumpBoxList;
 
-        [SyncVar]
+        //[SyncVar]
         public bool jumpInput;
 
         [SyncVar]
         public bool clutchValid;
 
         [Command]
-        public void CmdSetJumpInput(bool value)
-        {
-            if (value)
-            {
-                Debug.Log("cmdsetjumpinput : " + jumpInput);
-            }
-            jumpInput = value;
-        }
-
-        [Command]
         public void CmdSetClutchValid(bool value)
         {
-            if (value)
-            {
-                Debug.Log("test : " + timer + " | " + jumpInput + " | " + (body.characterMotor.jumpCount == body.maxJumpCount) + " | " + (count >= body.maxJumpCount) + " | " + (jumpCurrent != 0) + " | " + (body.moveSpeed != 0) + " | " + canEnemyJump);
-            }
+            //if (value)
+            //{
+            //    Debug.Log("CLUTCH VALID");
+            //    //Debug.Log("test : " + timer + " | " + jumpInput + " | " + (body.characterMotor.jumpCount == body.maxJumpCount) + " | " + (count >= body.maxJumpCount) + " | " + (jumpCurrent != 0) + " | " + (body.moveSpeed != 0) + " | " + canEnemyJump);
+            //}
             clutchValid = value;
-            Debug.Log("CLUTCH VALID");
         }
-        //[Command]
-        //public void CmdClutchDamageTarget(HealthComponent hc, DamageInfo info)
-        //{
-        //    hc.TakeDamage(info);
-        //}
-        //
-        //[Command]
-        //public void CmdClutchDamageTargetForce(HealthComponent hc, Vector3 dir)
-        //{
-        //    hc.TakeDamageForce(dir, true, true);
-        //}
 
         public bool canEnemyJump;
-
-        //{
-        //    get
-        //    {
-        //        return TestEnemyJump();
-        //    }
-        //    set
-        //}
 
         public bool TestEnemyJump()
         {
@@ -104,12 +75,8 @@ namespace vanillaVoid.Misc
                 body = gameObject.transform.parent.GetComponent<CharacterBody>();
                 int stack = body.inventory.GetItemCount(VoidFin.instance?.ItemDef);
                 jumpMax = VoidFin.baseKicks.Value + (VoidFin.stackingKicks.Value * (stack - 1));
-
             }
-            catch (Exception e)
-            {
-
-            }
+            catch (Exception e){ }
 
             timer = 0f;
             jumpCurrent = jumpMax;
@@ -139,14 +106,17 @@ namespace vanillaVoid.Misc
 
                 jumpCurrent = jumpMax;
                 count = 0;
+                timer = 0;
             }
 
             canEnemyJump = TestEnemyJump();
 
-            if (body.hasEffectiveAuthority)
+            //timer2 -= Time.fixedDeltaTime;
+            if (body.hasEffectiveAuthority && hasAuthority)
             {
-                CmdSetJumpInput(body.inputBank.jump.justPressed);
-                CmdSetClutchValid(jumpInput && body.characterMotor.jumpCount == body.maxJumpCount && count >= body.maxJumpCount && jumpCurrent != 0 && body.moveSpeed != 0 && canEnemyJump);
+                //CmdSetJumpInput(body.inputBank.jump.justPressed);
+                jumpInput = body.inputBank.jump.justPressed;
+                CmdSetClutchValid(body.inputBank.jump.justPressed && body.characterMotor.jumpCount == body.maxJumpCount && count >= body.maxJumpCount && jumpCurrent != 0 && body.moveSpeed != 0 && canEnemyJump);
                 //canEnemyJump = TestEnemyJump();
             }
 
@@ -158,15 +128,11 @@ namespace vanillaVoid.Misc
                     previousCount = body.characterMotor.jumpCount;
                 }
             }
-            timer2 -= Time.fixedDeltaTime;
-            if (timer2 < 0)
-            {
-                timer2 = 1;
-                Debug.Log("jumpcount: " + body.characterMotor.jumpCount + " | jump input: " + jumpInput + " | canenemyjump" + canEnemyJump + " | " + body.maxJumpCount + " | " + jumpCurrent + " | " + jumpMax); //count >= body.maxJumpCount
-            }
+            
             timer -= Time.fixedDeltaTime;
             //Debug.Log("jumpcount: " + body.characterMotor.jumpCount + " | " + canEnemyJump + " | " + body.maxJumpCount + " | " + jumpCurrent + " | " + jumpMax); //count >= body.maxJumpCount
-            if (timer <= 0 && jumpInput && body.characterMotor.jumpCount == body.maxJumpCount && count >= body.maxJumpCount && jumpCurrent != 0 && body.moveSpeed != 0 && canEnemyJump)
+            //if (timer <= 0 && jumpInput && body.characterMotor.jumpCount == body.maxJumpCount && count >= body.maxJumpCount && jumpCurrent != 0 && body.moveSpeed != 0 && canEnemyJump)
+            if(timer <= 0 && clutchValid)
             {
                 timer = .1375f;
                 Debug.Log("attempting to kick");
@@ -211,6 +177,7 @@ namespace vanillaVoid.Misc
                         damageColorIndex = DamageColorIndex.Item,
                         force = Vector3.down * 25
                     };
+                    //if(NetworkServer.)
                     nearest.healthComponent.TakeDamage(damageInfo);
                     var nearbody = nearest.healthComponent.body;
                     var massnear = 1f;
@@ -221,8 +188,8 @@ namespace vanillaVoid.Misc
 
                     var dirmodified = dir;
                     dirmodified.y = .25f;
-                    int polarity = VoidFin.invertForce.Value ? -1 : 1;
-                    nearest.healthComponent.TakeDamageForce((dirmodified * polarity) * 28f * Mathf.Pow(massnear, .975f), true, true);
+                    int polarity = VoidFin.invertForce.Value ? -1 : 1; //28
+                    nearest.healthComponent.TakeDamageForce((dirmodified * polarity) * 21f * Mathf.Pow(massnear, .975f), true, true);
 
                     EffectData jumpVFXdata = new EffectData
                     {
@@ -278,7 +245,10 @@ namespace vanillaVoid.Misc
                                 //    hc.body.characterMotor.Motor.ForceUnground(0.075f);
                                 //}
                             }
-                            hc.TakeDamageForce((hc.body.corePosition - body.corePosition).normalized * Mathf.Sqrt(mass) * 225, true, true);
+                            Vector3 aoeDir = (hc.body.corePosition - body.corePosition);
+                            aoeDir.y += .1f;
+
+                            hc.TakeDamageForce(aoeDir.normalized * Mathf.Sqrt(mass) * 200, true, true);
                         }
                     }
 

@@ -362,3 +362,7 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /vanillaVoid/language/en
+/vanillaVoid/libs/RoR2.dll
+/vanillaVoid/libs/com.unity.multiplayer-hlapi.Runtime.dll
+/vanillaVoid/libs/UnityEngine.CoreModule.dll
+/vanillaVoid/NetworkWeaver
