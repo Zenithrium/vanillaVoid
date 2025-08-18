@@ -734,52 +734,46 @@ namespace vanillaVoid.Items
             On.EntityStates.GenericCharacterMain.ProcessJump += TryClutch;
         }
 
-        private void TryClutch(On.EntityStates.GenericCharacterMain.orig_ProcessJump orig, GenericCharacterMain self)
-        {
+        private void TryClutch(On.EntityStates.GenericCharacterMain.orig_ProcessJump orig, GenericCharacterMain self){
             bool eatInput = false;
-            if (self.hasCharacterMotor && allowJumpOverrides.Value)
-            {
+            if (self.hasCharacterMotor && allowJumpOverrides.Value){
                 bool flag3 = self.characterMotor.jumpCount < self.characterBody.maxJumpCount; //could this be a normal jump
-                //Debug.Log("flag3 " + flag3 + " | " + self.characterMotor.jumpCount + " | " + self.characterBody.maxJumpCount);
-                if (self.jumpInputReceived && self.characterBody && flag3)
-                {
+
+                if (self.jumpInputReceived && self.characterBody && flag3){
                     int clutchCount = self.characterBody.inventory.GetItemCount(ItemDef);
-                    if(clutchCount > 0)
-                    {
+                    if(clutchCount > 0){
                         var behv = self.characterBody.GetComponent<ClutchBehavior>();
-                        //Debug.Log("clutchCount " + clutchCount + " | " + behv + " | " + self.characterMotor.jumpCount);
-                        if (behv && behv.token && self.characterMotor.jumpCount != 0)
-                        {
-                            bool other = false;
-                            if (self.isAuthority && self.localPlayerAuthority)
-                            {
-                                behv.token.CmdSetClutchOverrideCalc();
-                                other = self.inputBank.jump.justPressed && behv.token.jumpCurrent > 0 && self.characterBody.moveSpeed != 0 && behv.token.canEnemyJump;
-                                Debug.Log("other : " + other + " just pressed: " + self.inputBank.jump.justPressed + " | (> 0?) jumpcurrent: " + behv.token.jumpCurrent + " | moveSpeed: " + self.characterBody.moveSpeed + " | canEnemyJump: " + behv.token.canEnemyJump);
-                                //other = self.inputBank.jump.justPressed && behv.token.jumpCurrent > 0 && self.characterBody.moveSpeed != 0 && behv.token.canEnemyJump;
-                            
-                            } 
+                        if (behv && behv.token && self.characterMotor.jumpCount != 0){
+                            bool other = self.inputBank.jump.justPressed && behv.token.jumpCurrent > 0 && self.characterBody.moveSpeed != 0 && behv.token.canEnemyJump;
+                            Debug.Log("other : " + other + " just pressed: " + self.inputBank.jump.justPressed + " | (> 0?) jumpcurrent: " + behv.token.jumpCurrent + " | moveSpeed: " + self.characterBody.moveSpeed + " | canEnemyJump: " + behv.token.canEnemyJump);
 
-                            if (behv.token.jumpOverride || other)
-                            {
-                                eatInput = true;
-                                //if (self.isAuthority && self.localPlayerAuthority)
+                            //if (self.isAuthority && self.localPlayerAuthority){
+                            //    //behv.token.CmdSetClutchOverrideCalc();
+                            //    other = self.inputBank.jump.justPressed && behv.token.jumpCurrent > 0 && self.characterBody.moveSpeed != 0 && behv.token.canEnemyJump;
+                            //    Debug.Log("other : " + other + " just pressed: " + self.inputBank.jump.justPressed + " | (> 0?) jumpcurrent: " + behv.token.jumpCurrent + " | moveSpeed: " + self.characterBody.moveSpeed + " | canEnemyJump: " + behv.token.canEnemyJump);
+                            //} 
+                            //
+                            if (behv.token.jumpOverride || other){
+                                eatInput = true;                          //false                              //true                        //true                              //false, for client intending to use this item
+                                Debug.Log("eat : " + eatInput + " | " + behv.token.hasAuthority + " | " + self.isAuthority + " | " + self.localPlayerAuthority + " | " + NetworkServer.active);
+                                //if (self.isAuthority)
                                 //{
-                                behv.token.ActivateClutch();
+                                    behv.token.StupidIntermediate();
                                 //}
-                                //oaky this does work, but it doesn't tell the server that it used its charge since we only called this on client. either network the charges so host knows it can't jump and then network client calling host damage functions, or rewrite whole fucking thing to just network the damage functions. weh.
-                            }
+                                //if (self.isAuthority && self.localPlayerAuthority ){
+                                //    behv.token.CmdDoClutch();
+                                //}
 
-                            //so commands send information to the server
-                            //therefore clients dont get the jumpOverride flag
-                            //try setting a dummy variable in here? jnust do all the checks you *would* do normally but client still needs to know to eat the input
+                                if (!NetworkServer.active){
+                                    behv.token.ActivateClutch();
+                                }
+                            }
                             Debug.Log("eatInput " + eatInput + " | behv.token.jumpOverride: " + behv.token.jumpOverride + " | " + self.isAuthority + " | " + self.localPlayerAuthority + " | ");
                         }
                     }
                 }
             }
-            if (!eatInput)
-            {
+            if (!eatInput){
                 orig(self);
             }
         }

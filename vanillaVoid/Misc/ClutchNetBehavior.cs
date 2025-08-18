@@ -33,8 +33,10 @@ namespace vanillaVoid.Misc
         [SyncVar]
         public bool jumpOverride = false;
 
-        [SyncVar]
+        //[SyncVar]
         public int jumpCurrent;
+
+        //public new bool hasAuthority => base.hasAuthority;
 
         [Command]
         public void CmdSetClutchValid(bool value)
@@ -47,34 +49,44 @@ namespace vanillaVoid.Misc
             clutchValid = value;
         }
 
-        [Command]
-        public void CmdSetClutchOverride(bool value)
-        {
-            jumpOverride = value;
-        }
+        //[Command]
+        //public void CmdSetClutchOverride(bool value)
+        //{
+        //    jumpOverride = value;
+        //}
 
-        [Command]
-        public void CmdSetClutchOverrideCalc()
-        {
-            canEnemyJump = TestEnemyJump();
-            //Debug.Log(body.inputBank.jump.justPressed + "jumpcount: " + body.characterMotor.jumpCount + " | " + canEnemyJump + " | " + body.maxJumpCount + " | " + jumpCurrent + " | " + jumpMax); //count >= body.maxJumpCount
-            //Debug.Log("justpressed " + body.inputBank.jump.justPressed + " | " + count + " | " + body.maxJumpCount + " | " + jumpCurrent + " | " + body.moveSpeed + " | " + canEnemyJump);
-            //CmdSetClutchValid(body.inputBank.jump.justPressed && count >= body.maxJumpCount && jumpCurrent != 0 && body.moveSpeed != 0 && canEnemyJump);
-            bool valid = body.inputBank.jump.justPressed && jumpCurrent > 0 && body.moveSpeed != 0 && canEnemyJump;
-            Debug.Log("valid " + valid + " | " + body.inputBank.jump.justPressed + " | " + jumpCurrent + " | " + body.moveSpeed + " | " + canEnemyJump);
-            //CmdSetClutchOverride(valid);
-            jumpOverride = valid;
-        }
+        //[Command]
+        //public void CmdSetClutchOverrideCalc()
+        //{
+        //    canEnemyJump = TestEnemyJump();
+        //    //Debug.Log(body.inputBank.jump.justPressed + "jumpcount: " + body.characterMotor.jumpCount + " | " + canEnemyJump + " | " + body.maxJumpCount + " | " + jumpCurrent + " | " + jumpMax); //count >= body.maxJumpCount
+        //    //Debug.Log("justpressed " + body.inputBank.jump.justPressed + " | " + count + " | " + body.maxJumpCount + " | " + jumpCurrent + " | " + body.moveSpeed + " | " + canEnemyJump);
+        //    //CmdSetClutchValid(body.inputBank.jump.justPressed && count >= body.maxJumpCount && jumpCurrent != 0 && body.moveSpeed != 0 && canEnemyJump);
+        //    bool valid = body.inputBank.jump.justPressed && jumpCurrent > 0 && body.moveSpeed != 0 && canEnemyJump;
+        //    Debug.Log("valid " + valid + " | " + body.inputBank.jump.justPressed + " | " + jumpCurrent + " | " + body.moveSpeed + " | " + canEnemyJump);
+        //    //CmdSetClutchOverride(valid);
+        //    jumpOverride = valid;
+        //}
 
-        [Command]
-        public void CmdSetClutchJumpCurrent(int value)
+        //[Command]
+        //public void CmdSetClutchJumpCurrent(int value)
+        //{
+        //    jumpCurrent = value;
+        //}
+
+        public void StupidIntermediate()
         {
-            jumpCurrent = value;
+            Debug.Log("has auth (intermediate): " + hasAuthority);
+            if (hasAuthority)
+            {
+                CmdDoClutch();
+            }
         }
 
         [Command]
         public void CmdDoClutch()
         {
+            Debug.Log("COMMAND Clutch");
             ActivateClutch();
         }
 
@@ -116,29 +128,32 @@ namespace vanillaVoid.Misc
             catch (Exception e){ }
 
             timer = 0f;
-            CmdSetClutchJumpCurrent(jumpMax);
-            //jumpCurrent = jumpMax;
+            //if (hasAuthority)
+            //{
+            //    CmdSetClutchJumpCurrent(jumpMax);
+            //}
+            jumpCurrent = jumpMax;
             count = 0;
             //Debug.Log("bugthlhlgh");
         }
 
-        public void CheckValidity()
-        {
-            Debug.Log(body.hasEffectiveAuthority && hasAuthority);
-            if (body.hasEffectiveAuthority && hasAuthority)
-            {
-                canEnemyJump = TestEnemyJump();
-                //Debug.Log(body.inputBank.jump.justPressed + "jumpcount: " + body.characterMotor.jumpCount + " | " + canEnemyJump + " | " + body.maxJumpCount + " | " + jumpCurrent + " | " + jumpMax); //count >= body.maxJumpCount
-                //Debug.Log("justpressed " + body.inputBank.jump.justPressed + " | " + count + " | " + body.maxJumpCount + " | " + jumpCurrent + " | " + body.moveSpeed + " | " + canEnemyJump);
-                //CmdSetClutchValid(body.inputBank.jump.justPressed && count >= body.maxJumpCount && jumpCurrent != 0 && body.moveSpeed != 0 && canEnemyJump);
-                bool valid = body.inputBank.jump.justPressed && jumpCurrent > 0 && body.moveSpeed != 0 && canEnemyJump;
-                Debug.Log("valid " + valid + " | " + body.inputBank.jump.justPressed + " | " + jumpCurrent + " | " + body.moveSpeed + " | " + canEnemyJump);
-                CmdSetClutchOverride(valid);
-                //return valid;
-            }
-            //return false;
-
-        }
+        //public void CheckValidity()
+        //{
+        //    Debug.Log(body.hasEffectiveAuthority && hasAuthority);
+        //    if (body.hasEffectiveAuthority && hasAuthority)
+        //    {
+        //        canEnemyJump = TestEnemyJump();
+        //        //Debug.Log(body.inputBank.jump.justPressed + "jumpcount: " + body.characterMotor.jumpCount + " | " + canEnemyJump + " | " + body.maxJumpCount + " | " + jumpCurrent + " | " + jumpMax); //count >= body.maxJumpCount
+        //        //Debug.Log("justpressed " + body.inputBank.jump.justPressed + " | " + count + " | " + body.maxJumpCount + " | " + jumpCurrent + " | " + body.moveSpeed + " | " + canEnemyJump);
+        //        //CmdSetClutchValid(body.inputBank.jump.justPressed && count >= body.maxJumpCount && jumpCurrent != 0 && body.moveSpeed != 0 && canEnemyJump);
+        //        bool valid = body.inputBank.jump.justPressed && jumpCurrent > 0 && body.moveSpeed != 0 && canEnemyJump;
+        //        Debug.Log("valid " + valid + " | " + body.inputBank.jump.justPressed + " | " + jumpCurrent + " | " + body.moveSpeed + " | " + canEnemyJump);
+        //        CmdSetClutchOverride(valid);
+        //        //return valid;
+        //    }
+        //    //return false;
+        //
+        //}
 
         private void FixedUpdate()
         {
@@ -160,8 +175,11 @@ namespace vanillaVoid.Misc
                 int stack = body.inventory.GetItemCount(VoidFin.instance?.ItemDef);
                 jumpMax = VoidFin.baseKicks.Value + (VoidFin.stackingKicks.Value * (stack - 1));
 
-                //jumpCurrent = jumpMax;
-                CmdSetClutchJumpCurrent(jumpMax);
+                jumpCurrent = jumpMax;
+                //if (hasAuthority)
+                //{
+                //    CmdSetClutchJumpCurrent(jumpMax);
+                //}
                 count = 0;
                 timer = 0;
             }
@@ -191,13 +209,13 @@ namespace vanillaVoid.Misc
             timer -= Time.fixedDeltaTime;
             //Debug.Log("jumpcount: " + body.characterMotor.jumpCount + " | " + canEnemyJump + " | " + body.maxJumpCount + " | " + jumpCurrent + " | " + jumpMax); //count >= body.maxJumpCount
             //if (timer <= 0 && jumpInput && body.characterMotor.jumpCount == body.maxJumpCount && count >= body.maxJumpCount && jumpCurrent != 0 && body.moveSpeed != 0 && canEnemyJump)
-            if(timer <= 0 && (clutchValid && !jumpOverride))
+            if(timer <= 0 && clutchValid)
             {
-                if (body.hasEffectiveAuthority && hasAuthority)
-                {
-                    //Debug.Log("setting false");
-                    CmdSetClutchOverride(false);
-                }
+                //if (body.hasEffectiveAuthority && hasAuthority)
+                //{
+                //    //Debug.Log("setting false");
+                //    CmdSetClutchOverride(false);
+                //}
 
                 timer = .1375f;
                 //Debug.Log("attempting to kick");
@@ -338,11 +356,11 @@ namespace vanillaVoid.Misc
                         model.gameObject.AddComponent<SquashedComponent>();
                     }
 
-                    if (body.hasEffectiveAuthority && hasAuthority)
-                    {
-                        CmdSetClutchJumpCurrent(jumpCurrent - 1);
-                    }
-                    //jumpCurrent--;
+                    //if (hasAuthority)
+                    //{
+                    //    CmdSetClutchJumpCurrent(jumpCurrent - 1);
+                    //}
+                    jumpCurrent--;
                 }
             }
             else if (body.inputBank.jump.justPressed)
@@ -356,13 +374,14 @@ namespace vanillaVoid.Misc
         
         public void ActivateClutch() //make voidfin call this
         {
+            Debug.Log("ActivateClutch");
             timer = .1375f;
             //Debug.Log("attempting to kick");
             Vector3 dir = body.inputBank.moveVector;
             float vertStrength = .2075f; //.225f
             if (dir == Vector3.zero)
             {
-                dir.y = .5f;
+                dir.y += .2f;
                 vertStrength += 0.0925f;
             }
 
@@ -418,7 +437,7 @@ namespace vanillaVoid.Misc
                 }
 
                 var dirmodified = dir;
-                dirmodified.y = .25f;
+                dirmodified.y += .2f;
                 int polarity = VoidFin.invertForce.Value ? -1 : 1; //28
                 nearest.healthComponent.TakeDamageForce((dirmodified * polarity) * 25f * Mathf.Pow(massnear, .9675f), true, true);
                 
@@ -500,11 +519,11 @@ namespace vanillaVoid.Misc
                     model.gameObject.AddComponent<SquashedComponent>();
                 }
 
-                if (body.hasEffectiveAuthority && hasAuthority)
-                {
-                    CmdSetClutchJumpCurrent(jumpCurrent - 1);
-                }
-                //jumpCurrent--;
+                //if (hasAuthority)
+                //{
+                //    CmdSetClutchJumpCurrent(jumpCurrent - 1);
+                //}
+                jumpCurrent--;
             }
         }
     }
