@@ -30,6 +30,8 @@ namespace vanillaVoid.Items
         public static ConfigEntry<int> stackingKicks;
 
         public static ConfigEntry<bool> invertForce;
+        public static ConfigEntry<bool> allowJumpOverrides;
+
         public static ConfigEntry<float> kickRange;
         //public ConfigEntry<float> stackingBuff;
 
@@ -37,7 +39,7 @@ namespace vanillaVoid.Items
 
         public override string ItemLangTokenName => "FIN_ITEM";
 
-        public override string ItemPickupDesc => $"Leap off of enemies to damage and launch them. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
+        public override string ItemPickupDesc => $"Jump off of enemies to damage and launch them. <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
         public override string ItemFullDescription => $"Gain <style=cIsUtility>{baseKicks.Value}</style>" + (stackingKicks.Value != 0 ? $" <style=cStack>(+{stackingKicks.Value} per stack)</style>" : "") + $" enemy <style=cIsUtility>kickoffs</style>, dealing <style=cIsDamage>{baseDamage.Value * 100}%</style>" + (stackingDamage.Value != 0 ? $" <style=cStack>(+{stackingDamage.Value * 100} per stack)</style>" : "") + $" base damage, <style=cIsUtility>launching</style> them away and <style=cIsUtility>dispersing</style> nearby enemies" + (baseAOEDamage.Value != 0 ? $" for <style=cIsDamage>{baseAOEDamage.Value * 100}%</style>" + (stackingAOEDamage.Value != 0 ? $" <style=cStack>(+{stackingAOEDamage.Value * 100}</style>" : "") : "") + (baseAOEDamage.Value != 0 ? " base damage" : "") + $". <style=cIsVoid>Corrupts all {"{CORRUPTION}"}</style>.";
 
@@ -110,7 +112,9 @@ namespace vanillaVoid.Items
             stackingKicks = config.Bind<int>("Item: " + name, "Enemy Kicks Per Stack", 1, "Adjust how many enemy kickoffs gained per stack.");
 
             kickRange = config.Bind<float>("Item: " + name, "Kick Range", 3f, "Adjust the radius of valid kicking range. This is added ontop of the radius of the body trying to use it.");
+            
             invertForce = config.Bind<bool>("Item: " + name, "Invert Kick Force", false, "If false, kickoffs launch enemies towards the player's movement direction - if true, it pushes opposite of your inputs. More logical, but less fun to combo with.");
+            allowJumpOverrides = config.Bind<bool>("Item: " + name, "Allow Kickoffs With Extra Jumps", true, "If true, jumps near enemies will activate kickoffs instead of using your extra jumps. Particularly useful for characters like Merc and Heretic. If false, you can only preform an enemy kickoff after expending all bonus jumps, similar to how Quill works.");
 
             voidPair = config.Bind<string>("Item: " + name, "Item to Corrupt", "KnockBackHitEnemies", "Adjust which item this is the void pair of.");
         }
@@ -727,34 +731,57 @@ namespace vanillaVoid.Items
         public override void Hooks()
         {
             //On.RoR2.CharacterBody.OnInventoryChanged += AddJumpToken;
-            //On.EntityStates.GenericCharacterMain.ProcessJump += TryClutch;
+            On.EntityStates.GenericCharacterMain.ProcessJump += TryClutch;
         }
 
         private void TryClutch(On.EntityStates.GenericCharacterMain.orig_ProcessJump orig, GenericCharacterMain self)
         {
-            if (self.hasCharacterMotor && self.hasInputBank && self.isAuthority)
+            bool eatInput = false;
+            if (self.hasCharacterMotor && allowJumpOverrides.Value)
             {
-                NetworkUser networkUser = NetworkUser.readOnlyLocalPlayersList[0];
-                bool? flag;
-                if (networkUser == null)
+                bool flag3 = self.characterMotor.jumpCount < self.characterBody.maxJumpCount; //could this be a normal jump
+                //Debug.Log("flag3 " + flag3 + " | " + self.characterMotor.jumpCount + " | " + self.characterBody.maxJumpCount);
+                if (self.jumpInputReceived && self.characterBody && flag3)
                 {
-                    flag = null;
-                }
-                else
-                {
-                    LocalUser localUser = networkUser.localUser;
-                    flag = ((localUser != null) ? new bool?(localUser.userProfile.toggleArtificerHover) : null);
-                }
-                if (flag ?? true)
-                {
-                    if (self.inputBank.jump.down)
+                    int clutchCount = self.characterBody.inventory.GetItemCount(ItemDef);
+                    if(clutchCount > 0)
                     {
+                        var behv = self.characterBody.GetComponent<ClutchBehavior>();
+                        //Debug.Log("clutchCount " + clutchCount + " | " + behv + " | " + self.characterMotor.jumpCount);
+                        if (behv && behv.token && self.characterMotor.jumpCount != 0)
+                        {
+                            bool other = false;
+                            if (self.isAuthority && self.localPlayerAuthority)
+                            {
+                                behv.token.CmdSetClutchOverrideCalc();
+                                other = self.inputBank.jump.justPressed && behv.token.jumpCurrent > 0 && self.characterBody.moveSpeed != 0 && behv.token.canEnemyJump;
+                                Debug.Log("other : " + other + " just pressed: " + self.inputBank.jump.justPressed + " | (> 0?) jumpcurrent: " + behv.token.jumpCurrent + " | moveSpeed: " + self.characterBody.moveSpeed + " | canEnemyJump: " + behv.token.canEnemyJump);
+                                //other = self.inputBank.jump.justPressed && behv.token.jumpCurrent > 0 && self.characterBody.moveSpeed != 0 && behv.token.canEnemyJump;
+                            
+                            } 
 
+                            if (behv.token.jumpOverride || other)
+                            {
+                                eatInput = true;
+                                //if (self.isAuthority && self.localPlayerAuthority)
+                                //{
+                                behv.token.ActivateClutch();
+                                //}
+                                //oaky this does work, but it doesn't tell the server that it used its charge since we only called this on client. either network the charges so host knows it can't jump and then network client calling host damage functions, or rewrite whole fucking thing to just network the damage functions. weh.
+                            }
+
+                            //so commands send information to the server
+                            //therefore clients dont get the jumpOverride flag
+                            //try setting a dummy variable in here? jnust do all the checks you *would* do normally but client still needs to know to eat the input
+                            Debug.Log("eatInput " + eatInput + " | behv.token.jumpOverride: " + behv.token.jumpOverride + " | " + self.isAuthority + " | " + self.localPlayerAuthority + " | ");
+                        }
                     }
-        
                 }
             }
-            orig(self); 
+            if (!eatInput)
+            {
+                orig(self);
+            }
         }
 
         private void AddJumpToken(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self) {
