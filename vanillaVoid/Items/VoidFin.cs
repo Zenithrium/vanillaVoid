@@ -84,19 +84,16 @@ namespace vanillaVoid.Items
             ContentAddition.AddEffect(jumpVFX);
 
             clutchAttachment = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("ClutchAttachment.prefab");
-            clutchAttachment.AddComponent<NetworkIdentity>().localPlayerAuthority = true;
+            var netid = clutchAttachment.AddComponent<NetworkIdentity>();
+            netid.localPlayerAuthority = true;
+            
+
             clutchAttachment.AddComponent<NetworkedBodyAttachment>().shouldParentToAttachedBody = true;
 
             clutchAttachment.AddComponent<ClutchNetBehavior>();
 
             PrefabAPI.RegisterNetworkPrefab(clutchAttachment);
         }
-
-        //public override string VoidPair()
-        //{
-        //    return voidPair.Value;
-        //}
-
 
         public override void CreateConfig(ConfigFile config)
         {
@@ -124,21 +121,6 @@ namespace vanillaVoid.Items
 
             ItemBodyModelPrefab = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("mdlCrabClawDisplay.prefab");
             Debug.Log("ItemBodyModelPrefab: " + ItemBodyModelPrefab);
-            //string orbTransp = "RoR2/DLC1/voidraid/matVoidRaidPlanetPurpleWave.mat"; 
-            //string orbCore = "RoR2/DLC1/voidstage/matVoidCoralPlatformPurple.mat";
-
-            //string orbTransp = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorLightning.mat";
-            //string orbCore = "RoR2/DLC1/VoidSurvivor/matVoidSurvivorPod.mat";
-            //
-            //var adzeOrbsModelTransp = ItemModel.transform.Find("orbTransp").GetComponent<MeshRenderer>();
-            //var adzeOrbsModelCore = ItemModel.transform.Find("orbCore").GetComponent<MeshRenderer>();
-            //adzeOrbsModelTransp.material = Addressables.LoadAssetAsync<Material>(orbTransp).WaitForCompletion();
-            //adzeOrbsModelCore.material = Addressables.LoadAssetAsync<Material>(orbCore).WaitForCompletion();
-            //
-            //var adzeOrbsDisplayTransp = ItemBodyModelPrefab.transform.Find("orbTransp").GetComponent<MeshRenderer>();
-            //var adzeOrbsDisplayCore = ItemBodyModelPrefab.transform.Find("orbCore").GetComponent<MeshRenderer>();
-            //adzeOrbsDisplayTransp.material = Addressables.LoadAssetAsync<Material>(orbTransp).WaitForCompletion();
-            //adzeOrbsDisplayCore.material = Addressables.LoadAssetAsync<Material>(orbCore).WaitForCompletion();
 
             var itemDisplay = ItemBodyModelPrefab.AddComponent<ItemDisplay>();
             itemDisplay.rendererInfos = ItemHelpers.ItemDisplaySetup(ItemBodyModelPrefab);
@@ -740,6 +722,7 @@ namespace vanillaVoid.Items
                 bool flag3 = self.characterMotor.jumpCount < self.characterBody.maxJumpCount; //could this be a normal jump
 
                 if (self.jumpInputReceived && self.characterBody && flag3){
+                    Debug.Log("awawawawawa " + flag3);
                     int clutchCount = self.characterBody.inventory.GetItemCount(ItemDef);
                     if(clutchCount > 0){
                         var behv = self.characterBody.GetComponent<ClutchBehavior>();
@@ -756,17 +739,14 @@ namespace vanillaVoid.Items
                             if (behv.token.jumpOverride || other){
                                 eatInput = true;                          //false                              //true                        //true                              //false, for client intending to use this item
                                 Debug.Log("eat : " + eatInput + " | " + behv.token.hasAuthority + " | " + self.isAuthority + " | " + self.localPlayerAuthority + " | " + NetworkServer.active);
-                                //if (self.isAuthority)
-                                //{
-                                    behv.token.StupidIntermediate();
-                                //}
-                                //if (self.isAuthority && self.localPlayerAuthority ){
-                                //    behv.token.CmdDoClutch();
-                                //}
 
-                                if (!NetworkServer.active){
-                                    behv.token.ActivateClutch();
-                                }
+                                Debug.Log("calling stupid intermediate");
+                                behv.token.StupidIntermediate();
+
+
+                                //if (!NetworkServer.active){
+                                //    behv.token.ActivateClutch();
+                                //}
                             }
                             Debug.Log("eatInput " + eatInput + " | behv.token.jumpOverride: " + behv.token.jumpOverride + " | " + self.isAuthority + " | " + self.localPlayerAuthority + " | ");
                         }
@@ -800,12 +780,12 @@ namespace vanillaVoid.Items
 
     public sealed class ClutchBehavior : BaseItemBodyBehavior {
 
-        [ItemDefAssociation]
+        [ItemDefAssociation(useOnServer = true, useOnClient = true)]
         private static ItemDef GetItemDef() { return ItemBase<VoidFin>.instance?.ItemDef; }
 
         public NetworkedBodyAttachment attachment;
         public ClutchNetBehavior token;
-
+      
         private void OnEnable()
         {
             attachment = UnityEngine.Object.Instantiate<GameObject>(VoidFin.clutchAttachment, body.transform).GetComponent<NetworkedBodyAttachment>();

@@ -655,7 +655,7 @@ namespace vanillaVoid.Items
             On.EntityStates.Railgunner.Backpack.Offline.OnEnter += OfflineEnter;
             On.EntityStates.Railgunner.Backpack.Reboot.OnEnter += RebootEnter;
             On.EntityStates.Merc.Assaulter.OnExit += AssualterExit;
-            On.EntityStates.Merc.Assaulter2.OnExit += AssualterExit2;
+            On.EntityStates.Merc.Assaulter2.OnExit += AssualterExit2; //just do it on override (wholesome)
 
             //On.RoR2.GenericSkill.SetSkillOverride += SetOverrideSlug;
             //On.RoR2.GenericSkill.UnsetSkillOverride += UnsetOverrideSlug;
