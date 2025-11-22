@@ -42,7 +42,7 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
-        public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
+        public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.Damage, ItemTag.CanBeTemporary };
 
         public BuffDef drownBuff { get; private set; }
         public DotController.DotIndex drownDotIndex;
@@ -844,7 +844,7 @@ namespace vanillaVoid.Items
                     mult = comp.slowAmount + (comp.isFrozen ? 1.5f : (comp.isStopped ? 1 : 0)) + (self.body.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0); //shoutout to rex weaken being the only one done differently
                     if (mult > 1 && comp.bestPlayer){
                         var cb = comp.bestPlayer;
-                        var count = cb.inventory.GetItemCount(ItemDef);
+                        var count = cb.inventory.GetItemCountEffective(ItemDef);
                         damageInfo.damage = mult * (cb.damage * (baseDamageDot.Value + (stackingDamageDot.Value * (count - 1))));
                         //dotStack.AddModdedDamageType(drownDamage);
                     }
@@ -884,7 +884,7 @@ namespace vanillaVoid.Items
             );
             
             if (ILFound){
-                c.Emit(OpCodes.Ldloc, 88); //emits the slow variable, currently num73 as of memops
+                c.Emit(OpCodes.Ldloc, 112); //emits the slow variable, currently num93 as of dlc3
                 c.Emit(OpCodes.Ldarg_0); //emits characterbody for the token
                 c.EmitDelegate<Action<float, CharacterBody>>((decrease, self) => { //eats the emitted variables with no return
                     var token = self.gameObject.GetComponent<CorrosiveCounter>();
@@ -900,7 +900,7 @@ namespace vanillaVoid.Items
                     token.isFrozen = self.healthComponent.isInFrozenState;
                     //Debug.Log("RecalcStats : slowamount:" + token.slowAmount + " | " + token.isStopped + " | " + token.isFrozen);
                     var tempslow = token.slowAmount + (self.HasBuff(RoR2Content.Buffs.Weak) ? .4f : 0);
-                    if (token.bestPlayer && token.bestPlayer.inventory.GetItemCount(ItemDef) > 0){
+                    if (token.bestPlayer && token.bestPlayer.inventory.GetItemCountEffective(ItemDef) > 0){
                         if (!self.HasBuff(drownBuff)){
                             if(tempslow > 1 || token.isFrozen || token.isStopped){
                                 //Debug.Log("applying DOT from stack gain");

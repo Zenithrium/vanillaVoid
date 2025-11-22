@@ -118,7 +118,7 @@ namespace vanillaVoid.Items
 
         //public static BasicPickupDropTable table;
 
-        public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.Utility, ItemTag.AIBlacklist };
+        public override ItemTag[] ItemTags => new ItemTag[3] { ItemTag.Utility, ItemTag.AIBlacklist, ItemTag.CanBeTemporary };
 
         public override void Init(ConfigFile config)
         {
@@ -1156,7 +1156,7 @@ namespace vanillaVoid.Items
                             int players = 0;
                             foreach (var player in PlayerCharacterMasterController.instances)
                             {
-                                int itemCount = player.master.inventory.GetItemCount(ItemBase<VoidShell>.instance.ItemDef);
+                                int itemCount = player.master.inventory.GetItemCountEffective(ItemBase<VoidShell>.instance.ItemDef);
                                 if (itemCount > 0)
                                 {
                                     //++validPlayers;
@@ -1261,12 +1261,12 @@ namespace vanillaVoid.Items
             orig(self);
 
             var sceneName = SceneCatalog.GetSceneDefForCurrentScene().baseSceneName;
-
-            if (sceneName == "bazaar" || sceneName == "limbo" || sceneName == "mysteryspace" || sceneName == "voidraid" || sceneName == "artifactworld")
+            //i need to rewrite this lmao
+            if (sceneName == "bazaar" || sceneName == "limbo" || sceneName == "mysteryspace" || sceneName == "voidraid" || sceneName == "artifactworld" || sceneName == "computationalexchange" || sceneName == "solusweb")
             {
                 return;
             }
-            else if (sceneName == "moon" || sceneName == "moon2" || sceneName == "goldshores")
+            else if (sceneName == "moon" || sceneName == "moon2" || sceneName == "goldshores" || sceneName == "solutionalhaunt")
             {
                 if (!specialHappen.Value)
                 {
@@ -1299,7 +1299,7 @@ namespace vanillaVoid.Items
             int validPlayers = 0;
             foreach (var player in PlayerCharacterMasterController.instances)
             {
-                int itemCount = player.master.inventory.GetItemCount(ItemBase<VoidShell>.instance.ItemDef);
+                int itemCount = player.master.inventory.GetItemCountEffective(ItemBase<VoidShell>.instance.ItemDef);
                 if (itemCount > 0)
                 {
                     ++validPlayers;
@@ -1341,26 +1341,6 @@ namespace vanillaVoid.Items
             {
                 selector.AddChoice(value, weight);
             }
-        }
-
-        // Token: 0x06001A88 RID: 6792 RVA: 0x00071E50 File Offset: 0x00070050
-        public override PickupIndex GenerateDropPreReplacement(Xoroshiro128Plus rng)
-        {
-            int num = 0;
-            foreach (var player in PlayerCharacterMasterController.instances)
-            {
-                int itemCount = player.master.inventory.GetItemCount(DLC1Content.Items.FreeChest);
-                num += itemCount;
-            }
-            selector.Clear();
-            Add(Run.instance.availableTier1DropList, tier1Weight);
-            Add(Run.instance.availableTier2DropList, tier2Weight * (float)num);
-            Add(Run.instance.availableTier3DropList, tier3Weight * Mathf.Pow((float)num, 2f));
-            Add(Run.instance.availableVoidTier1DropList, tier1WeightVoid);
-            Add(Run.instance.availableVoidTier2DropList, tier2WeightVoid * (float)num);
-            Add(Run.instance.availableVoidTier3DropList, tier3WeightVoid * Mathf.Pow((float)num, 2.05f));
-
-            return PickupDropTable.GenerateDropFromWeightedSelection(rng, selector);
         }
 
         public VoidShellTriple GenerateDropPreReplacementForPlayer(Xoroshiro128Plus rng, int count)

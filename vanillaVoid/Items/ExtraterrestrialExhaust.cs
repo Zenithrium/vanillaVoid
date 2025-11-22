@@ -58,7 +58,7 @@ namespace vanillaVoid.Items
 
 #nullable enable
 
-        public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.Damage, ItemTag.AIBlacklist };
+        public override ItemTag[] ItemTags => new ItemTag[3] { ItemTag.Damage, ItemTag.AIBlacklist, ItemTag.CanBeTemporary };
 
         public override void Init(ConfigFile config)
         {
@@ -778,7 +778,7 @@ namespace vanillaVoid.Items
         private void AddExhaustToken(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self) {
             orig(self);
             if (self.inventory) {
-                int itemCount = self.inventory.GetItemCount(ItemDef);
+                int itemCount = self.inventory.GetItemCountEffective(ItemDef);
                 var token = self.gameObject.GetComponent<ExhaustHandler>();
                 if (itemCount > 0){
                     //var token = self.gameObject.GetComponent<AirdashToken>();
@@ -867,7 +867,7 @@ namespace vanillaVoid.Items
 
         public void TryExhaust(CharacterBody body, GenericSkill skill){
             //int inventoryCount = body.inventory.GetItemCount(ItemBase<ExtraterrestrialExhaust>.instance.ItemDef);
-            int count = body.inventory.GetItemCount(ExtraterrestrialExhaust.instance.ItemDef);
+            int count = body.inventory.GetItemCountEffective(ExtraterrestrialExhaust.instance.ItemDef);
             if (count > 0 && skill.cooldownRemaining > 0 && skill.skillDef.skillNameToken != "MAGE_UTILITY_ICE_NAME" && skill.skillDef.skillNameToken != "ENGI_SKILL_HARPOON_NAME") { //ice wall is stupid
                 float skillCD = skill.baseRechargeInterval;
 

@@ -61,7 +61,7 @@ namespace vanillaVoid.Items
         //string tempItemPickupDesc;
         //string tempItemFullDescription;
 
-        public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.Damage, ItemTag.AIBlacklist };
+        public override ItemTag[] ItemTags => new ItemTag[3] { ItemTag.Damage, ItemTag.AIBlacklist, ItemTag.CanBeTemporary };
 
         public override void Init(ConfigFile config)
         {
@@ -738,7 +738,7 @@ namespace vanillaVoid.Items
             CharacterBody attackerBody = dmgReport.attackerBody;
             if (attackerBody.inventory && NetworkServer.active)
             {
-                var bladeCount = attackerBody.inventory.GetItemCount(ItemBase<ExeBlade>.instance.ItemDef);
+                var bladeCount = attackerBody.inventory.GetItemCountEffective(ItemBase<ExeBlade>.instance.ItemDef);
                 if (bladeCount > 0){
                     var tempBlade = GameObject.Instantiate(bladeObject, victimBody.corePosition, Quaternion.Euler(0, 180, 0));
 

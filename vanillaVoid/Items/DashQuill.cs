@@ -44,7 +44,7 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
-        public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.Utility, ItemTag.AIBlacklist };
+        public override ItemTag[] ItemTags => new ItemTag[3] { ItemTag.Utility, ItemTag.AIBlacklist, ItemTag.CanBeTemporary };
 
         public override void Init(ConfigFile config)
         {
@@ -801,7 +801,7 @@ namespace vanillaVoid.Items
         private void AddAirdashToken(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self){
             orig(self);
             if (self.inventory){
-                int itemCount = self.inventory.GetItemCount(ItemBase<DashQuill>.instance.ItemDef);
+                int itemCount = self.inventory.GetItemCountEffective(ItemBase<DashQuill>.instance.ItemDef);
                 var token = self.gameObject.GetComponent<AirdashToken>();
                 if (itemCount > 0){
                     //var token = self.gameObject.GetComponent<AirdashToken>();

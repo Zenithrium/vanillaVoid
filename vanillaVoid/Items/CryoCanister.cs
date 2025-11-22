@@ -63,7 +63,7 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
-        public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.Damage, ItemTag.OnKillEffect };
+        public override ItemTag[] ItemTags => new ItemTag[3] { ItemTag.Damage, ItemTag.OnKillEffect, ItemTag.CanBeTemporary };
 
         public BuffDef preFreezeSlow { get; private set; }
 
@@ -815,7 +815,7 @@ namespace vanillaVoid.Items
             
             if (attackerBody.inventory)
             {
-                var cryoCount = attackerBody.inventory.GetItemCount(this.ItemDef);
+                var cryoCount = attackerBody.inventory.GetItemCountEffective(this.ItemDef);
                 if (cryoCount > 0)
                 {
                     float stackRadius = aoeRangeBase.Value + (aoeRangeStacking.Value * (float)(cryoCount - 1));

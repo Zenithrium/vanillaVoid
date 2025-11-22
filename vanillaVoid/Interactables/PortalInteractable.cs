@@ -78,7 +78,7 @@ namespace vanillaVoid.Interactables
 
         private void VoidCampTrySpawnMonolith(On.RoR2.CampDirector.orig_Start orig, CampDirector self)
         {
-            Debug.Log("wtf"); //  * Fixed Shattered Monolith breaking other camp directors. Updated it to spawn as void seeds spawn
+            //Debug.Log("wtf"); //  * Fixed Shattered Monolith breaking other camp directors. Updated it to spawn as void seeds spawn
             orig(self);
 
             if(portalInteractableRNG == null)
@@ -98,7 +98,7 @@ namespace vanillaVoid.Interactables
                     position = self.campCenterTransform.position,
                     spawnOnTarget = self.campCenterTransform
                 }, Run.instance.stageRng));
-                Debug.Log("Spawning guy : " + exists);
+                //Debug.Log("Spawning guy : " + exists);
                 hasAddedMonolith = true;
             }
         
@@ -115,7 +115,7 @@ namespace vanillaVoid.Interactables
             voidCostDef = new CostTypeDef();
             voidCostDef.costStringFormatToken = "VV_COST_VOIDITEM_FORMAT";
             voidCostDef.isAffordable = new CostTypeDef.IsAffordableDelegate(VoidItemCostTypeHelper.IsAffordable);
-            voidCostDef.payCost = new CostTypeDef.PayCostDelegate(VoidItemCostTypeHelper.PayCost);
+            voidCostDef.payCost = new CostTypeDef.PayCostDelegate(VoidItemCostTypeHelper.PayCost2);
             voidCostDef.colorIndex = ColorCatalog.ColorIndex.VoidItem;
             voidCostDef.saturateWorldStyledCostString = true;
             voidCostDef.darkenWorldStyledCostString = false;
@@ -394,7 +394,7 @@ namespace vanillaVoid.Interactables
                 }
             }
 
-            public static void PayCost(CostTypeDef costTypeDef, CostTypeDef.PayCostContext context)
+            public static void PayCost2(CostTypeDef.PayCostContext context, CostTypeDef.PayCostResults result)
             {
                 Inventory inventory = context.activator.GetComponent<CharacterBody>().inventory;
                 int cost = context.cost;
@@ -402,9 +402,10 @@ namespace vanillaVoid.Interactables
                 List<ItemIndex> list = new List<ItemIndex>(inventory.itemAcquisitionOrder);
 
                 List<ItemIndex> optionList = new List<ItemIndex>();
-                foreach(ItemIndex item in list){
+                foreach (ItemIndex item in list)
+                {
                     ItemDef itemDef = ItemCatalog.GetItemDef(item);
-                    if(itemDef.tier == ItemTier.VoidTier1 || itemDef.tier == ItemTier.VoidTier2 || itemDef.tier == ItemTier.VoidTier3 || itemDef.tier == ItemTier.VoidBoss)
+                    if (itemDef.tier == ItemTier.VoidTier1 || itemDef.tier == ItemTier.VoidTier2 || itemDef.tier == ItemTier.VoidTier3 || itemDef.tier == ItemTier.VoidBoss)
                     {
                         optionList.Add(item);
                     }
@@ -421,17 +422,56 @@ namespace vanillaVoid.Interactables
                 {
                     for (int i = 0; i < optionList.Count(); i++)
                     {
-                        if(inventory.GetItemCount(optionList[i]) > 0)
+                        if (inventory.GetItemCountPermanent(optionList[i]) > 0)
                         {
-                            
-                            inventory.RemoveItem(optionList[i]);
-                            context.results.itemsTaken.Add(optionList[i]);
+
+                            inventory.RemoveItemPermanent(optionList[i]);
+                            result.itemsTaken.Add(optionList[i]);
                             break;
-                            
+
                         }
                     }
                 }
             }
+
+            //public static void PayCost(CostTypeDef costTypeDef, CostTypeDef.PayCostContext context)
+            //{
+            //    Inventory inventory = context.activator.GetComponent<CharacterBody>().inventory;
+            //    int cost = context.cost;
+            //
+            //    List<ItemIndex> list = new List<ItemIndex>(inventory.itemAcquisitionOrder);
+            //
+            //    List<ItemIndex> optionList = new List<ItemIndex>();
+            //    foreach(ItemIndex item in list){
+            //        ItemDef itemDef = ItemCatalog.GetItemDef(item);
+            //        if(itemDef.tier == ItemTier.VoidTier1 || itemDef.tier == ItemTier.VoidTier2 || itemDef.tier == ItemTier.VoidTier3 || itemDef.tier == ItemTier.VoidBoss)
+            //        {
+            //            optionList.Add(item);
+            //        }
+            //
+            //    }
+            //    Util.ShuffleList(optionList, context.rng);
+            //
+            //    for (int k = 0; k < cost; k++)
+            //    {
+            //        TakeOne();
+            //    }
+            //    MultiShopCardUtils.OnNonMoneyPurchase(context);
+            //    void TakeOne()//Inventory inventory, CostTypeDef.PayCostContext context, int cost)
+            //    {
+            //        for (int i = 0; i < optionList.Count(); i++)
+            //        {
+            //            if(inventory.GetItemCount(optionList[i]) > 0)
+            //            {
+            //                
+            //                inventory.RemoveItem(optionList[i]);
+            //                context.results.itemsTaken.Add(optionList[i]);
+            //                break;
+            //                
+            //            }
+            //        }
+            //    }
+            //}
         }
 
         public class PortalInteractableToken : NetworkBehaviour

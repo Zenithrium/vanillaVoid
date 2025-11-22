@@ -44,7 +44,7 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
-        public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
+        public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.Damage, ItemTag.CanBeTemporary };
 
         public override void Init(ConfigFile config)
         {

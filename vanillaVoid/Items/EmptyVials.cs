@@ -34,7 +34,7 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
-        public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.AIBlacklist };
+        public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.AIBlacklist, ItemTag.CanBeTemporary };
 
         public override void Init(ConfigFile config)
         {

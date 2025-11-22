@@ -60,7 +60,7 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
-        public override ItemTag[] ItemTags => new ItemTag[1] { ItemTag.Damage };
+        public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.Damage, ItemTag.CanBeTemporary };
 
         public static DamageColorIndex indexRed;
         public static DamageColorIndex indexOrange;
@@ -932,8 +932,8 @@ namespace vanillaVoid.Items
                 if (sender && sender.inventory)
                 {
                     //float levelBonus = sender.level - 1f;
-                    int glassesCount = sender.inventory.GetItemCount(RoR2Content.Items.CritGlasses);
-                    int orreryCount = sender.inventory.GetItemCount(ItemBase<LensOrrery>.instance.ItemDef);
+                    int glassesCount = sender.inventory.GetItemCountEffective(RoR2Content.Items.CritGlasses);
+                    int orreryCount = sender.inventory.GetItemCountEffective(ItemBase<LensOrrery>.instance.ItemDef);
                     if (orreryCount > 0)
                     {
                         args.critAdd += baseCrit.Value;
@@ -1035,7 +1035,7 @@ namespace vanillaVoid.Items
                             float critMult = attackerBody.critMultiplier;
                             float critMod = critModifier.Value + (critModifierStacking.Value * (orreryCount - 1));
 
-                            if (attackerBody.inventory.GetItemCount(DLC1Content.Items.ConvertCritChanceToCritDamage) > 0 && rgCrit)
+                            if (attackerBody.inventory.GetItemCountEffective(DLC1Content.Items.ConvertCritChanceToCritDamage) > 0 && rgCrit)
                             {
                                 critChanceModified = 50;
                                 //Debug.Log("has crit damage item. giving fake crit for func | crit mult:" + attackerBody.critMultiplier + " | " + damageInfo.damage);

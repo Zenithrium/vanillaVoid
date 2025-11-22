@@ -15,6 +15,8 @@ using RoR2.Items;
 using EntityStates;
 using System.Collections;
 using System.Runtime.InteropServices;
+using MonoMod.Cil;
+using Mono.Cecil.Cil;
 
 namespace vanillaVoid.Items
 {
@@ -30,7 +32,7 @@ namespace vanillaVoid.Items
         public static ConfigEntry<int> stackingKicks;
 
         public static ConfigEntry<bool> invertForce;
-        public static ConfigEntry<bool> allowJumpOverrides;
+        //public static ConfigEntry<bool> allowJumpOverrides;
 
         public static ConfigEntry<float> kickRange;
         //public ConfigEntry<float> stackingBuff;
@@ -53,11 +55,13 @@ namespace vanillaVoid.Items
 
         public static GameObject ItemBodyModelPrefab;
 
-        public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.Utility, ItemTag.Damage };
+        public override ItemTag[] ItemTags => new ItemTag[3] { ItemTag.Utility, ItemTag.Damage, ItemTag.CanBeTemporary };
 
         public static GameObject jumpVFX = vanillaVoidPlugin.MainAssets.LoadAsset<GameObject>("FinVfx.prefab");
         
         public static GameObject clutchAttachment;
+
+        public static BuffDef hiddenClutchResist { get; private set; }
 
         public override void Init(ConfigFile config)
         {
@@ -66,6 +70,7 @@ namespace vanillaVoid.Items
             CreateItem();
             ItemDef.requiredExpansion = vanillaVoidPlugin.sotvDLC;
 
+            CreateBuff();
             Hooks();
 
             Debug.Log("esawawawawa: " + jumpVFX);
@@ -75,11 +80,11 @@ namespace vanillaVoid.Items
             efc.applyScale = true;
 
             var vfxattr = jumpVFX.AddComponent<VFXAttributes>();
-            vfxattr.vfxPriority = VFXAttributes.VFXPriority.Low;
+            vfxattr.vfxPriority = VFXAttributes.VFXPriority.Always;
             vfxattr.vfxIntensity = VFXAttributes.VFXIntensity.Low;
 
             var destroy = jumpVFX.AddComponent<DestroyOnTimer>();
-            destroy.duration = 2;
+            destroy.duration = .7f;
 
             ContentAddition.AddEffect(jumpVFX);
 
@@ -95,6 +100,18 @@ namespace vanillaVoid.Items
             PrefabAPI.RegisterNetworkPrefab(clutchAttachment);
         }
 
+        public void CreateBuff()
+        {
+            hiddenClutchResist = ScriptableObject.CreateInstance<BuffDef>();
+            hiddenClutchResist.buffColor = Color.cyan;
+            hiddenClutchResist.canStack = true;
+            hiddenClutchResist.isDebuff = false;
+            hiddenClutchResist.isHidden = true;
+            hiddenClutchResist.name = "ZnVV" + "hiddenClutchResist";
+            hiddenClutchResist.iconSprite = vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("shatterStatus");
+            ContentAddition.AddBuffDef(hiddenClutchResist);
+        }
+
         public override void CreateConfig(ConfigFile config)
         {
             string name = ItemName.Replace("'", "");
@@ -108,10 +125,10 @@ namespace vanillaVoid.Items
             baseKicks = config.Bind<int>("Item: " + name, "Base Enemy Kicks", 1, "Adjust how many enemy kickoffs the first stack grants.");
             stackingKicks = config.Bind<int>("Item: " + name, "Enemy Kicks Per Stack", 1, "Adjust how many enemy kickoffs gained per stack.");
 
-            kickRange = config.Bind<float>("Item: " + name, "Kick Range", 3f, "Adjust the radius of valid kicking range. This is added ontop of the radius of the body trying to use it.");
+            kickRange = config.Bind<float>("Item: " + name, "Kick Range", 3.5f, "Adjust the radius of valid kicking range. This is added ontop of the radius of the body trying to use it.");
             
             invertForce = config.Bind<bool>("Item: " + name, "Invert Kick Force", false, "If false, kickoffs launch enemies towards the player's movement direction - if true, it pushes opposite of your inputs. More logical, but less fun to combo with.");
-            allowJumpOverrides = config.Bind<bool>("Item: " + name, "Allow Kickoffs With Extra Jumps", true, "If true, jumps near enemies will activate kickoffs instead of using your extra jumps. Particularly useful for characters like Merc and Heretic. If false, you can only preform an enemy kickoff after expending all bonus jumps, similar to how Quill works.");
+            //allowJumpOverrides = config.Bind<bool>("Item: " + name, "Allow Kickoffs With Extra Jumps", false, "If true, jumps near enemies will activate kickoffs instead of using your extra jumps. Particularly useful for characters like Merc and Heretic. If false, you can only preform an enemy kickoff after expending all bonus jumps, similar to how Quill works. Does not fully work for clients.");
 
             voidPair = config.Bind<string>("Item: " + name, "Item to Corrupt", "KnockBackHitEnemies", "Adjust which item this is the void pair of.");
         }
@@ -713,55 +730,56 @@ namespace vanillaVoid.Items
         public override void Hooks()
         {
             //On.RoR2.CharacterBody.OnInventoryChanged += AddJumpToken;
-            On.EntityStates.GenericCharacterMain.ProcessJump += TryClutch;
+            //On.EntityStates.GenericCharacterMain.ProcessJump += TryClutch;
         }
 
-        private void TryClutch(On.EntityStates.GenericCharacterMain.orig_ProcessJump orig, GenericCharacterMain self){
-            bool eatInput = false;
-            if (self.hasCharacterMotor && allowJumpOverrides.Value){
-                bool flag3 = self.characterMotor.jumpCount < self.characterBody.maxJumpCount; //could this be a normal jump
 
-                if (self.jumpInputReceived && self.characterBody && flag3){
-                    Debug.Log("awawawawawa " + flag3);
-                    int clutchCount = self.characterBody.inventory.GetItemCount(ItemDef);
-                    if(clutchCount > 0){
-                        var behv = self.characterBody.GetComponent<ClutchBehavior>();
-                        if (behv && behv.token && self.characterMotor.jumpCount != 0){
-                            bool other = self.inputBank.jump.justPressed && behv.token.jumpCurrent > 0 && self.characterBody.moveSpeed != 0 && behv.token.canEnemyJump;
-                            Debug.Log("other : " + other + " just pressed: " + self.inputBank.jump.justPressed + " | (> 0?) jumpcurrent: " + behv.token.jumpCurrent + " | moveSpeed: " + self.characterBody.moveSpeed + " | canEnemyJump: " + behv.token.canEnemyJump);
-
-                            //if (self.isAuthority && self.localPlayerAuthority){
-                            //    //behv.token.CmdSetClutchOverrideCalc();
-                            //    other = self.inputBank.jump.justPressed && behv.token.jumpCurrent > 0 && self.characterBody.moveSpeed != 0 && behv.token.canEnemyJump;
-                            //    Debug.Log("other : " + other + " just pressed: " + self.inputBank.jump.justPressed + " | (> 0?) jumpcurrent: " + behv.token.jumpCurrent + " | moveSpeed: " + self.characterBody.moveSpeed + " | canEnemyJump: " + behv.token.canEnemyJump);
-                            //} 
-                            //
-                            if (behv.token.jumpOverride || other){
-                                eatInput = true;                          //false                              //true                        //true                              //false, for client intending to use this item
-                                Debug.Log("eat : " + eatInput + " | " + behv.token.hasAuthority + " | " + self.isAuthority + " | " + self.localPlayerAuthority + " | " + NetworkServer.active);
-
-                                Debug.Log("calling stupid intermediate");
-                                behv.token.StupidIntermediate();
-
-
-                                //if (!NetworkServer.active){
-                                //    behv.token.ActivateClutch();
-                                //}
-                            }
-                            Debug.Log("eatInput " + eatInput + " | behv.token.jumpOverride: " + behv.token.jumpOverride + " | " + self.isAuthority + " | " + self.localPlayerAuthority + " | ");
-                        }
-                    }
-                }
-            }
-            if (!eatInput){
-                orig(self);
-            }
-        }
+        //private void TryClutch(On.EntityStates.GenericCharacterMain.orig_ProcessJump orig, GenericCharacterMain self){
+        //    bool eatInput = false;
+        //    if (self.hasCharacterMotor && allowJumpOverrides.Value){
+        //        bool flag3 = self.characterMotor.jumpCount < self.characterBody.maxJumpCount; //could this be a normal jump
+        //
+        //        if (self.characterBody && flag3){
+        //            //Debug.Log("awawawawawa " + flag3);
+        //            int clutchCount = self.characterBody.inventory.GetItemCountEffective(ItemBase<VoidFin>.instance?.ItemDef);
+        //            if(clutchCount > 0){
+        //                var behv = self.characterBody.GetComponent<ClutchBehavior>();
+        //                if (behv && behv.token && self.characterMotor.jumpCount != 0 && self.jumpInputReceived){
+        //
+        //                    bool other = self.inputBank.jump.justPressed && behv.token.jumpCurrent > 0 && self.characterBody.moveSpeed != 0 && behv.token.canEnemyJump;
+        //                    Debug.Log("other : " + other + " just pressed: " + self.inputBank.jump.justPressed + " | (> 0?) jumpcurrent: " + behv.token.jumpCurrent + " | moveSpeed: " + self.characterBody.moveSpeed + " | canEnemyJump: " + behv.token.canEnemyJump);
+        //
+        //                    if (behv.token.jumpOverride || other){
+        //                        eatInput = true;                          //false                              //true                        //true                              //false, for client intending to use this item
+        //                        Debug.Log("eat : " + eatInput + " | " + behv.token.hasAuthority + " | " + self.isAuthority + " | " + self.localPlayerAuthority + " | " + NetworkServer.active);
+        //
+        //                        Debug.Log("calling stupid intermediate");
+        //                        //behv.token.StupidIntermediate();
+        //
+        //                        CharacterBody.JumpDelegate onJump = self.characterBody.onJump;
+        //                        if (onJump == null)
+        //                        {
+        //                            return;
+        //                        }
+        //                        onJump();
+        //                        //if (!NetworkServer.active){
+        //                        //    behv.token.ActivateClutch();
+        //                        //}
+        //                    }
+        //                    Debug.Log("eatInput " + eatInput + " | behv.token.jumpOverride: " + behv.token.jumpOverride + " | " + self.isAuthority + " | " + self.localPlayerAuthority + " | ");
+        //                }
+        //            }
+        //        }
+        //    }
+        //    if (!eatInput){
+        //        orig(self);
+        //    }
+        //}
 
         private void AddJumpToken(On.RoR2.CharacterBody.orig_OnInventoryChanged orig, CharacterBody self) {
             orig(self);
             if (self.inventory) {
-                int itemCount = self.inventory.GetItemCount(ItemBase<VoidFin>.instance.ItemDef);
+                int itemCount = self.inventory.GetItemCountEffective(ItemBase<VoidFin>.instance.ItemDef);
                 var token = self.gameObject.GetComponent<ClutchNetBehavior>();
                 if (itemCount > 0) {
                     //var token = self.gameObject.GetComponent<AirdashToken>();
@@ -791,12 +809,14 @@ namespace vanillaVoid.Items
             attachment = UnityEngine.Object.Instantiate<GameObject>(VoidFin.clutchAttachment, body.transform).GetComponent<NetworkedBodyAttachment>();
             attachment.AttachToGameObjectAndSpawn(body.gameObject, null);
             token = this.attachment.GetComponent<ClutchNetBehavior>();
-            Debug.Log("attach: " + attachment + " | " + token);
+            body.onJump = (CharacterBody.JumpDelegate)Delegate.Combine(body.onJump, new CharacterBody.JumpDelegate(token.AttemptClutch));
+            //Debug.Log("attach: " + attachment + " | " + token);
         }
 
         private void OnDisable()
         {
-            Debug.Log("attach: " + attachment + " | " + token);
+            //Debug.Log("dattach: " + attachment + " | " + token);
+            body.onJump = (CharacterBody.JumpDelegate)Delegate.Remove(body.onJump, new CharacterBody.JumpDelegate(token.AttemptClutch));
             if (attachment)
             {
                 Destroy(attachment);

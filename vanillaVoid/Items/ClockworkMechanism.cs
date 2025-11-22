@@ -78,7 +78,7 @@ namespace vanillaVoid.Items
 
         public override Sprite ItemIcon => vanillaVoidPlugin.MainAssets.LoadAsset<Sprite>("watchIcon512.png");
 
-        public override ItemTag[] ItemTags => new ItemTag[3] { ItemTag.Utility, ItemTag.LowHealth, ItemTag.AIBlacklist };
+        public override ItemTag[] ItemTags => new ItemTag[4] { ItemTag.Utility, ItemTag.LowHealth, ItemTag.AIBlacklist, ItemTag.CanBeTemporary };
 
         public static GameObject ItemBodyModelPrefab;
 
@@ -861,7 +861,7 @@ namespace vanillaVoid.Items
         {
             orig(self, characterMaster);
             if ((bazaarHappen.Value || !isBazaarStage) && itemVariant.Value == 0){ //var 0
-                int itemCount = characterMaster.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+                int itemCount = characterMaster.inventory.GetItemCountEffective(ItemBase<ClockworkMechanism>.instance.ItemDef);
                 if (itemCount > 0){
                     int rewardCount = itemsPerStage.Value + (itemsPerStageStacking.Value * (itemCount - 1));
                     if (watchVoidRng == null){
@@ -873,7 +873,8 @@ namespace vanillaVoid.Items
                         for (int i = 0; i < rewardCount; ++i){
                             var item = dropTable.GenerateDropPreReplacement(watchVoidRng);
                             characterMaster.inventory.GiveItem(item.itemIndex, 1);
-                            GenericPickupController.SendPickupMessage(characterMaster, item);
+                            UniquePickup pickup = new UniquePickup(item);
+                            GenericPickupController.SendPickupMessage(characterMaster, pickup);
                         }
                     }else{
                         //Debug.Log("item drop " + rewardCount);
@@ -892,7 +893,7 @@ namespace vanillaVoid.Items
             {
                 //Debug.Log("Jag heter j");
                 int itemCount = 0;
-                int tempItemCount = 0;
+                int countToDestroy = 0;
                 int playerCount = PlayerCharacterMasterController.instances.Count;
                 //Debug.Log("Jag heter j " + playerCount);
                 //if (playerCount == 0)
@@ -903,34 +904,73 @@ namespace vanillaVoid.Items
                 {
                     //itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
                     //Debug.Log("player ");
-                    tempItemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
-                    if (tempItemCount > 0)
+                    countToDestroy += player.master.inventory.GetItemCountEffective(this.ItemDef);
+                    if (countToDestroy > 0)
                     {
                         //Debug.Log("the j is r eal");
-                        if (variantBreakAmount.Value < 0)
+                        if (variantBreakAmount.Value < 0) //negative - break all of them.
                         {
-                            player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
-                            player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, tempItemCount);
-                        }
-                        else
-                        {
-                            if (variantBreakAmount.Value > tempItemCount)
+                            if(player.master.inventory.GetItemCountTemp(this.ItemDef) > 0)
                             {
-                                player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
-                                player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, tempItemCount);
+                                var itemIndex = this.ItemDef.itemIndex;
+                                var decayValue = player.master.inventory.GetTempItemDecayValue(itemIndex);
+                                player.master.inventory.RemoveItemTemp(itemIndex);
+                                player.master.inventory.GiveItemTemp(ConsumedClockworkMechanism.instance.ItemDef.itemIndex, decayValue);
+                            }
+                            if(player.master.inventory.GetItemCountPermanent(this.ItemDef) > 0)
+                            {
+                                player.master.inventory.RemoveItem(this.ItemDef, countToDestroy);
+                                player.master.inventory.GiveItem(ConsumedClockworkMechanism.instance.ItemDef, countToDestroy);
+                            }
+
+                        }
+                        else //non negative amount - break some of  them
+                        {
+                            if (variantBreakAmount.Value > countToDestroy)
+                            {
+                                var tempCount = player.master.inventory.GetItemCountTemp(this.ItemDef);
+                                var permCount = player.master.inventory.GetItemCountPermanent(this.ItemDef);
+
+                                if(tempCount < countToDestroy)
+                                {
+                                    if(tempCount > 0)
+                                    {
+                                        var itemIndex = this.ItemDef.itemIndex;
+                                        var decayValue = player.master.inventory.GetTempItemDecayValue(itemIndex);
+                                        player.master.inventory.RemoveItemTemp(itemIndex, tempCount);
+                                        player.master.inventory.GiveItemTemp(ConsumedClockworkMechanism.instance.ItemDef.itemIndex, decayValue);
+                                    }
+                                    if(permCount > 0)
+                                    {
+                                        player.master.inventory.RemoveItem(this.ItemDef, countToDestroy);
+                                        player.master.inventory.GiveItem(ConsumedClockworkMechanism.instance.ItemDef, countToDestroy);
+                                    }
+                                }
                             }
                             else
                             {
-                                player.master.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, variantBreakAmount.Value);
-                                player.master.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, variantBreakAmount.Value);
+                                var tempCount = player.master.inventory.GetItemCountTemp(this.ItemDef);
+                                var permCount = player.master.inventory.GetItemCountPermanent(this.ItemDef);
+                                if (tempCount > 0)
+                                {
+                                    var itemIndex = this.ItemDef.itemIndex;
+                                    var decayValue = player.master.inventory.GetTempItemDecayValue(itemIndex);
+                                    player.master.inventory.RemoveItemTemp(itemIndex, tempCount);
+                                    player.master.inventory.GiveItemTemp(ConsumedClockworkMechanism.instance.ItemDef.itemIndex, decayValue);
+                                }
+                                if (permCount > 0)
+                                {
+                                    player.master.inventory.RemoveItem(this.ItemDef, permCount);
+                                    player.master.inventory.GiveItem(ConsumedClockworkMechanism.instance.ItemDef, permCount);
+                                }
                             }
                         }
                         //player.body.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, tempItemCount);
                         //player.body.inventory.GiveItem(ItemBase<BrokenClockworkMechanism>.instance.ItemDef, tempItemCount);
                         CharacterMasterNotificationQueue.SendTransformNotification(player.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                     }
-                    itemCount += tempItemCount;
-                    tempItemCount = 0;
+                    itemCount += countToDestroy;
+                    countToDestroy = 0;
 
                 }
                 //obj.interactableCredit *= (int)(directorMultiplier.Value * (float)itemCount);
@@ -954,7 +994,7 @@ namespace vanillaVoid.Items
                 foreach (var player in PlayerCharacterMasterController.instances)
                 {
                     //++playerCount;
-                    itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+                    itemCount += player.master.inventory.GetItemCountEffective(ClockworkMechanism.instance.ItemDef);
                 }
                 //Debug.Log("itemCount: " + itemCount);
 
@@ -985,7 +1025,7 @@ namespace vanillaVoid.Items
                 {
                     //itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
 
-                    tempItemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+                    tempItemCount += player.master.inventory.GetItemCountEffective(ClockworkMechanism.instance.ItemDef);
                     if (tempItemCount > 0)
                     {
                         //Debug.Log("enough ");
@@ -1058,36 +1098,37 @@ namespace vanillaVoid.Items
         private void DetermineStage(Stage obj)
         {
             isBazaarStage = false;
-            if (obj.sceneDef == SceneCatalog.GetSceneDefFromSceneName("bazaar")){
+            if (obj.sceneDef == SceneCatalog.GetSceneDefFromSceneName("bazaar") 
+                || obj.sceneDef == SceneCatalog.GetSceneDefFromSceneName("computationalexchange")){
                 isBazaarStage = true;
             }
 
 
 
-            if ((bazaarHappen.Value || !isBazaarStage) && itemVariant.Value == 0 && false){ //var 0
-                Debug.Log("Determine stage call");
-
-                foreach (var player in PlayerCharacterMasterController.instances)
-                {
-                    int itemCount = player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
-                    if (itemCount > 0)
-                    {
-                        int rewardCount = itemsPerStage.Value + (itemsPerStageStacking.Value * (itemCount - 1));
-                        if (watchVoidRng == null){
-                            watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
-                        }
-
-                        //if (directlyGiveItems.Value){
-                        //    var items = dropTable.GenerateUniqueDropsPreReplacement(rewardCount, watchVoidRng);
-                        //    Debug.Log("Granting items");
-                        //    for(int i = 0; i < items.Length; ++i){
-                        //        player.master.inventory.GiveItem(items[i].itemIndex, 1);
-                        //        GenericPickupController.SendPickupMessage(player.master, items[i]);
-                        //    }
-                        //}
-                    }
-                }
-            }
+            //if ((bazaarHappen.Value || !isBazaarStage) && itemVariant.Value == 0 && false){ //var 0
+            //    Debug.Log("Determine stage call");
+            //
+            //    foreach (var player in PlayerCharacterMasterController.instances)
+            //    {
+            //        int itemCount = player.master.inventory.GetItemCountEffective(ClockworkMechanism.instance.ItemDef);
+            //        if (itemCount > 0)
+            //        {
+            //            int rewardCount = itemsPerStage.Value + (itemsPerStageStacking.Value * (itemCount - 1));
+            //            if (watchVoidRng == null){
+            //                watchVoidRng = new Xoroshiro128Plus(Run.instance.seed);
+            //            }
+            //
+            //            //if (directlyGiveItems.Value){
+            //            //    var items = dropTable.GenerateUniqueDropsPreReplacement(rewardCount, watchVoidRng);
+            //            //    Debug.Log("Granting items");
+            //            //    for(int i = 0; i < items.Length; ++i){
+            //            //        player.master.inventory.GiveItem(items[i].itemIndex, 1);
+            //            //        GenericPickupController.SendPickupMessage(player.master, items[i]);
+            //            //    }
+            //            //}
+            //        }
+            //    }
+            //}
         }
 
         private void HelpDirector(SceneDirector obj)
@@ -1106,7 +1147,7 @@ namespace vanillaVoid.Items
                 foreach (var player in PlayerCharacterMasterController.instances)
                 {
                     //++playerCount;
-                    itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+                    itemCount += player.master.inventory.GetItemCountEffective(ClockworkMechanism.instance.ItemDef);
                 }
 
                 float creditBoost = ((directorBuff.Value + (stackingBuff.Value * (itemCount - 1f))));
@@ -1130,7 +1171,7 @@ namespace vanillaVoid.Items
                 {
                     //itemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
 
-                    tempItemCount += player.master.inventory.GetItemCount(ItemBase<ClockworkMechanism>.instance.ItemDef);
+                    tempItemCount += player.master.inventory.GetItemCountEffective(ClockworkMechanism.instance.ItemDef);
                     if (tempItemCount > 0)
                     {
                         if (variantBreakAmount.Value < 0)
@@ -1203,7 +1244,6 @@ namespace vanillaVoid.Items
         private void BreakItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker, bool b1, bool b2)
         {
             orig.Invoke(self, damageValue, damagePosition, damageIsSilent, attacker, b1, b2);
-            //Debug.Log("attacker: " + attacker);
             if (NetworkServer.active && (bool)self && (bool)self.body && ItemBase<ClockworkMechanism>.instance.GetCount(self.body) > 0 && self.isHealthLow && !(self.GetComponent<CharacterBody>().GetBuffCount(recentBreak) > 0) && attacker && (bazaarHappen.Value || !isBazaarStage))
             {
                 var cb = self.GetComponent<CharacterBody>();
@@ -1219,12 +1259,22 @@ namespace vanillaVoid.Items
                 int itemTierInt = 0;
                 if (destroySelf.Value)
                 {
-                    float count = (float)ItemBase<ClockworkMechanism>.instance.GetCount(self.body);
+                    float count = (float)ClockworkMechanism.instance.GetCount(self.body);
                     int toLose = (int)Math.Ceiling(count / 2f);
 
-                    self.body.inventory.RemoveItem(ItemBase<ClockworkMechanism>.instance.ItemDef, toLose);
-                    self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef, toLose);
-                    CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, ItemBase<ClockworkMechanism>.instance.ItemDef.itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
+                    var tempCount = self.body.inventory.GetItemCountTemp(this.ItemDef);
+                    if (tempCount > 0)
+                    {
+                        var itemIndex = this.ItemDef.itemIndex;
+                        var decayValue = self.body.inventory.GetTempItemDecayValue(itemIndex);
+                        self.body.inventory.RemoveItemTemp(itemIndex);
+                        self.body.inventory.GiveItemTemp(ConsumedClockworkMechanism.instance.ItemDef.itemIndex, decayValue);
+                        toLose -= tempCount;
+                    }
+
+                    self.body.inventory.RemoveItem(ClockworkMechanism.instance.ItemDef, toLose);
+                    self.body.inventory.GiveItem(ConsumedClockworkMechanism.instance.ItemDef, toLose);
+                    CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, ClockworkMechanism.instance.ItemDef.itemIndex, ConsumedClockworkMechanism.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
 
                 }
                 else
@@ -1233,7 +1283,7 @@ namespace vanillaVoid.Items
                     ItemIndex itemIndex = ItemIndex.None;
                     Util.ShuffleList(list, watchVoidRng);
 
-                    int tempCount = 0;
+                    int workingCount = 0;
                     foreach (ItemIndex item in list)
                     {
 
@@ -1326,7 +1376,18 @@ namespace vanillaVoid.Items
 
                             if (scaleDestruction.Value)
                             {
-                                self.body.inventory.RemoveItem(itemIndex);
+                                var tempItemCount = self.body.inventory.GetItemCountTemp(itemIndex);
+                                float? tempTimer = null;
+                                if(tempItemCount > 0)
+                                {
+                                    tempTimer = self.body.inventory.GetTempItemDecayValue(itemIndex);
+                                    self.body.inventory.RemoveItemTemp(itemIndex);
+                                }
+                                else
+                                {
+                                    self.body.inventory.RemoveItemPermanent(itemIndex);
+                                }
+                                
 
                                 if (scrapInstead.Value)
                                 {
@@ -1359,11 +1420,18 @@ namespace vanillaVoid.Items
                                 }
                                 else
                                 {
-                                    self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef);
+                                    if (tempTimer.HasValue)
+                                    {
+                                        self.body.inventory.GiveItemTemp(ConsumedClockworkMechanism.instance.ItemDef.itemIndex, tempTimer.Value);
+                                    }
+                                    else
+                                    {
+                                        self.body.inventory.GiveItemPermanent(ConsumedClockworkMechanism.instance.ItemDef);
+                                    }
                                     CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                                 }
-                                ++tempCount;
-                                if(tempCount >= ItemBase<ClockworkMechanism>.instance.GetCount(self.body))
+                                ++workingCount;
+                                if(workingCount >= ItemBase<ClockworkMechanism>.instance.GetCount(self.body))
                                 {
                                     break;
                                 }
@@ -1376,7 +1444,18 @@ namespace vanillaVoid.Items
                     }
                     if (itemIndex != ItemIndex.None && !scaleDestruction.Value)
                     {
-                        self.body.inventory.RemoveItem(itemIndex);
+                        float? tempTimer = null;
+                        var tempItemCount = self.body.inventory.GetItemCountTemp(itemIndex);
+                        if(tempItemCount > 0)
+                        {
+                            tempTimer = self.body.inventory.GetTempItemDecayValue(itemIndex);
+                            self.body.inventory.RemoveItemTemp(itemIndex);
+                        }
+                        else
+                        {
+                            self.body.inventory.RemoveItemPermanent(itemIndex);
+
+                        }
 
                         if (scrapInstead.Value)
                         {
@@ -1409,7 +1488,14 @@ namespace vanillaVoid.Items
                         }
                         else
                         {
-                            self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef);
+                            if (tempTimer.HasValue)
+                            {
+                                self.body.inventory.GiveItemTemp(ConsumedClockworkMechanism.instance.ItemDef.itemIndex, tempTimer.Value);
+                            }
+                            else
+                            {
+                                self.body.inventory.GiveItem(ItemBase<ConsumedClockworkMechanism>.instance.ItemDef);
+                            }
                             CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, itemIndex, ItemBase<ConsumedClockworkMechanism>.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.Default);
                         }
                     }

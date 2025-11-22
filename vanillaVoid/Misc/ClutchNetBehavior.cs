@@ -24,6 +24,8 @@ namespace vanillaVoid.Misc
         public HurtBox? nearest;
         public List<HurtBox> jumpBoxList;
 
+        public bool activateInDelegate = false;
+
         //[SyncVar]
         public bool jumpInput;
 
@@ -36,9 +38,9 @@ namespace vanillaVoid.Misc
         public int jumpCurrent;
 
         public NetworkIdentity networkID;
+        public bool alreadySetNetID = false;
 
-
-            [Command]
+        [Command]
         public void CmdSetClutchValid(bool value)
         {
             clutchValid = value;
@@ -46,17 +48,20 @@ namespace vanillaVoid.Misc
 
         public void StupidIntermediate()
         {
-            Debug.Log("has auth (intermediate): " + hasAuthority); //no authority here. why? client is calling a function on their own attachment. which has LocalPlayerAuthority
+           // Debug.Log("has auth (intermediate): " + hasAuthority); //no authority here. why? client is calling a function on their own attachment. which has LocalPlayerAuthority
 
             ClientClutchEffects();
 
-            CmdDoClutch2();
+            if (hasAuthority)
+            {
+                CmdDoClutch2();
+            }
         }
 
         [Command]
         public void CmdDoClutch2()
         {
-            Debug.Log("COMMAND Clutch2");
+            //Debug.Log("COMMAND Clutch2");
             ServerClutchEffects();
         }
 
@@ -64,7 +69,6 @@ namespace vanillaVoid.Misc
 
         public bool TestEnemyJump()
         {
-            //Debug.Log("testing");
             SphereSearch jumpSearch = new SphereSearch();
             jumpBoxList = new List<HurtBox>();
 
@@ -92,7 +96,7 @@ namespace vanillaVoid.Misc
             try
             {
                 body = gameObject.transform.parent.GetComponent<CharacterBody>();
-                int stack = body.inventory.GetItemCount(VoidFin.instance?.ItemDef);
+                int stack = body.inventory.GetItemCountEffective(VoidFin.instance?.ItemDef);
                 jumpMax = VoidFin.baseKicks.Value + (VoidFin.stackingKicks.Value * (stack - 1));
             }
             catch (Exception e){ }
@@ -104,8 +108,91 @@ namespace vanillaVoid.Misc
             //}
             jumpCurrent = jumpMax;
             count = 0;
-            //Debug.Log("bugthlhlgh");
         }
+        
+        private void OnEnable()
+        {
+            //Debug.Log("AWWAA");
+            //body.onJump = (CharacterBody.JumpDelegate)Delegate.Combine(body.onJump, new CharacterBody.JumpDelegate(this.AttemptClutch));
+        }
+
+        private void OnDisable()
+        {
+            //Debug.Log("AWEAWEWE@");
+            //body.onJump = (CharacterBody.JumpDelegate)Delegate.Remove(body.onJump, new CharacterBody.JumpDelegate(this.AttemptClutch));
+        }
+
+        public void AttemptClutch()
+        {
+            //FastDebug.Log("1 " + hasAuthority);
+            if (body.inputBank.jump.justPressed)
+            {
+                //FastDebug.Log("PLEASE " + hasAuthority);
+            }
+        }
+
+        void TryClutchBehavior(On.EntityStates.GenericCharacterMain.orig_ProcessJump orig, GenericCharacterMain self)
+        {
+            bool eatInput = false;
+            if (body == self.characterBody && self.hasCharacterMotor)//&& VoidFin.allowJumpOverrides.Value)
+            {
+                bool flag3 = self.characterMotor.jumpCount < self.characterBody.maxJumpCount; //could this be a normal jump
+
+                if (self.characterBody && flag3)
+                {
+                    int clutchCount = self.characterBody.inventory.GetItemCountEffective(VoidFin.instance.ItemDef);
+                    if (clutchCount > 0)
+                    {
+                        Debug.Log("clutchCount: " + clutchCount + " | " + this);
+                        //if (NetworkServer.active && behv && behv.token && behv.token.alreadySetNetID)
+                        //{
+                        //    var token = behv.token;
+                        //    if (token.networkID == null)
+                        //    {
+                        //        token.networkID = token.gameObject.GetComponent<NetworkIdentity>();
+                        //    }
+                        //    token.networkID.RemoveClientAuthority(token.networkID.connectionToClient);
+                        //    token.networkID.AssignClientAuthority(self.characterBody.netIdentity.connectionToClient);
+                        //    token.alreadySetNetID = true;
+                        //}
+                        if (this && self.characterMotor.jumpCount != 0 && self.jumpInputReceived)
+                        {
+
+                            bool other = self.inputBank.jump.justPressed && this.jumpCurrent > 0 && self.characterBody.moveSpeed != 0 && this.canEnemyJump;
+                            Debug.Log("other : " + other + " just pressed: " + self.inputBank.jump.justPressed + " | (> 0?) jumpcurrent: " + this.jumpCurrent + " | moveSpeed: " + self.characterBody.moveSpeed + " | canEnemyJump: " + this.canEnemyJump);
+
+                            //if (self.isAuthority && self.localPlayerAuthority){
+                            //    //behv.token.CmdSetClutchOverrideCalc();
+                            //    other = self.inputBank.jump.justPressed && behv.token.jumpCurrent > 0 && self.characterBody.moveSpeed != 0 && behv.token.canEnemyJump;
+                            //    Debug.Log("other : " + other + " just pressed: " + self.inputBank.jump.justPressed + " | (> 0?) jumpcurrent: " + behv.token.jumpCurrent + " | moveSpeed: " + self.characterBody.moveSpeed + " | canEnemyJump: " + behv.token.canEnemyJump);
+                            //} 
+                            //
+                            if (this.jumpOverride || other)
+                            {
+                                eatInput = true;                          //false                              //true                        //true                              //false, for client intending to use this item
+                                Debug.Log("eat : " + eatInput + " | " + this.hasAuthority + " | " + self.isAuthority + " | " + self.localPlayerAuthority + " | " + NetworkServer.active);
+
+                                Debug.Log("calling stupid intermediate");
+                                this.StupidIntermediate();
+                                
+
+
+                                //if (!NetworkServer.active){
+                                //    behv.token.ActivateClutch();
+                                //}
+                            }
+                            Debug.Log("eatInput " + eatInput + " | behv.token.jumpOverride: " + this.jumpOverride + " | " + self.isAuthority + " | " + self.localPlayerAuthority + " | ");
+                        }
+                    }
+                }
+            }
+            if (!eatInput)
+            {
+                orig(self);
+            }
+
+        }
+
 
         private void FixedUpdate()
         {
@@ -124,7 +211,7 @@ namespace vanillaVoid.Misc
 
             if (body.characterMotor.isGrounded)
             {
-                int stack = body.inventory.GetItemCount(VoidFin.instance?.ItemDef);
+                int stack = body.inventory.GetItemCountEffective(VoidFin.instance?.ItemDef);
                 jumpMax = VoidFin.baseKicks.Value + (VoidFin.stackingKicks.Value * (stack - 1));
 
                 jumpCurrent = jumpMax;
@@ -152,8 +239,7 @@ namespace vanillaVoid.Misc
             timer -= Time.fixedDeltaTime;
             if(timer <= 0 && clutchValid)
             {
-                timer = .1375f;
-                //Debug.Log("attempting to kick");
+                timer = .15f; //.1375f;
                 Vector3 dir = body.inputBank.moveVector;
                 float vertStrength = .2075f; //.225f
                 if (dir == Vector3.zero)
@@ -200,9 +286,7 @@ namespace vanillaVoid.Misc
                         damageColorIndex = DamageColorIndex.Item,
                         force = Vector3.down * 25
                     };
-                    //if(NetworkServer.)
-                    
-                    nearest.healthComponent.TakeDamage(damageInfo);
+
                     var nearbody = nearest.healthComponent.body;
                     var massnear = 1f;
                     if (nearbody.characterMotor)
@@ -213,20 +297,36 @@ namespace vanillaVoid.Misc
                     var dirmodified = dir;
                     dirmodified.y = .25f;
                     int polarity = VoidFin.invertForce.Value ? -1 : 1; //28
-                    nearest.healthComponent.TakeDamageForce((dirmodified * polarity) * 25f * Mathf.Pow(massnear, .9675f), true, true);
+                    float force = 20 / (1 + (1.5f * nearbody.GetBuffCount(VoidFin.hiddenClutchResist)));
+
+                    Vector3 sourcePosition;
+                    if(nearbody.transform != null && nearbody.transform.position != null)
+                    {
+                        sourcePosition = nearbody.transform.position;
+                    }
+                    else
+                    {
+                        sourcePosition = body.corePosition;
+                    }
 
                     EffectData jumpVFXdata = new EffectData
                     {
-                        origin = nearbody.corePosition,
-                        rotation = Util.QuaternionSafeLookRotation(dirmodified.normalized * polarity),
-                        forceUnpooled = true
-
+                        origin = sourcePosition,
+                        rotation = Util.QuaternionSafeLookRotation(dirmodified.normalized * polarity)
                     };
                     EffectManager.SpawnEffect(VoidFin.jumpVFX, jumpVFXdata, true);
 
+                    if (NetworkServer.active)
+                    {
+                        nearest.healthComponent.TakeDamage(damageInfo);
+                        nearest.healthComponent.TakeDamageForce((dirmodified * polarity) * force * Mathf.Pow(massnear, .9675f), true, true);
+                        nearbody.AddTimedBuffAuthority(VoidFin.hiddenClutchResist.buffIndex, 1f);
+
+                    }
+
                     SphereSearch jumpSearch = new SphereSearch();
                     var jumpBoxListLarger = new List<HurtBox>();
-                    jumpSearch.origin = body.transform.position;
+                    jumpSearch.origin = body.corePosition;
                     jumpSearch.mask = LayerIndex.entityPrecise.mask;
                     jumpSearch.radius = body.radius + 6.5f;
                     jumpSearch.RefreshCandidates();
@@ -253,12 +353,15 @@ namespace vanillaVoid.Misc
                                     attacker = body.gameObject,
                                     crit = body.RollCrit(),
                                     damage = body.damage * multAOE,
-                                    position = hc.body.corePosition,
+                                    position = hc.body.transform.position,
                                     procCoefficient = .25f,
                                     damageType = DamageType.Generic,
                                     damageColorIndex = DamageColorIndex.Item,
                                 };
-                                hc.TakeDamage(damageInfoTemp);
+                                if (NetworkServer.active)
+                                {
+                                    hc.TakeDamage(damageInfoTemp);
+                                }
                             }
 
                             var mass = 1f;
@@ -266,10 +369,12 @@ namespace vanillaVoid.Misc
                             {
                                 mass = hc.body.characterMotor.mass;
                             }
-                            Vector3 aoeDir = (hc.body.corePosition - body.corePosition);
+                            Vector3 aoeDir = (hc.body.transform.position - body.transform.position);
                             aoeDir.y += .1f;
-
-                            hc.TakeDamageForce(aoeDir.normalized * Mathf.Sqrt(mass) * 200, true, true);
+                            if (NetworkServer.active)
+                            {
+                                hc.TakeDamageForce(aoeDir.normalized * Mathf.Sqrt(mass) * 200, true, true);
+                            }
                         }
                     }
 
@@ -431,7 +536,8 @@ namespace vanillaVoid.Misc
                 var dirmodified = dir;
                 dirmodified.y += .2f;
                 int polarity = VoidFin.invertForce.Value ? -1 : 1; //28
-                nearest.healthComponent.TakeDamageForce((dirmodified * polarity) * 25f * Mathf.Pow(massnear, .9675f), true, true);
+                Debug.Log("Activate Clutch");
+                nearest.healthComponent.TakeDamageForce((dirmodified * polarity) * 20 * Mathf.Pow(massnear, .9675f), true, true);
                 
 
                 EffectData jumpVFXdata = new EffectData
@@ -512,7 +618,7 @@ namespace vanillaVoid.Misc
 
         public void ServerClutchEffects() //make voidfin call this
         {
-            Debug.Log("ServerClutchEffects");
+            //Debug.Log("ServerClutchEffects");
             timer = .1375f;
             //Debug.Log("attempting to kick");
             Vector3 dir = body.inputBank.moveVector;
@@ -568,7 +674,8 @@ namespace vanillaVoid.Misc
                 var dirmodified = dir;
                 dirmodified.y += .2f;
                 int polarity = VoidFin.invertForce.Value ? -1 : 1; //28
-                nearest.healthComponent.TakeDamageForce((dirmodified * polarity) * 25f * Mathf.Pow(massnear, .9675f), true, true);
+                //Debug.Log("Server Clutch Effects");
+                nearest.healthComponent.TakeDamageForce((dirmodified * polarity) * 20 * Mathf.Pow(massnear, .9675f), true, true);
 
 
                 EffectData jumpVFXdata = new EffectData

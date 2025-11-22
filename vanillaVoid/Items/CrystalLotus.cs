@@ -55,7 +55,7 @@ namespace vanillaVoid.Items
 
         //public static BuffDef lotusSlow { get; private set; }
 
-        public override ItemTag[] ItemTags => new ItemTag[5] { ItemTag.Utility, ItemTag.Healing, ItemTag.AIBlacklist, ItemTag.CannotCopy, ItemTag.HoldoutZoneRelated };
+        public override ItemTag[] ItemTags => new ItemTag[6] { ItemTag.Utility, ItemTag.Healing, ItemTag.AIBlacklist, ItemTag.CannotCopy, ItemTag.HoldoutZoneRelated, ItemTag.CanBeTemporary };
 
         string tempItemPickupDesc;
         string tempItemFullDescription;
@@ -64,11 +64,11 @@ namespace vanillaVoid.Items
         public static GameObject lotusEffect;
 
         Vector3 heightAdjust = new Vector3(0, 2.212f, 0);
-        float previousPulseFraction = 0;
-        float currentCharge = 0;
-        float secondsUntilAttempt = 0;
+        //float previousPulseFraction = 0;
+        //float currentCharge = 0;
+        //float secondsUntilAttempt = 0;
 
-        public float lotusTimer;
+        //public float lotusTimer;
         //public float lotusDuration = 25f;
         AnimationCurve speedCurve;
         public static AnimationCurve speedCurveRise;
@@ -129,6 +129,8 @@ namespace vanillaVoid.Items
             //lotusCollider.AddComponent<LotusColliderToken>();
             lotusCollider.AddComponent<BuffWard>();
             lotusCollider.AddComponent<SlowDownProjectiles>();
+
+
             PrefabAPI.RegisterNetworkPrefab(lotusObject);
 
 
@@ -945,10 +947,10 @@ namespace vanillaVoid.Items
             int corrosiveMax = most ? GetCount(most) : 0; 
             TeamIndex teamDex = default;
             foreach (var player in PlayerCharacterMasterController.instances){
-                itemCount += player.master.inventory.GetItemCount(CrystalLotus.instance.ItemDef);
+                itemCount += player.master.inventory.GetItemCountEffective(CrystalLotus.instance.ItemDef);
                 teamDex = player.master.teamIndex;
 
-                var temp = player.master.inventory.GetItemCount(CorrosiveCore.instance.ItemDef);
+                var temp = player.master.inventory.GetItemCountEffective(CorrosiveCore.instance.ItemDef);
                 if (temp > corrosiveMax && temp != 0)
                 {
                     corrosiveMax = temp;
@@ -990,10 +992,10 @@ namespace vanillaVoid.Items
                     int corrosiveMax = most ? GetCount(most) : 0;
                     TeamIndex teamDex = default;
                     foreach (var player in PlayerCharacterMasterController.instances){
-                        itemCount += player.master.inventory.GetItemCount(CrystalLotus.instance.ItemDef);
+                        itemCount += player.master.inventory.GetItemCountEffective(CrystalLotus.instance.ItemDef);
                         teamDex = player.master.teamIndex;
 
-                        var temp = player.master.inventory.GetItemCount(CorrosiveCore.instance.ItemDef);
+                        var temp = player.master.inventory.GetItemCountEffective(CorrosiveCore.instance.ItemDef);
                         if(temp > corrosiveMax && temp != 0){
                             corrosiveMax = temp;
                             most = player.body;
@@ -1020,7 +1022,7 @@ namespace vanillaVoid.Items
                     //CharacterBody most = null;
                     foreach (var player in PlayerCharacterMasterController.instances){
 
-                        var temp = player.master.inventory.GetItemCount(CorrosiveCore.instance.ItemDef);
+                        var temp = player.master.inventory.GetItemCountEffective(CorrosiveCore.instance.ItemDef);
                         if (temp > corrosiveMax && temp != 0){
                             corrosiveMax = temp;
                             most = player.body;
@@ -1112,26 +1114,30 @@ namespace vanillaVoid.Items
             int itemCount = 0;
             TeamIndex teamDex = default;
             foreach (var player in PlayerCharacterMasterController.instances){
-                itemCount += player.master.inventory.GetItemCount(CrystalLotus.instance.ItemDef);
+                itemCount += player.master.inventory.GetItemCountEffective(CrystalLotus.instance.ItemDef);
                 teamDex = player.master.teamIndex;
             }
             var handler = self.gameObject.GetComponent<LotusHandler>();
             float coeff = 1;
             //Debug.Log("pre " + coeff);
-            lotusTimer += Time.fixedDeltaTime;
+            if (handler)
+            {
+                handler.lotusTimer += Time.fixedDeltaTime;
+            }
+
             if (handler && handler.slowCoeffValue < 1){
                 if (handler.rise){
                     //handler.matInstance.SetFloat("_AlphaBoost", coeff * 3);
-                    coeff = speedCurve.Evaluate(lotusTimer / LotusDuration.Value);
+                    coeff = speedCurve.Evaluate(handler.lotusTimer / LotusDuration.Value);
                     handler.slowCoeffValue = coeff;
-                    handler.risingCoeffValue = speedCurveRise.Evaluate(lotusTimer / 1.15f);
+                    handler.risingCoeffValue = speedCurveRise.Evaluate(handler.lotusTimer / 1.15f);
                     //Debug.Log("handler.risingCoeffValue: " + handler.risingCoeffValue);
                     //handler.risingCoeffValue = 1 - (coeff * 20);
                     //Debug.Log("rising " + (1 - (coeff * 20)) + " | " + handler.risingCoeffValue);
                 }
                 else{
                     //handler.matInstance.SetFloat("_AlphaBoost", 1 - coeff);
-                    coeff = speedCurve.Evaluate(lotusTimer / LotusDuration.Value);
+                    coeff = speedCurve.Evaluate(handler.lotusTimer / LotusDuration.Value);
                     handler.slowCoeffValue = coeff;
                     //Debug.Log("handler.slowCoeffValue: " + handler.slowCoeffValue);
                     //Debug.Log("falling " + coeff);
@@ -1183,6 +1189,8 @@ namespace vanillaVoid.Items
 
                         handler.lotusColliderInstance = tempLotusCollider;
 
+                        handler.previousPulseFraction = 0;
+
                         var ctoken = tempLotusCollider.AddComponent<LotusToken>();
                         ctoken.handler = handler;
                         //ctoken.onBody = false;
@@ -1202,13 +1210,13 @@ namespace vanillaVoid.Items
                     comp.slowDownCoefficient = coeff;
 
 
-                    if (secondsUntilAttempt > 0f){
-                        secondsUntilAttempt -= Time.fixedDeltaTime;
+                    if (handler.secondsUntilAttempt > 0f){
+                        handler.secondsUntilAttempt -= Time.fixedDeltaTime;
                     }else{
                         //Debug.Log("attemnpt");
-                        if (currentCharge > self.charge){
-                            previousPulseFraction = 0;
-                            currentCharge = self.charge;
+                        if (handler.currentCharge > self.charge){
+                            handler.previousPulseFraction = 0;
+                            handler.currentCharge = self.charge;
                         }
                         if (self.charge >= 1){
                             if (LotusVariant.Value == 0){
@@ -1223,10 +1231,10 @@ namespace vanillaVoid.Items
                             }
                         }
 
-                        float nextPulseFraction = CalcNextPulseFraction(itemCount * (int)ItemBase<CrystalLotus>.instance.pulseCountStacking.Value, previousPulseFraction);
-                        currentCharge = self.charge;
+                        float nextPulseFraction = CalcNextPulseFraction(itemCount * (int)ItemBase<CrystalLotus>.instance.pulseCountStacking.Value, handler.previousPulseFraction);
+                        handler.currentCharge = self.charge;
 
-                        if (nextPulseFraction <= currentCharge){
+                        if (nextPulseFraction <= handler.currentCharge){
                             if (LotusVariant.Value == 1){
                                 string nova = "RoR2/Base/TPHealingNova/TeleporterHealNovaPulse.prefab";
                                 GameObject novaPrefab = Addressables.LoadAssetAsync<GameObject>(nova).WaitForCompletion();
@@ -1236,10 +1244,10 @@ namespace vanillaVoid.Items
                             }else{
                                 //ward.enabled = true;
                                 //Debug.Log("ward buff: " + ward.buffDef + " | " + ward.enabled);
-                                lotusTimer = 0;
+                                handler.lotusTimer = 0;
                                 
-                                handler.slowCoeffValue = speedCurve.Evaluate(lotusTimer / LotusDuration.Value);
-                                handler.risingCoeffValue = speedCurveRise.Evaluate(lotusTimer / 1.15f);
+                                handler.slowCoeffValue = speedCurve.Evaluate(handler.lotusTimer / LotusDuration.Value);
+                                handler.risingCoeffValue = speedCurveRise.Evaluate(handler.lotusTimer / 1.15f);
 
                                 handler.slowComp.enabled = true;
                                 handler.buffComp.enabled = true;
@@ -1263,8 +1271,8 @@ namespace vanillaVoid.Items
                                 handler.rise = true;
                             }
 
-                            previousPulseFraction = nextPulseFraction;
-                            secondsUntilAttempt = 1f;
+                            handler.previousPulseFraction = nextPulseFraction;
+                            handler.secondsUntilAttempt = 1f;
 
                             string effect2 = "RoR2/DLC1/VoidSuppressor/SuppressorClapEffect.prefab";
                             GameObject effect2Prefab = Addressables.LoadAssetAsync<GameObject>(effect2).WaitForCompletion();
@@ -1368,7 +1376,12 @@ namespace vanillaVoid.Items
             public float slowCoeffValue;
             public bool isEnding = false;
             public float risingCoeffValue;
+            
+            public float previousPulseFraction = 0;
+            public float currentCharge = 0;
+            public float secondsUntilAttempt = 0;
 
+            public float lotusTimer = 0;
 
             public bool rise = false;
 

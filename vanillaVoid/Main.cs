@@ -366,34 +366,34 @@ namespace vanillaVoid {
 
         }
 
-        private void CreateVoidList(ContagiousItemManager.orig_Init orig)
-        {
-            orig();
-            voidItemPairs = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem];
-            foreach(ItemDef.Pair pair in voidItemPairs)
-            {
+        //private void CreateVoidList(ContagiousItemManager.orig_Init orig)
+        //{
+        //    orig();
+        //    voidItemPairs = ItemCatalog.itemRelationships[DLC1Content.ItemRelationshipTypes.ContagiousItem];
+        //    foreach(ItemDef.Pair pair in voidItemPairs)
+        //    {
+        //
+        //    }
+        //}
+        //
+        //private void InterceptStalePickup(On.RoR2.GenericPickupController.orig_HandlePickupMessage orig, NetworkMessage netMsg)
+        //{
+        //    orig(netMsg);
+        //}
 
-            }
-        }
-
-        private void InterceptStalePickup(On.RoR2.GenericPickupController.orig_HandlePickupMessage orig, NetworkMessage netMsg)
-        {
-            orig(netMsg);
-        }
-
-        private void AdjustCorruptMessage(On.RoR2.Chat.orig_AddPickupMessage orig, CharacterBody body, string pickupToken, Color32 pickupColor, uint pickupQuantity)
-        {
-            //if(
-            
-            //orig(body, pickupToken, pickupColor, pickupQuantity);
-
-        }
+        //private void AdjustCorruptMessage(On.RoR2.Chat.orig_AddPickupMessage orig, CharacterBody body, string pickupToken, Color32 pickupColor, uint pickupQuantity)
+        //{
+        //    //if(
+        //    
+        //    //orig(body, pickupToken, pickupColor, pickupQuantity);
+        //
+        //}
 
         private void ImproveStarCradle(On.RoR2.PurchaseInteraction.orig_OnInteractionBegin orig, PurchaseInteraction self, Interactor activator)
         {
             if(self.displayNameToken == "VOID_CHEST_NAME")
             {
-                var count = activator.GetComponent<CharacterBody>().inventory.GetItemCount(DLC2Content.Items.LowerPricedChests);
+                var count = activator.GetComponent<CharacterBody>().inventory.GetItemCountEffective(DLC2Content.Items.LowerPricedChests);
                 var chestb = self.GetComponent<ChestBehavior>();
                 if (chestb && count > 0)
                 {

@@ -57,7 +57,7 @@ namespace vanillaVoid.Items
 
         public static GameObject vialsVFX { get; set; } = MainAssets.LoadAsset<GameObject>("VialsVFX");
 
-        public override ItemTag[] ItemTags => new ItemTag[2] { ItemTag.Utility, ItemTag.LowHealth };
+        public override ItemTag[] ItemTags => new ItemTag[3] { ItemTag.Utility, ItemTag.LowHealth, ItemTag.CanBeTemporary };
 
         // -- broken vials -- //
         //public string BrokenItemName => "Empty Vials";
@@ -144,28 +144,6 @@ namespace vanillaVoid.Items
 
 
         }
-
-        //protected void CreateBrokenItem()
-        //{
-        //    LanguageAPI.Add("ITEM_" + BrokenItemLangTokenName + "_NAME", BrokenItemName);
-        //    LanguageAPI.Add("ITEM_" + BrokenItemLangTokenName + "_PICKUP", BrokenItemPickupDesc);
-        //    LanguageAPI.Add("ITEM_" + BrokenItemLangTokenName + "_DESCRIPTION", BrokenItemFullDescription);
-        //    LanguageAPI.Add("ITEM_" + BrokenItemLangTokenName + "_LORE", BrokenItemLore);
-        //
-        //    BrokenItemDef = ScriptableObject.CreateInstance<ItemDef>();
-        //    BrokenItemDef.name = "ITEM_BROKEN" + BrokenItemLangTokenName;
-        //    BrokenItemDef.nameToken = "ITEM_BROKEN" + BrokenItemLangTokenName + "_NAME";
-        //    BrokenItemDef.pickupToken = "ITEM_BROKEN" + BrokenItemLangTokenName + "_PICKUP";
-        //    BrokenItemDef.descriptionToken = "ITEM_BROKEN" + BrokenItemLangTokenName + "_DESCRIPTION";
-        //    BrokenItemDef.loreToken = "ITEM_BROKEN" + BrokenItemLangTokenName + "_LORE";
-        //    BrokenItemDef.pickupModelPrefab = BrokenItemModel;
-        //    BrokenItemDef.pickupIconSprite = BrokenItemIcon;
-        //    BrokenItemDef.hidden = true;
-        //    BrokenItemDef.canRemove = CanRemove;
-        //    BrokenItemDef.deprecatedTier = BrokenTier;
-        //
-        //    ItemAPI.Add(new CustomItem(BrokenItemDef, CreateItemDisplayRules()));
-        //}
 
         public override void CreateConfig(ConfigFile config){
             //consumeStack = config.Bind<bool>("Item: " + ItemName, "Consume Stack", false, "Adjust if each potion should upgrade a whole stack, like benthic, or only one.");
@@ -796,17 +774,11 @@ namespace vanillaVoid.Items
             //RoR2.SceneDirector.onPrePopulateSceneServer += RefreshVials;
         }
 
-        //private void StoreTable(ContagiousItemManager.orig_Init orig)
-        //{
-        //    orig();
-        //    
-        //}
-
         private void CorruptItem(On.RoR2.HealthComponent.orig_UpdateLastHitTime orig, HealthComponent self, float damageValue, Vector3 damagePosition, bool damageIsSilent, GameObject attacker, bool delayedDamage, bool firstHitOfDelayedDamage)
         {
             orig(self, damageValue, damagePosition, damageIsSilent, attacker, delayedDamage, firstHitOfDelayedDamage);
             int potionCount = GetCount(self.body);
-            if (NetworkServer.active && (bool)self && (bool)self.body && GetCount(self.body) > 0 && self.isHealthLow)
+            if (NetworkServer.active && (bool)self && (bool)self.body && potionCount > 0 && self.isHealthLow)
             {
                 if (potionVoidRng == null)
                 {
@@ -822,7 +794,8 @@ namespace vanillaVoid.Items
                     try
                     {
                         pairs.Add(item.itemDef1.itemIndex, item.itemDef2.itemIndex);
-                    }catch(Exception e)
+                    }
+                    catch(Exception e)
                     {
                         Debug.Log("Already added " + item.itemDef1.itemIndex + " | " + item.itemDef2.itemIndex + " ||| " + e);
                     }
@@ -838,10 +811,82 @@ namespace vanillaVoid.Items
                     ItemIndex pair;
                     if (pairs.TryGetValue(index, out pair))
                     {
-                        self.body.inventory.RemoveItem(index, 1);
-                        self.body.inventory.GiveItem(pair, potionCount);
-                        self.body.inventory.GiveItem(EmptyVials.instance.ItemDef, potionCount);
-                        self.body.inventory.RemoveItem(this.ItemDef, potionCount);
+                        var inventory = self.body.inventory;
+                        var tempItemCount = inventory.GetItemCountTemp(index);
+                        var decayValue = Mathf.Max(0, inventory.GetTempItemDecayValue(index));
+                        var permItemCount = inventory.GetItemCountPermanent(index);
+
+                        var vialsTempCount = inventory.GetItemCountTemp(this.ItemDef); //2 temps
+                        var vialsDecayValue = Mathf.Max(0, inventory.GetTempItemDecayValue(this.ItemDef.itemIndex)); //1.2 temps (1 full temp, 1 temp with .2 duration left)
+                        var vialsPermCount = inventory.GetItemCountPermanent(this.ItemDef);
+
+                        //simplified rule = if a real item is involved, you get a real void. if all involved are temps, you get temps
+
+                        if(permItemCount > 0 && vialsPermCount > 0) //take one perm, give at least one perm, everything else follows suit
+                        {
+                            inventory.RemoveItemPermanent(index, 1);
+
+                            inventory.GiveItemPermanent(pair, vialsPermCount);
+                            inventory.GiveItemTemp(pair, vialsDecayValue);
+                        }
+                        else if(permItemCount > 0) //we're corrupting a real item, but we only have temp vials
+                        {
+                            inventory.RemoveItemPermanent(index, 1);
+
+                            inventory.GiveItemPermanent(pair, 1);
+                            vialsDecayValue = Mathf.Max(0, vialsDecayValue - 1);
+                            inventory.GiveItemTemp(pair, vialsDecayValue);
+                        }
+                        else if(vialsPermCount > 0) //we're corrupting temps, but we have a real vials
+                        {
+                            float singleValue = decayValue - (tempItemCount - 1);
+
+                            inventory.RemoveItemTemp(index, singleValue); //remove one of the temps, give perms equal to how many perm vials we have, then add any temp vials
+
+                            inventory.GiveItemPermanent(pair, vialsPermCount);
+                            inventory.GiveItemTemp(pair, vialsDecayValue);
+                        }
+                        else //you only have temps
+                        {
+                            inventory.RemoveItemTemp(index, Mathf.Min(decayValue, 1));
+
+                            inventory.GiveItemTemp(pair, vialsDecayValue);
+                        }
+                        ConsumeVials(inventory);
+                        //if (tempItemCount > 0) //if you have some temps
+                        //{
+                        //    var decayValue = self.body.inventory.GetTempItemDecayValue(index);
+                        //
+                        //    self.body.inventory.RemoveItemTemp(index, 1);
+                        //    self.body.inventory.GiveItemTemp(index, decayValue);
+                        //
+                        //    if (vialsTempCount >= 1) //Remove one from the count, as we're directly converting one 
+                        //    {
+                        //        vialsTempCount -= 1;
+                        //    }
+                        //    else if(vialsPermCount > 1)
+                        //    {
+                        //        vialsPermCount -= 1;
+                        //    }
+                        //
+                        //    self.body.inventory.GiveItemPermanent(pair, vialsPermCount);
+                        //    self.body.inventory.GiveItemTemp(pair, vialsDecayValue);
+                        //
+                        //    ConsumeVials(self.body.inventory);
+                        //}
+                        //else
+                        //{
+                        //    self.body.inventory.RemoveItemPermanent(index, 1);
+                        //
+                        //    self.body.inventory.GiveItemPermanent(pair, vialsPermCount);
+                        //    self.body.inventory.GiveItemTemp(pair, vialsDecayValue);
+                        //    ConsumeVials(self.body.inventory);
+                        //}
+
+                        //self.body.inventory.RemoveItem(index, 1);
+                        //self.body.inventory.GiveItem(pair, potionCount);
+                        //self.body.inventory.GiveItem(EmptyVials.instance.ItemDef, potionCount);
+                        //self.body.inventory.RemoveItem(this.ItemDef, potionCount);
                         CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, index, pair, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
                         CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, this.ItemDef.itemIndex, EmptyVials.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
 
@@ -852,13 +897,30 @@ namespace vanillaVoid.Items
                 }
                 else
                 {
-                    self.body.inventory.GiveItem(EmptyVials.instance.ItemDef, potionCount);
-                    self.body.inventory.RemoveItem(this.ItemDef, potionCount);
+                    ConsumeVials(self.body.inventory);
                     CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, this.ItemDef.itemIndex, ShatteredVials.instance.ItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
                     EffectData effectData = new EffectData { origin = self.transform.position };
                     effectData.SetNetworkedObjectReference(self.gameObject);
                     EffectManager.SpawnEffect(vialsVFX, effectData, transmit: true);
                 }   
+            }
+        }
+
+
+        private void ConsumeVials(Inventory inventory)
+        {
+            var vialsTempCount = inventory.GetItemCountTemp(this.ItemDef);
+            var vialsPermCount = inventory.GetItemCountPermanent(this.ItemDef);
+            if(vialsTempCount > 0)
+            {
+                var decayValue = inventory.GetTempItemDecayValue(this.ItemDef.itemIndex);
+                inventory.RemoveItemTemp(this.ItemDef.itemIndex, decayValue);
+                inventory.GiveItemTemp(EmptyVials.instance.ItemDef.itemIndex, decayValue);
+            }
+            if(vialsPermCount > 0)
+            {
+                inventory.RemoveItemPermanent(this.ItemDef, vialsPermCount);
+                inventory.GiveItemPermanent(EmptyVials.instance.ItemDef.itemIndex, vialsPermCount);
             }
         }
 
@@ -872,7 +934,7 @@ namespace vanillaVoid.Items
                 foreach (var player in PlayerCharacterMasterController.instances)
                 {
                     int itemCount = 0;
-                    itemCount += player.master.inventory.GetItemCount(ItemBase<EmptyVials>.instance.ItemDef);
+                    itemCount += player.master.inventory.GetItemCountEffective(ItemBase<EmptyVials>.instance.ItemDef);
                     if (itemCount > 0 && refreshAmnt < 0)
                     {
                         player.master.inventory.GiveItem(ItemBase<EnhancementVials>.instance.ItemDef, itemCount);
@@ -909,28 +971,7 @@ namespace vanillaVoid.Items
                 int potionLeftCount = potionCount;
                 int oldItemCount = 0;
                 var brokenItemDef = ItemBase<EmptyVials>.instance.ItemDef;
-                //if (vialsVariant.Value == 0){
-                //    Util.ShuffleList(corruptibleItems, potionVoidRng);
-                //    foreach (var pair in corruptibleItems){
-                //        int count = self.body.inventory.GetItemCount(pair.itemDef1);
-                //        if (count > 0){
-                //            self.body.inventory.RemoveItem(pair.itemDef1, count);
-                //            self.body.inventory.GiveItem(pair.itemDef2, count);
-                //            --potionLeftCount;
-                //        }
-                //        if (potionLeftCount < 1){
-                //            break;
-                //        }
-                //    }
-                //
-                //    self.body.inventory.RemoveItem(EnhancementVials.instance.ItemDef, potionCount);
-                //    self.body.inventory.GiveItem(brokenItemDef, potionCount);
-                //    CharacterMasterNotificationQueue.SendTransformNotification(self.body.master, ItemBase<EnhancementVials>.instance.ItemDef.itemIndex, brokenItemDef.itemIndex, CharacterMasterNotificationQueue.TransformationType.CloverVoid);
-                //    EffectData effectData = new EffectData { origin = self.transform.position };
-                //    effectData.SetNetworkedObjectReference(self.gameObject);
-                //    EffectManager.SpawnEffect(HealthComponent.AssetReferences.shieldBreakEffectPrefab, effectData, transmit: true);
-                //
-                //}else{
+
                     while (!isDone){
                         List<ItemIndex> inventoryList = new List<ItemIndex>(self.body.inventory.itemAcquisitionOrder);
                         List<PickupIndex> greenList = new List<PickupIndex>(Run.instance.availableTier2DropList);
